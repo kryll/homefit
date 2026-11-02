@@ -72,5 +72,6 @@ dependencies {
     implementation(libs.work.runtime)
     implementation(libs.coroutines.core)
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303")
     testImplementation(libs.coroutines.test)
 }

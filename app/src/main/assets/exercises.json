@@ -1,0 +1,2240 @@
+[
+ {
+  "id": "flexiones",
+  "name": "Flexiones",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "triceps",
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Apoya manos y puntas de pies, cuerpo en línea.",
+   "Baja el pecho hasta casi tocar el suelo.",
+   "Empuja hasta extender los codos."
+  ],
+  "commonMistakes": [
+   "Hundir la cadera.",
+   "Codos muy abiertos."
+  ],
+  "safetyTips": [
+   "Aprieta abdomen y glúteos todo el rato."
+  ],
+  "easierVariantId": "flexiones_rodillas",
+  "harderVariantId": "flexiones_diamante"
+ },
+ {
+  "id": "flexiones_rodillas",
+  "name": "Flexiones con rodillas apoyadas",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "triceps",
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Apoya manos y rodillas, espalda recta.",
+   "Baja el pecho hacia el suelo.",
+   "Empuja hasta extender los brazos."
+  ],
+  "commonMistakes": [
+   "Arquear la zona lumbar."
+  ],
+  "safetyTips": [
+   "Mantén la línea de rodillas a cabeza."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "flexiones"
+ },
+ {
+  "id": "flexiones_diamante",
+  "name": "Flexiones diamante",
+  "primaryMuscle": "triceps",
+  "secondaryMuscles": [
+   "pecho",
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Junta las manos formando un rombo bajo el pecho.",
+   "Baja con los codos cerca del cuerpo.",
+   "Empuja hasta estirar los brazos."
+  ],
+  "commonMistakes": [
+   "Dejar caer la cadera."
+  ],
+  "safetyTips": [
+   "Si molestan las muñecas, usa flexiones normales."
+  ],
+  "easierVariantId": "flexiones",
+  "harderVariantId": null
+ },
+ {
+  "id": "flexiones_inclinadas",
+  "name": "Flexiones inclinadas",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "triceps",
+   "hombros"
+  ],
+  "equipment": [
+   "banco"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Apoya las manos en un banco o silla estable.",
+   "Baja el pecho al borde.",
+   "Empuja y vuelve arriba."
+  ],
+  "commonMistakes": [
+   "Silla inestable."
+  ],
+  "safetyTips": [
+   "Cuanto más alto el apoyo, más fácil."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "flexiones"
+ },
+ {
+  "id": "flexiones_declinadas",
+  "name": "Flexiones declinadas",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "hombros",
+   "triceps"
+  ],
+  "equipment": [
+   "banco"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Pies sobre un banco, manos en el suelo.",
+   "Baja el pecho con el cuerpo recto.",
+   "Empuja hasta extender."
+  ],
+  "commonMistakes": [
+   "Hombros adelantados en exceso."
+  ],
+  "safetyTips": [
+   "Controla la bajada en 2 s."
+  ],
+  "easierVariantId": "flexiones",
+  "harderVariantId": null
+ },
+ {
+  "id": "press_banca_mancuernas",
+  "name": "Press de banca con mancuernas",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "triceps",
+   "hombros"
+  ],
+  "equipment": [
+   "mancuernas",
+   "banco"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Túmbate con una mancuerna en cada mano a la altura del pecho.",
+   "Empuja hacia arriba sin chocar las mancuernas.",
+   "Baja despacio hasta sentir el pecho estirado."
+  ],
+  "commonMistakes": [
+   "Rebotar abajo.",
+   "Muñecas dobladas."
+  ],
+  "safetyTips": [
+   "Escápulas juntas y pegadas al banco."
+  ],
+  "easierVariantId": "flexiones",
+  "harderVariantId": null
+ },
+ {
+  "id": "press_suelo_mancuernas",
+  "name": "Press en suelo con mancuernas",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "triceps"
+  ],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Túmbate en el suelo con las rodillas dobladas.",
+   "Sube las mancuernas sobre el pecho.",
+   "Baja hasta que los codos toquen el suelo."
+  ],
+  "commonMistakes": [
+   "Dejar caer los codos de golpe."
+  ],
+  "safetyTips": [
+   "Buena opción sin banco."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "press_banca_mancuernas"
+ },
+ {
+  "id": "aperturas_mancuernas",
+  "name": "Aperturas con mancuernas",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "hombros"
+  ],
+  "equipment": [
+   "mancuernas",
+   "banco"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Tumbado, brazos extendidos sobre el pecho con codos algo flexionados.",
+   "Abre los brazos en arco hasta sentir estiramiento.",
+   "Cierra de nuevo sobre el pecho."
+  ],
+  "commonMistakes": [
+   "Usar demasiado peso."
+  ],
+  "safetyTips": [
+   "Mantén el codo ligeramente flexionado siempre."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "fondos_banco",
+  "name": "Fondos en banco",
+  "primaryMuscle": "triceps",
+  "secondaryMuscles": [
+   "hombros",
+   "pecho"
+  ],
+  "equipment": [
+   "banco"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Manos en el borde del banco, piernas extendidas.",
+   "Baja flexionando los codos hacia atrás.",
+   "Empuja hasta extender los brazos."
+  ],
+  "commonMistakes": [
+   "Bajar demasiado profundo."
+  ],
+  "safetyTips": [
+   "Mantén la espalda pegada al banco."
+  ],
+  "easierVariantId": "fondos_banco_rodillas",
+  "harderVariantId": "fondos_paralelas"
+ },
+ {
+  "id": "fondos_banco_rodillas",
+  "name": "Fondos en banco con rodillas dobladas",
+  "primaryMuscle": "triceps",
+  "secondaryMuscles": [
+   "hombros"
+  ],
+  "equipment": [
+   "banco"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Manos en el banco, rodillas dobladas a 90 grados.",
+   "Baja los codos hacia atrás.",
+   "Extiende los brazos."
+  ],
+  "commonMistakes": [
+   "Codos abiertos."
+  ],
+  "safetyTips": [
+   "Versión más fácil de los fondos."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "fondos_banco"
+ },
+ {
+  "id": "fondos_paralelas",
+  "name": "Fondos en paralelas",
+  "primaryMuscle": "triceps",
+  "secondaryMuscles": [
+   "pecho",
+   "hombros"
+  ],
+  "equipment": [
+   "barra_paralelas"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Sujétate en las paralelas con los brazos extendidos.",
+   "Baja controlado hasta unos 90 grados de codo.",
+   "Empuja hasta arriba."
+  ],
+  "commonMistakes": [
+   "Balancear el cuerpo."
+  ],
+  "safetyTips": [
+   "Torso algo inclinado trabaja más el pecho."
+  ],
+  "easierVariantId": "fondos_banco",
+  "harderVariantId": null
+ },
+ {
+  "id": "extension_triceps_mancuerna",
+  "name": "Extensión de tríceps sobre la cabeza",
+  "primaryMuscle": "triceps",
+  "secondaryMuscles": [],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Sujeta una mancuerna con ambas manos sobre la cabeza.",
+   "Dobla los codos llevándola detrás de la nuca.",
+   "Extiende los brazos de nuevo."
+  ],
+  "commonMistakes": [
+   "Abrir los codos."
+  ],
+  "safetyTips": [
+   "Codos cerca de las orejas."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "patada_triceps",
+  "name": "Patada de tríceps",
+  "primaryMuscle": "triceps",
+  "secondaryMuscles": [],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Inclina el torso con la espalda recta y el codo pegado al costado.",
+   "Extiende el brazo hacia atrás.",
+   "Vuelve despacio."
+  ],
+  "commonMistakes": [
+   "Mover el hombro."
+  ],
+  "safetyTips": [
+   "Peso ligero y control."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "press_militar_mancuernas",
+  "name": "Press militar con mancuernas",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [
+   "triceps"
+  ],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "De pie o sentado, mancuernas a la altura de los hombros.",
+   "Empuja hacia arriba sin arquear la espalda.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Arquear la zona lumbar."
+  ],
+  "safetyTips": [
+   "Abdomen firme."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "elevaciones_laterales",
+  "name": "Elevaciones laterales",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie con una mancuerna en cada mano.",
+   "Eleva los brazos a los lados hasta la altura del hombro.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Balancear el torso.",
+   "Subir más del hombro."
+  ],
+  "safetyTips": [
+   "Imagina verter una jarra con el meñique arriba."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "elevaciones_frontales",
+  "name": "Elevaciones frontales",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie con las mancuernas delante de los muslos.",
+   "Eleva un brazo al frente hasta el hombro.",
+   "Baja y alterna."
+  ],
+  "commonMistakes": [
+   "Impulso con la espalda."
+  ],
+  "safetyTips": [
+   "Sin balanceo."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "pajaros",
+  "name": "Pájaros (hombro posterior)",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [
+   "espalda"
+  ],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Inclina el torso con la espalda recta.",
+   "Abre los brazos hacia los lados.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Encoger los hombros."
+  ],
+  "safetyTips": [
+   "Piensa en juntar las escápulas."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "pike_push_up",
+  "name": "Flexión pike",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [
+   "triceps"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Cadera alta formando una V invertida.",
+   "Baja la cabeza hacia el suelo entre las manos.",
+   "Empuja hasta extender."
+  ],
+  "commonMistakes": [
+   "Apoyar la cabeza."
+  ],
+  "safetyTips": [
+   "Más cerca de los pies, más difícil."
+  ],
+  "easierVariantId": "flexiones",
+  "harderVariantId": null
+ },
+ {
+  "id": "remo_mancuerna",
+  "name": "Remo con mancuerna a una mano",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "mancuernas",
+   "banco"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Apoya una mano y rodilla en el banco, espalda plana.",
+   "Tira de la mancuerna hacia la cadera.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Girar el torso."
+  ],
+  "safetyTips": [
+   "Lidera con el codo."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "remo_inclinado_mancuernas",
+  "name": "Remo inclinado con mancuernas",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Inclina el torso unos 45 grados con las rodillas flexionadas.",
+   "Tira de ambas mancuernas hacia el abdomen.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Redondear la espalda."
+  ],
+  "safetyTips": [
+   "Espalda neutra todo el tiempo."
+  ],
+  "easierVariantId": "remo_mancuerna",
+  "harderVariantId": null
+ },
+ {
+  "id": "remo_banda",
+  "name": "Remo con banda elástica",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Sentado con la banda en los pies y las piernas extendidas.",
+   "Tira de la banda hacia el abdomen.",
+   "Vuelve con control."
+  ],
+  "commonMistakes": [
+   "Encorvarse."
+  ],
+  "safetyTips": [
+   "Junta las escápulas al final."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "remo_invertido",
+  "name": "Remo invertido",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "barra_dominadas"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Bajo una barra baja, agárrala con el cuerpo recto.",
+   "Tira del pecho hacia la barra.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Cadera caída."
+  ],
+  "safetyTips": [
+   "Flexionar rodillas lo hace más fácil."
+  ],
+  "easierVariantId": "remo_banda",
+  "harderVariantId": null
+ },
+ {
+  "id": "dominadas",
+  "name": "Dominadas",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "barra_dominadas"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Cuelga de la barra con agarre algo más ancho que los hombros.",
+   "Sube hasta pasar la barbilla.",
+   "Baja controlado hasta extender."
+  ],
+  "commonMistakes": [
+   "Balanceo.",
+   "Medio recorrido."
+  ],
+  "safetyTips": [
+   "Lidera con el pecho."
+  ],
+  "easierVariantId": "dominadas_banda",
+  "harderVariantId": null
+ },
+ {
+  "id": "dominadas_banda",
+  "name": "Dominadas asistidas con banda",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "barra_dominadas",
+   "banda_elastica"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Pasa una banda por la barra y apoya rodilla o pie.",
+   "Sube hasta la barbilla.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Rebotar en la banda."
+  ],
+  "safetyTips": [
+   "Reduce la ayuda poco a poco."
+  ],
+  "easierVariantId": "remo_invertido",
+  "harderVariantId": "dominadas"
+ },
+ {
+  "id": "jalon_banda",
+  "name": "Jalón con banda",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Banda anclada arriba, de rodillas.",
+   "Tira hacia el pecho con los codos hacia abajo.",
+   "Vuelve despacio."
+  ],
+  "commonMistakes": [
+   "Inclinar mucho el torso."
+  ],
+  "safetyTips": [
+   "Pecho alto."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "superman",
+  "name": "Superman",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Tumbado boca abajo con los brazos estirados.",
+   "Eleva brazos y piernas a la vez.",
+   "Mantén 2 s y baja."
+  ],
+  "commonMistakes": [
+   "Mirar hacia arriba forzando el cuello."
+  ],
+  "safetyTips": [
+   "Mirada al suelo."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "curl_biceps_mancuernas",
+  "name": "Curl de bíceps con mancuernas",
+  "primaryMuscle": "biceps",
+  "secondaryMuscles": [
+   "antebrazo"
+  ],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie con las mancuernas a los lados.",
+   "Dobla los codos subiendo las mancuernas.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Balancear el cuerpo."
+  ],
+  "safetyTips": [
+   "Codos pegados al torso."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "curl_martillo",
+  "name": "Curl martillo",
+  "primaryMuscle": "biceps",
+  "secondaryMuscles": [
+   "antebrazo"
+  ],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Agarre neutro, palmas enfrentadas.",
+   "Sube las mancuernas sin mover el codo.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Impulso."
+  ],
+  "safetyTips": [
+   "Muñeca neutra."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "curl_concentrado",
+  "name": "Curl concentrado",
+  "primaryMuscle": "biceps",
+  "secondaryMuscles": [],
+  "equipment": [
+   "mancuernas",
+   "banco"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Sentado, codo apoyado en el muslo.",
+   "Sube la mancuerna hacia el hombro.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Mover el hombro."
+  ],
+  "safetyTips": [
+   "Aprieta arriba 1 s."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "curl_banda",
+  "name": "Curl de bíceps con banda",
+  "primaryMuscle": "biceps",
+  "secondaryMuscles": [],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Pisa la banda con los pies.",
+   "Sube las manos hacia los hombros.",
+   "Baja con control."
+  ],
+  "commonMistakes": [
+   "Codos adelantados."
+  ],
+  "safetyTips": [
+   "Ajusta la tensión con el agarre."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "sentadilla",
+  "name": "Sentadilla",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos",
+   "isquios"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Pies al ancho de hombros, pecho alto.",
+   "Baja la cadera hacia atrás y abajo.",
+   "Empuja con los talones para subir."
+  ],
+  "commonMistakes": [
+   "Rodillas hacia dentro.",
+   "Talones levantados."
+  ],
+  "safetyTips": [
+   "Rodillas siguen la dirección de los pies."
+  ],
+  "easierVariantId": "sentadilla_silla",
+  "harderVariantId": "sentadilla_pistol"
+ },
+ {
+  "id": "sentadilla_silla",
+  "name": "Sentadilla a silla",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "silla"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De espaldas a una silla estable.",
+   "Siéntate con control sin dejarte caer.",
+   "Levántate empujando con los talones."
+  ],
+  "commonMistakes": [
+   "Dejarse caer."
+  ],
+  "safetyTips": [
+   "Roza la silla y sube sin impulso."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "sentadilla"
+ },
+ {
+  "id": "sentadilla_goblet",
+  "name": "Sentadilla goblet",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos",
+   "core"
+  ],
+  "equipment": [
+   "mancuernas",
+   "kettlebell"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Sujeta una mancuerna contra el pecho.",
+   "Baja con la espalda recta.",
+   "Sube empujando el suelo."
+  ],
+  "commonMistakes": [
+   "Redondear la espalda."
+  ],
+  "safetyTips": [
+   "Codos entre las rodillas abajo."
+  ],
+  "easierVariantId": "sentadilla",
+  "harderVariantId": null
+ },
+ {
+  "id": "sentadilla_sumo",
+  "name": "Sentadilla sumo",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [
+   "cuadriceps",
+   "aductores"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Pies muy abiertos con las puntas hacia fuera.",
+   "Baja con el torso erguido.",
+   "Sube apretando glúteos."
+  ],
+  "commonMistakes": [
+   "Rodillas hacia dentro."
+  ],
+  "safetyTips": [
+   "Empuja las rodillas hacia fuera."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "sentadilla_salto",
+  "name": "Sentadilla con salto",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos",
+   "gemelos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Baja a una sentadilla.",
+   "Salta con fuerza hacia arriba.",
+   "Aterriza suave y repite."
+  ],
+  "commonMistakes": [
+   "Aterrizar con rodillas rígidas."
+  ],
+  "safetyTips": [
+   "Amortigua con cadera y rodillas."
+  ],
+  "easierVariantId": "sentadilla",
+  "harderVariantId": null
+ },
+ {
+  "id": "sentadilla_pistol",
+  "name": "Sentadilla a una pierna asistida",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos",
+   "core"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Agárrate a un soporte, una pierna adelante.",
+   "Baja sobre la pierna de apoyo.",
+   "Sube con control."
+  ],
+  "commonMistakes": [
+   "Perder el equilibrio."
+  ],
+  "safetyTips": [
+   "Usa el soporte lo menos posible."
+  ],
+  "easierVariantId": "sentadilla",
+  "harderVariantId": null
+ },
+ {
+  "id": "zancada",
+  "name": "Zancada",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos",
+   "isquios"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Da un paso largo al frente.",
+   "Baja la rodilla trasera hacia el suelo.",
+   "Empuja para volver."
+  ],
+  "commonMistakes": [
+   "Rodilla delantera pasa mucho de los dedos."
+  ],
+  "safetyTips": [
+   "Torso erguido."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "zancada_andando"
+ },
+ {
+  "id": "zancada_atras",
+  "name": "Zancada hacia atrás",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Da un paso atrás.",
+   "Baja la rodilla trasera.",
+   "Vuelve al inicio empujando con la pierna delantera."
+  ],
+  "commonMistakes": [
+   "Inclinarse hacia delante."
+  ],
+  "safetyTips": [
+   "Más amable con la rodilla."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "zancada"
+ },
+ {
+  "id": "zancada_andando",
+  "name": "Zancadas caminando",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos",
+   "isquios"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Zancada al frente.",
+   "Impúlsate al siguiente paso con la otra pierna.",
+   "Continúa alternando."
+  ],
+  "commonMistakes": [
+   "Pasos muy cortos."
+  ],
+  "safetyTips": [
+   "Mantén el tronco recto."
+  ],
+  "easierVariantId": "zancada",
+  "harderVariantId": null
+ },
+ {
+  "id": "sentadilla_bulgara",
+  "name": "Sentadilla búlgara",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "banco"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Pie trasero sobre un banco.",
+   "Baja con la pierna delantera.",
+   "Sube empujando el talón."
+  ],
+  "commonMistakes": [
+   "Pie delantero demasiado cerca."
+  ],
+  "safetyTips": [
+   "Peso en el talón delantero."
+  ],
+  "easierVariantId": "zancada",
+  "harderVariantId": null
+ },
+ {
+  "id": "subida_banco",
+  "name": "Subida al banco",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "banco"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Frente a un banco estable.",
+   "Sube un pie y luego el otro.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Empujar con el pie de abajo."
+  ],
+  "safetyTips": [
+   "Usa la pierna de arriba."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "peso_muerto_rumano",
+  "name": "Peso muerto rumano con mancuernas",
+  "primaryMuscle": "isquios",
+  "secondaryMuscles": [
+   "gluteos",
+   "espalda"
+  ],
+  "equipment": [
+   "mancuernas"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "De pie con las mancuernas delante de los muslos.",
+   "Empuja la cadera atrás con la espalda recta.",
+   "Sube apretando glúteos."
+  ],
+  "commonMistakes": [
+   "Redondear la espalda."
+  ],
+  "safetyTips": [
+   "Las mancuernas rozan las piernas."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "buenos_dias",
+  "name": "Buenos días",
+  "primaryMuscle": "isquios",
+  "secondaryMuscles": [
+   "gluteos",
+   "espalda"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Manos tras la cabeza.",
+   "Inclina el torso empujando la cadera atrás.",
+   "Vuelve a la posición erguida."
+  ],
+  "commonMistakes": [
+   "Doblar la espalda."
+  ],
+  "safetyTips": [
+   "Rodillas ligeramente flexionadas."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "curl_femoral_suelo",
+  "name": "Curl femoral deslizante",
+  "primaryMuscle": "isquios",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Tumbado boca arriba con los talones sobre una toalla en suelo liso.",
+   "Eleva la cadera.",
+   "Desliza los talones hacia ti y vuelve."
+  ],
+  "commonMistakes": [
+   "Dejar caer la cadera."
+  ],
+  "safetyTips": [
+   "Cadera siempre alta."
+  ],
+  "easierVariantId": "puente_gluteos",
+  "harderVariantId": null
+ },
+ {
+  "id": "puente_gluteos",
+  "name": "Puente de glúteos",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [
+   "isquios"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Tumbado con las rodillas dobladas.",
+   "Eleva la cadera apretando glúteos.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Arquear la zona lumbar."
+  ],
+  "safetyTips": [
+   "Pausa de 1 s arriba."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "puente_una_pierna"
+ },
+ {
+  "id": "puente_una_pierna",
+  "name": "Puente a una pierna",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [
+   "isquios"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Una pierna estirada al aire.",
+   "Eleva la cadera con la otra.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Girar la pelvis."
+  ],
+  "safetyTips": [
+   "Pelvis nivelada."
+  ],
+  "easierVariantId": "puente_gluteos",
+  "harderVariantId": null
+ },
+ {
+  "id": "hip_thrust",
+  "name": "Hip thrust con mancuerna",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [
+   "isquios"
+  ],
+  "equipment": [
+   "mancuernas",
+   "banco"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Espalda alta apoyada en el banco, mancuerna sobre la cadera.",
+   "Eleva la cadera hasta alinear tronco y muslos.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Hiperextender la espalda."
+  ],
+  "safetyTips": [
+   "Barbilla al pecho."
+  ],
+  "easierVariantId": "puente_gluteos",
+  "harderVariantId": null
+ },
+ {
+  "id": "patada_gluteo",
+  "name": "Patada de glúteo a cuatro apoyos",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "A cuatro apoyos.",
+   "Lleva una pierna atrás y arriba.",
+   "Baja sin tocar el suelo."
+  ],
+  "commonMistakes": [
+   "Arquear la espalda."
+  ],
+  "safetyTips": [
+   "Cadera cuadrada."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "abduccion_cadera_lateral",
+  "name": "Elevación lateral de pierna",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [
+   "abductores"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Tumbado de lado.",
+   "Eleva la pierna de arriba.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Rotar la pelvis."
+  ],
+  "safetyTips": [
+   "Pie en neutro."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "almeja",
+  "name": "Almeja",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De lado con rodillas dobladas y banda en los muslos.",
+   "Abre la rodilla de arriba.",
+   "Cierra con control."
+  ],
+  "commonMistakes": [
+   "Rotar la pelvis."
+  ],
+  "safetyTips": [
+   "Pies juntos."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "elevacion_gemelos",
+  "name": "Elevación de gemelos",
+  "primaryMuscle": "gemelos",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie, puntas en el borde de un escalón.",
+   "Sube sobre las puntas.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Rebotar."
+  ],
+  "safetyTips": [
+   "Pausa arriba."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "elevacion_gemelos_una_pierna"
+ },
+ {
+  "id": "elevacion_gemelos_una_pierna",
+  "name": "Elevación de gemelos a una pierna",
+  "primaryMuscle": "gemelos",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Apóyate en una pierna con un soporte ligero.",
+   "Sube sobre la punta.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Perder el equilibrio."
+  ],
+  "safetyTips": [
+   "Recorrido completo."
+  ],
+  "easierVariantId": "elevacion_gemelos",
+  "harderVariantId": null
+ },
+ {
+  "id": "plancha",
+  "name": "Plancha",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Apoya antebrazos y puntas de pies.",
+   "Cuerpo recto de cabeza a talones.",
+   "Mantén sin hundir la cadera."
+  ],
+  "commonMistakes": [
+   "Cadera alta o caída."
+  ],
+  "safetyTips": [
+   "Respira con calma."
+  ],
+  "easierVariantId": "plancha_rodillas",
+  "harderVariantId": "plancha_lateral"
+ },
+ {
+  "id": "plancha_rodillas",
+  "name": "Plancha con rodillas",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Antebrazos y rodillas apoyados.",
+   "Cuerpo recto de rodillas a cabeza.",
+   "Mantén."
+  ],
+  "commonMistakes": [
+   "Arquear la espalda."
+  ],
+  "safetyTips": [
+   "Versión inicial."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "plancha"
+ },
+ {
+  "id": "plancha_lateral",
+  "name": "Plancha lateral",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "De lado apoyado en el antebrazo.",
+   "Eleva la cadera alineando el cuerpo.",
+   "Mantén y cambia de lado."
+  ],
+  "commonMistakes": [
+   "Hundir la cadera."
+  ],
+  "safetyTips": [
+   "Pies apilados o uno delante."
+  ],
+  "easierVariantId": "plancha",
+  "harderVariantId": null
+ },
+ {
+  "id": "plancha_toque_hombro",
+  "name": "Plancha con toque de hombro",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Posición de flexión con los pies abiertos.",
+   "Toca un hombro con la mano contraria.",
+   "Alterna sin girar la cadera."
+  ],
+  "commonMistakes": [
+   "Girar la pelvis."
+  ],
+  "safetyTips": [
+   "Pies más abiertos dan estabilidad."
+  ],
+  "easierVariantId": "plancha",
+  "harderVariantId": null
+ },
+ {
+  "id": "crunch",
+  "name": "Abdominales crunch",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Tumbado con las rodillas dobladas.",
+   "Eleva los hombros del suelo.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Tirar del cuello."
+  ],
+  "safetyTips": [
+   "Mirada al techo."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "crunch_bicicleta",
+  "name": "Crunch bicicleta",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Manos tras la cabeza, piernas en el aire.",
+   "Lleva codo a rodilla contraria.",
+   "Alterna con control."
+  ],
+  "commonMistakes": [
+   "Ir demasiado rápido."
+  ],
+  "safetyTips": [
+   "Gira el torso, no el cuello."
+  ],
+  "easierVariantId": "crunch",
+  "harderVariantId": null
+ },
+ {
+  "id": "elevacion_piernas",
+  "name": "Elevación de piernas",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [
+   "cadera"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Tumbado con las piernas rectas.",
+   "Elévalas a 90 grados.",
+   "Baja sin tocar el suelo."
+  ],
+  "commonMistakes": [
+   "Arquear la espalda."
+  ],
+  "safetyTips": [
+   "Lumbar pegada al suelo."
+  ],
+  "easierVariantId": "rodillas_pecho",
+  "harderVariantId": null
+ },
+ {
+  "id": "rodillas_pecho",
+  "name": "Rodillas al pecho",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Tumbado con las piernas flexionadas.",
+   "Lleva las rodillas hacia el pecho.",
+   "Baja con control."
+  ],
+  "commonMistakes": [
+   "Impulso."
+  ],
+  "safetyTips": [
+   "Lumbar pegada al suelo."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "elevacion_piernas"
+ },
+ {
+  "id": "dead_bug",
+  "name": "Dead bug",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Tumbado, brazos arriba y rodillas a 90 grados.",
+   "Baja brazo y pierna contrarios.",
+   "Vuelve y alterna."
+  ],
+  "commonMistakes": [
+   "Despegar la lumbar."
+  ],
+  "safetyTips": [
+   "Movimientos lentos."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "bird_dog",
+  "name": "Bird dog",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [
+   "gluteos",
+   "espalda"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "A cuatro apoyos.",
+   "Extiende un brazo y la pierna contraria.",
+   "Vuelve y alterna."
+  ],
+  "commonMistakes": [
+   "Rotar la cadera."
+  ],
+  "safetyTips": [
+   "Espalda plana como una mesa."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "mountain_climbers",
+  "name": "Escaladores",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [
+   "hombros",
+   "cardio"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Posición de flexión.",
+   "Lleva una rodilla al pecho y alterna rápido.",
+   "Mantén la cadera baja."
+  ],
+  "commonMistakes": [
+   "Cadera muy alta."
+  ],
+  "safetyTips": [
+   "Ritmo constante."
+  ],
+  "easierVariantId": "plancha",
+  "harderVariantId": null
+ },
+ {
+  "id": "russian_twist",
+  "name": "Giro ruso",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Sentado con el torso inclinado y los pies elevados.",
+   "Gira el torso de lado a lado.",
+   "Controla el movimiento."
+  ],
+  "commonMistakes": [
+   "Mover solo los brazos."
+  ],
+  "safetyTips": [
+   "Pies en el suelo lo hace más fácil."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "hollow_hold",
+  "name": "Hollow hold",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Tumbado, eleva hombros y piernas.",
+   "Lumbar pegada al suelo.",
+   "Mantén la posición."
+  ],
+  "commonMistakes": [
+   "Despegar la lumbar."
+  ],
+  "safetyTips": [
+   "Acorta la palanca si es difícil."
+  ],
+  "easierVariantId": "dead_bug",
+  "harderVariantId": null
+ },
+ {
+  "id": "v_ups",
+  "name": "Abdominales en V",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Tumbado con los brazos arriba.",
+   "Eleva torso y piernas a la vez.",
+   "Toca los pies y baja."
+  ],
+  "commonMistakes": [
+   "Impulso."
+  ],
+  "safetyTips": [
+   "Control en la bajada."
+  ],
+  "easierVariantId": "crunch",
+  "harderVariantId": null
+ },
+ {
+  "id": "jumping_jacks",
+  "name": "Jumping jacks",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "gemelos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie con los pies juntos.",
+   "Salta abriendo piernas y brazos.",
+   "Vuelve al inicio."
+  ],
+  "commonMistakes": [
+   "Aterrizar rígido."
+  ],
+  "safetyTips": [
+   "Mantén un ritmo cómodo."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "rodillas_altas",
+  "name": "Rodillas altas",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "cuadriceps"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie, corre en el sitio.",
+   "Sube las rodillas a la cadera.",
+   "Balancea los brazos."
+  ],
+  "commonMistakes": [
+   "Inclinarse atrás."
+  ],
+  "safetyTips": [
+   "Apoyo suave."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "burpees",
+  "name": "Burpees",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "pecho",
+   "cuadriceps"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "avanzado",
+  "steps": [
+   "Agáchate y apoya las manos.",
+   "Lleva los pies atrás y baja el pecho.",
+   "Vuelve y salta."
+  ],
+  "commonMistakes": [
+   "Dejar caer la espalda."
+  ],
+  "safetyTips": [
+   "Hazlo sin flexión si hace falta."
+  ],
+  "easierVariantId": "burpees_sin_salto",
+  "harderVariantId": null
+ },
+ {
+  "id": "burpees_sin_salto",
+  "name": "Burpees sin salto",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "pecho",
+   "cuadriceps"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Agáchate y apoya las manos.",
+   "Lleva los pies atrás y vuelve.",
+   "Ponte de pie."
+  ],
+  "commonMistakes": [
+   "Espalda hundida."
+  ],
+  "safetyTips": [
+   "Cuerpo recto en la tabla."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": "burpees"
+ },
+ {
+  "id": "saltar_cuerda",
+  "name": "Saltar a la cuerda",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "gemelos"
+  ],
+  "equipment": [
+   "comba"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Cuerda a los lados, codos cerca del cuerpo.",
+   "Salta con pequeños saltos.",
+   "Mantén el ritmo."
+  ],
+  "commonMistakes": [
+   "Saltar demasiado alto."
+  ],
+  "safetyTips": [
+   "Muñecas, no brazos."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "patinador",
+  "name": "Patinador",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Salta lateral de una pierna a otra.",
+   "Cruza la pierna trasera.",
+   "Mantén el equilibrio."
+  ],
+  "commonMistakes": [
+   "Pasos cortos."
+  ],
+  "safetyTips": [
+   "Aterriza flexionado."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "skipping_lateral",
+  "name": "Desplazamiento lateral",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "abductores"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Postura baja y atlética.",
+   "Desplázate de lado sin cruzar los pies.",
+   "Cambia de dirección."
+  ],
+  "commonMistakes": [
+   "Subir y bajar mucho."
+  ],
+  "safetyTips": [
+   "Cadera baja."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "shadow_boxing",
+  "name": "Boxeo al aire",
+  "primaryMuscle": "cardio",
+  "secondaryMuscles": [
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Postura de guardia.",
+   "Lanza golpes rectos alternos.",
+   "Añade esquivas."
+  ],
+  "commonMistakes": [
+   "Bloquear codos."
+  ],
+  "safetyTips": [
+   "Gira la cadera."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "swing_kettlebell",
+  "name": "Swing con kettlebell",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [
+   "isquios",
+   "espalda"
+  ],
+  "equipment": [
+   "kettlebell"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Pies al ancho de hombros, kettlebell entre las piernas.",
+   "Empuja la cadera adelante para lanzarla.",
+   "Controla la bajada."
+  ],
+  "commonMistakes": [
+   "Hacerlo con los brazos."
+  ],
+  "safetyTips": [
+   "Bisagra de cadera."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "press_kettlebell",
+  "name": "Press con kettlebell",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [
+   "triceps"
+  ],
+  "equipment": [
+   "kettlebell"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Kettlebell a la altura del hombro.",
+   "Empuja hacia arriba.",
+   "Baja controlado."
+  ],
+  "commonMistakes": [
+   "Arquear la espalda."
+  ],
+  "safetyTips": [
+   "Abdomen firme."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "remo_kettlebell",
+  "name": "Remo con kettlebell",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "biceps"
+  ],
+  "equipment": [
+   "kettlebell"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Inclina el torso con la kettlebell colgando.",
+   "Tira hacia la cadera.",
+   "Baja despacio."
+  ],
+  "commonMistakes": [
+   "Redondear la espalda."
+  ],
+  "safetyTips": [
+   "Espalda neutra."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "sentadilla_kettlebell",
+  "name": "Sentadilla con kettlebell",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "kettlebell"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Sujeta la kettlebell por los cuernos.",
+   "Baja con la espalda recta.",
+   "Sube empujando el suelo."
+  ],
+  "commonMistakes": [
+   "Redondear la espalda."
+  ],
+  "safetyTips": [
+   "Codos entre las rodillas."
+  ],
+  "easierVariantId": "sentadilla",
+  "harderVariantId": null
+ },
+ {
+  "id": "face_pull_banda",
+  "name": "Face pull con banda",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [
+   "espalda"
+  ],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Banda anclada a la altura de la cara.",
+   "Tira hacia la cara abriendo los codos.",
+   "Vuelve controlado."
+  ],
+  "commonMistakes": [
+   "Encoger los hombros."
+  ],
+  "safetyTips": [
+   "Rotación externa al final."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "press_pecho_banda",
+  "name": "Press de pecho con banda",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "triceps"
+  ],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Banda a la espalda, manos a la altura del pecho.",
+   "Empuja hacia delante.",
+   "Vuelve despacio."
+  ],
+  "commonMistakes": [
+   "Encoger los hombros."
+  ],
+  "safetyTips": [
+   "Mantén la tensión."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "aperturas_banda",
+  "name": "Aperturas con banda",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Banda tras la espalda, brazos abiertos.",
+   "Cierra los brazos al frente.",
+   "Abre con control."
+  ],
+  "commonMistakes": [
+   "Codos muy flexionados."
+  ],
+  "safetyTips": [
+   "Movimiento amplio."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "paseo_monstruo",
+  "name": "Paseo del monstruo",
+  "primaryMuscle": "gluteos",
+  "secondaryMuscles": [
+   "abductores"
+  ],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Banda sobre las rodillas, posición baja.",
+   "Camina de lado.",
+   "Mantén tensión."
+  ],
+  "commonMistakes": [
+   "Rodillas hacia dentro."
+  ],
+  "safetyTips": [
+   "Pasos controlados."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "pallof_press",
+  "name": "Press Pallof",
+  "primaryMuscle": "core",
+  "secondaryMuscles": [],
+  "equipment": [
+   "banda_elastica"
+  ],
+  "difficulty": "intermedio",
+  "steps": [
+   "Banda anclada a un lado, sujétala frente al pecho.",
+   "Extiende los brazos al frente.",
+   "Resiste la rotación."
+  ],
+  "commonMistakes": [
+   "Girar el torso."
+  ],
+  "safetyTips": [
+   "Respira."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "movilidad_cuello_hombros",
+  "name": "Movilidad de hombros",
+  "primaryMuscle": "hombros",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie, brazos relajados.",
+   "Haz círculos grandes con los hombros.",
+   "Cambia el sentido."
+  ],
+  "commonMistakes": [
+   "Ir rápido."
+  ],
+  "safetyTips": [
+   "Úsalo de calentamiento."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "gato_camello",
+  "name": "Gato-camello",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "core"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "A cuatro apoyos.",
+   "Redondea la espalda exhalando.",
+   "Hunde la espalda inhalando."
+  ],
+  "commonMistakes": [
+   "Movimientos bruscos."
+  ],
+  "safetyTips": [
+   "Ritmo lento."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "postura_nino",
+  "name": "Postura del niño",
+  "primaryMuscle": "espalda",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De rodillas, siéntate sobre los talones.",
+   "Estira los brazos al frente.",
+   "Respira y relaja."
+  ],
+  "commonMistakes": [
+   "Forzar el estiramiento."
+  ],
+  "safetyTips": [
+   "Mantén 30 s."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "estiramiento_isquios",
+  "name": "Estiramiento de isquios",
+  "primaryMuscle": "isquios",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Sentado, una pierna estirada.",
+   "Inclínate hacia el pie sin redondear.",
+   "Mantén."
+  ],
+  "commonMistakes": [
+   "Rebotar."
+  ],
+  "safetyTips": [
+   "Sin dolor."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "estiramiento_cuadriceps",
+  "name": "Estiramiento de cuádriceps",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "De pie, lleva el talón al glúteo.",
+   "Mantén rodillas juntas.",
+   "Cambia de pierna."
+  ],
+  "commonMistakes": [
+   "Arquear la espalda."
+  ],
+  "safetyTips": [
+   "Apóyate si hace falta."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "estiramiento_pecho",
+  "name": "Estiramiento de pecho en puerta",
+  "primaryMuscle": "pecho",
+  "secondaryMuscles": [
+   "hombros"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "Antebrazo apoyado en el marco de una puerta.",
+   "Da un paso adelante.",
+   "Mantén."
+  ],
+  "commonMistakes": [
+   "Forzar el hombro."
+  ],
+  "safetyTips": [
+   "Sin dolor."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ },
+ {
+  "id": "estiramiento_cadera",
+  "name": "Estiramiento de flexores de cadera",
+  "primaryMuscle": "cuadriceps",
+  "secondaryMuscles": [
+   "gluteos"
+  ],
+  "equipment": [
+   "ninguno"
+  ],
+  "difficulty": "principiante",
+  "steps": [
+   "En zancada con la rodilla trasera apoyada.",
+   "Empuja la cadera adelante.",
+   "Mantén."
+  ],
+  "commonMistakes": [
+   "Arquear la lumbar."
+  ],
+  "safetyTips": [
+   "Aprieta el glúteo trasero."
+  ],
+  "easierVariantId": null,
+  "harderVariantId": null
+ }
+]
