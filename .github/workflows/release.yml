@@ -1,0 +1,51 @@
+name: Release
+on:
+  push:
+    tags: ['v*.*.*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Versión desde el tag
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          IFS=. read -r MA MI PA <<< "${TAG%%-*}"
+          echo "HOMEFIT_VERSION_NAME=$TAG" >> "$GITHUB_ENV"
+          echo "HOMEFIT_VERSION_CODE=$((MA*1000000 + MI*1000 + PA))" >> "$GITHUB_ENV"
+      - name: Restaurar keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.HOMEFIT_KEYSTORE_B64 }}
+        run: |
+          test -n "$KEYSTORE_B64" || { echo "Falta el secret HOMEFIT_KEYSTORE_B64"; exit 1; }
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/homefit.jks"
+          echo "HOMEFIT_KEYSTORE_PATH=$RUNNER_TEMP/homefit.jks" >> "$GITHUB_ENV"
+      - name: Tests, APK y AAB firmados
+        env:
+          HOMEFIT_KEYSTORE_PASSWORD: ${{ secrets.HOMEFIT_KEYSTORE_PASSWORD }}
+          HOMEFIT_KEY_ALIAS: ${{ secrets.HOMEFIT_KEY_ALIAS }}
+          HOMEFIT_KEY_PASSWORD: ${{ secrets.HOMEFIT_KEY_PASSWORD }}
+        run: ./gradlew testDebugUnitTest assembleRelease bundleRelease
+      - name: Renombrar artefactos
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk "homefit-${HOMEFIT_VERSION_NAME}.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "homefit-${HOMEFIT_VERSION_NAME}.aab"
+          keytool -printcert -jarfile "homefit-${HOMEFIT_VERSION_NAME}.apk" | grep -E "SHA256" || true
+      - name: Publicar en GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRE=""
+          case "$HOMEFIT_VERSION_NAME" in 0.*|*-*) PRE="--prerelease";; esac
+          PREV=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          if [ -n "$PREV" ]; then NOTES=$(git log --pretty='- %s' "$PREV..${GITHUB_REF_NAME}"); else NOTES=$(git log --pretty='- %s' "${GITHUB_REF_NAME}"); fi
+          gh release create "$GITHUB_REF_NAME" $PRE --title "HomeFit $HOMEFIT_VERSION_NAME" --notes "$NOTES" "homefit-${HOMEFIT_VERSION_NAME}.apk" "homefit-${HOMEFIT_VERSION_NAME}.aab"
