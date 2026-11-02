@@ -1,0 +1,22 @@
+name: import-payload
+on:
+  push:
+    branches: ['import/**']
+    paths: ['payload.tar.gz']
+permissions:
+  contents: write
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack payload
+        run: |
+          tar xzf payload.tar.gz
+          rm payload.tar.gz
+          if [ -f DELETE.txt ]; then xargs -r rm -rf < DELETE.txt; rm DELETE.txt; fi
+          git config user.name "homefit-import"
+          git config user.email "homefit-import@users.noreply.github.com"
+          git add -A
+          git commit -m "Import: ${{ github.ref_name }}"
+          git push
