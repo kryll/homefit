@@ -2,7 +2,7 @@ name: import-payload
 on:
   push:
     branches: ['import/**']
-    paths: ['payload.tar.gz']
+    paths: ['**payload.tar.gz']
 permissions:
   contents: write
 jobs:
@@ -12,8 +12,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Unpack payload
         run: |
-          tar xzf payload.tar.gz
-          rm payload.tar.gz
+          tar xzf ./*payload.tar.gz
+          rm -f ./*payload.tar.gz
           if [ -f DELETE.txt ]; then xargs -r rm -rf < DELETE.txt; rm DELETE.txt; fi
           git config user.name "homefit-import"
           git config user.email "homefit-import@users.noreply.github.com"
