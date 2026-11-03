@@ -133,7 +133,9 @@ class WorkoutEngineTest {
         assertEquals(Phase.REST, e.state().phase)
         e.adjustRest(1000); assertEquals(600, e.state().remaining)
         assertEquals(results, e.setResults)
-        e.skip(); e.done(); e.rate(7)
+        e.adjustRest(-1000); e.tick()
+        assertEquals(Phase.WORK, e.state().phase)
+        e.done(); e.rate(7)
         assertEquals(Phase.FINISHED, e.state().phase)
     }
 }
