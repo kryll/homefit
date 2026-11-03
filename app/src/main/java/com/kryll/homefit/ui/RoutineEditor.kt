@@ -141,7 +141,7 @@ internal fun searchExercises(exercises: List<Exercise>, query: String, limit: In
 @Composable
 private fun ExercisePicker(exercises: List<Exercise>, onPick: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val shown = remember(exercises, q) { searchExercises(exercises, query) }
+    val shown = remember(exercises, query) { searchExercises(exercises, query) }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             OutlinedTextField(query, { query = it }, label = { Text(stringResource(R.string.editor_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
