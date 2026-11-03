@@ -31,7 +31,7 @@ El APK de debug queda en `app/build/outputs/apk/debug/`. Ojo: el APK de debug y 
 
 ## Releases y firma
 
-Al crear un tag `vX.Y.Z`, GitHub Actions compila el APK y el AAB de release firmados y los publica en GitHub Releases con un changelog hecho con los commits. `versionName` sale del tag y `versionCode` es `X*1000000 + Y*1000 + Z`, así que crece con cada versión. Las versiones `0.x` o con sufijo se marcan como pre-release.
+Al crear un tag `vX.Y.Z`, GitHub Actions compila el APK y el AAB de release firmados y los publica en GitHub Releases con un changelog hecho con los commits. `versionName` sale del tag y `versionCode` es `X*1000000 + Y*1000 + Z`, así que crece con cada versión. Las versiones `0.x` se marcan como pre-release. Solo se admiten tags numéricos `vX.Y.Z`, sin sufijos ni ceros iniciales; Y y Z deben ser menores que 1000 y el código debe estar entre 1 y 2100000000. La validación falla antes de restaurar el keystore.
 
 Para que las actualizaciones se instalen unas encima de otras, la firma tiene que ser siempre la misma. El keystore nunca se guarda en el repositorio. Se genera una vez y se guarda en GitHub (Settings, Secrets and variables, Actions) con estos nombres:
 
