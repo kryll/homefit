@@ -72,6 +72,7 @@ fun WorkoutScreen(
         onRate = { engine.rate(it); publish() },
         onRecord = { r, w -> engine.record(r, w); publish() },
         onAdjustRest = { engine.adjustRest(it); publish() },
+        onRepeat = { engine.repeatExercise(); publish() },
         onExit = { onExit(engine.setResults, state.phase == Phase.FINISHED) },
     )
 }
@@ -91,6 +92,7 @@ fun WorkoutContent(
     onExit: () -> Unit,
     onRecord: (Int?, Float?) -> Unit = { _, _ -> },
     onAdjustRest: (Int) -> Unit = {},
+    onRepeat: () -> Unit = {},
 ) {
     val view = androidx.compose.ui.platform.LocalView.current
     androidx.compose.runtime.DisposableEffect(view) {
@@ -98,8 +100,11 @@ fun WorkoutContent(
         view.keepScreenOn = true
         onDispose { view.keepScreenOn = previous }
     }
-    var repsDone by remember(state.itemIndex, state.set) { mutableIntStateOf(item.reps ?: 0) }
-    var weight by remember(state.itemIndex) { mutableStateOf<Float?>(null) }
+    var confirmRepeat by remember { mutableStateOf(false) }
+    var resumeAfterRepeat by remember { mutableStateOf(false) }
+    var repeatCycle by remember { mutableIntStateOf(0) }
+    var repsDone by remember(repeatCycle, state.itemIndex, state.set) { mutableIntStateOf(item.reps ?: 0) }
+    var weight by remember(repeatCycle, state.itemIndex) { mutableStateOf<Float?>(null) }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -172,7 +177,7 @@ fun WorkoutContent(
             }
             else -> Unit
         }
-        if (state.phase != Phase.RATE) {
+        if (state.phase != Phase.RATE && !confirmRepeat) {
             if (state.phase == Phase.WORK && !item.timed) {
                 Button(onDone, Modifier.fillMaxWidth(), enabled = !state.paused) { Text(stringResource(R.string.workout_done)) }
             }
@@ -181,6 +186,24 @@ fun WorkoutContent(
                     Text(stringResource(if (state.paused) R.string.workout_resume else R.string.workout_pause))
                 }
                 OutlinedButton(onSkip, Modifier.weight(1f), enabled = !state.paused) { Text(stringResource(R.string.workout_skip)) }
+            }
+        }
+        if (state.phase != Phase.RATE) {
+            if (confirmRepeat) {
+                Text(stringResource(R.string.workout_repeat_warning), textAlign = TextAlign.Center)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton({ confirmRepeat = false; if (resumeAfterRepeat) onPause() }, Modifier.weight(1f)) { Text(stringResource(R.string.workout_repeat_cancel)) }
+                    Button({
+                        onRepeat(); repeatCycle++; confirmRepeat = false
+                        if (resumeAfterRepeat) onPause()
+                    }, Modifier.weight(1f)) { Text(stringResource(R.string.workout_repeat_confirm)) }
+                }
+            } else {
+                OutlinedButton({
+                    resumeAfterRepeat = !state.paused
+                    if (!state.paused) onPause()
+                    confirmRepeat = true
+                }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.workout_repeat)) }
             }
         }
         OutlinedButton(onExit, Modifier.fillMaxWidth()) { Text(stringResource(R.string.workout_exit)) }
