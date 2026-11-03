@@ -5,7 +5,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-data class SetRow(val exerciseName: String, val setIndex: Int, val reps: Int?, val seconds: Int?, val rpe: Int?)
+data class SetRow(val exerciseName: String, val setIndex: Int, val reps: Int?, val seconds: Int?, val rpe: Int?, val weightKg: Float? = null)
 
 data class SessionRow(
     val id: Long,
@@ -74,7 +74,7 @@ object ProgressStats {
                 routineName = s.routineId?.let { routineNames[it] },
                 incomplete = s.notes == com.kryll.homefit.data.WorkoutRepository.NOTE_INCOMPLETE,
                 sets = (bySession[s.id] ?: emptyList()).sortedBy { it.id }.map {
-                    SetRow(exerciseNames[it.exerciseId] ?: it.exerciseId, it.setIndex, it.reps, it.seconds, it.rpe)
+                    SetRow(exerciseNames[it.exerciseId] ?: it.exerciseId, it.setIndex, it.reps, it.seconds, it.rpe, it.weightKg)
                 },
             )
         }

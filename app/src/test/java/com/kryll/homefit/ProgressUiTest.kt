@@ -85,7 +85,7 @@ class ProgressUiTest {
     }
 
     private val trained = listOf(
-        SessionRow(9, ms(4, 8), 1500, "Fuerza", false, listOf(SetRow("Sentadilla", 1, 15, null, 7), SetRow("Plancha", 1, null, 45, 8))),
+        SessionRow(9, ms(4, 8), 1500, "Fuerza", false, listOf(SetRow("Sentadilla", 1, 15, null, 7, 40f), SetRow("Plancha", 1, null, 45, 8))),
         SessionRow(8, ms(2, 8), 1500, "Fuerza", false, listOf(SetRow("Sentadilla", 1, 12, null, 7), SetRow("Sentadilla", 2, 10, null, 8), SetRow("Plancha", 1, null, 40, 8))),
         SessionRow(7, ms(1, 8), 1500, "Fuerza", false, listOf(SetRow("Sentadilla", 1, 10, null, 7))),
     )
@@ -98,7 +98,7 @@ class ProgressUiTest {
         rule.onNodeWithText("Máximo de repeticiones registradas").assertIsDisplayed()
         rule.onNodeWithText("Máximo registrado: de 10 a 15 rep en 3 días").assertIsDisplayed()
         rule.onNodeWithText("1 nov: 10 rep").assertIsDisplayed()
-        rule.onNodeWithText("4 nov: 15 rep").assertIsDisplayed()
+        rule.onNodeWithText("4 nov: 15 rep · 40 kg").assertIsDisplayed()
         capture("progreso_graficas")
         rule.onNodeWithText("Plancha").performClick()
         rule.onNodeWithText("Máximo registrado: de 40 a 45 s en 2 días").assertIsDisplayed()

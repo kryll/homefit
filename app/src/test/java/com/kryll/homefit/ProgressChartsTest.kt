@@ -55,6 +55,12 @@ class ProgressChartsTest {
         assertEquals(30, ser.points.single().best)
     }
 
+    @Test fun weightOfTheBestSetIsKept() {
+        val rows = listOf(s(1, 11, 1, SetRow("Press", 1, 10, null, null, 20f), SetRow("Press", 2, 12, null, null, 17.5f)))
+        val p = ProgressCharts.exerciseSeries(rows, "Press", zone)!!.points.single()
+        assertEquals(12, p.best); assertEquals(17.5f, p.weightKg)
+    }
+
     @Test fun noDataGivesNull() {
         assertNull(ProgressCharts.exerciseSeries(emptyList(), "X", zone))
         assertNull(ProgressCharts.exerciseSeries(listOf(s(1, 11, 1, SetRow("X", 1, null, null, 7))), "X", zone))

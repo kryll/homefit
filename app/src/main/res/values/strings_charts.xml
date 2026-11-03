@@ -9,7 +9,8 @@
     <string name="charts_unit_reps">rep</string>
     <string name="charts_unit_seconds">s</string>
     <string name="charts_exercise_range">Máximo registrado: de %1$d a %2$d %3$s en %4$d días</string>
-    <string name="charts_exercise_note">Solo cuenta repeticiones o segundos de cada día. No tiene en cuenta la carga, así que no es una medida de fuerza ni de mejora.</string>
+    <string name="charts_exercise_note">Máximo de repeticiones o segundos de cada día; si registraste la carga, aparece junto al dato. No es una medida directa de fuerza.</string>
     <string name="charts_exercise_point">%1$s: %2$d %3$s</string>
     <string name="charts_weekly_note">Número de entrenos de cada semana, con su lunes (día/mes).</string>
+    <string name="charts_exercise_point_weight">%1$s: %2$d %3$s · %4$s kg</string>
 </resources>

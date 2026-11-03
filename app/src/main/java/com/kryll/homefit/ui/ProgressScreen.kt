@@ -183,7 +183,12 @@ private fun ExerciseChart(sessions: List<SessionRow>, zone: ZoneId) {
                 LineChart(pts, Modifier.fillMaxWidth().height(140.dp).semantics { contentDescription = desc })
                 series.points.forEach {
                     Text(
-                        stringResource(R.string.charts_exercise_point, fmt.format(java.time.LocalDate.ofEpochDay(it.epochDay)), it.best, unit),
+                        it.weightKg?.let { w ->
+                            stringResource(
+                                R.string.charts_exercise_point_weight, fmt.format(java.time.LocalDate.ofEpochDay(it.epochDay)), it.best, unit,
+                                java.lang.String.format(Locale("es", "ES"), "%.1f", w).trimEnd('0').trimEnd(','),
+                            )
+                        } ?: stringResource(R.string.charts_exercise_point, fmt.format(java.time.LocalDate.ofEpochDay(it.epochDay)), it.best, unit),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }

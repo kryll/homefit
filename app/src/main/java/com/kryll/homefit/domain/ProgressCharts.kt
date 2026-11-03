@@ -5,8 +5,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** Un punto por entreno: la mejor serie de ese ejercicio ese día. */
-data class ExercisePoint(val epochDay: Long, val best: Int)
+/** Un punto por entreno: la mejor serie de ese ejercicio ese día, con la carga de esa serie si se registró. */
+data class ExercisePoint(val epochDay: Long, val best: Int, val weightKg: Float? = null)
 
 data class ExerciseSeries(val name: String, val seconds: Boolean, val points: List<ExercisePoint>)
 
@@ -35,8 +35,9 @@ object ProgressCharts {
         val seconds = sets.none { it.second.reps != null } && sets.any { it.second.seconds != null }
         val points = sets.mapNotNull { (ms, r) ->
             val v = if (seconds) r.seconds else r.reps
-            v?.let { Instant.ofEpochMilli(ms).atZone(zone).toLocalDate().toEpochDay() to it }
-        }.groupBy({ it.first }, { it.second }).map { (d, v) -> ExercisePoint(d, v.max()) }.sortedBy { it.epochDay }
+            v?.let { Triple(Instant.ofEpochMilli(ms).atZone(zone).toLocalDate().toEpochDay(), it, r.weightKg) }
+        }.groupBy({ it.first }, { it.second to it.third })
+        .map { (d, v) -> val top = v.maxBy { it.first }; ExercisePoint(d, top.first, top.second) }.sortedBy { it.epochDay }
         return if (points.isEmpty()) null else ExerciseSeries(name, seconds, points)
     }
 }
