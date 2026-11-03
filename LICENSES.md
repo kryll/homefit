@@ -43,7 +43,6 @@ El proyecto no tiene todavía licencia propia elegida.
 | puente_gluteos | Butt_Lift_Bridge |
 | puente_una_pierna | Single_Leg_Glute_Bridge |
 | patada_gluteo | Glute_Kickback |
-| abduccion_cadera_lateral | Side_Leg_Raises |
 | plancha | Plank |
 | plancha_lateral | Side_Bridge |
 | crunch | Crunches |
@@ -57,6 +56,10 @@ El proyecto no tiene todavía licencia propia elegida.
 | estiramiento_isquios | Hamstring_Stretch |
 | estiramiento_cadera | Kneeling_Hip_Flexor |
 | movilidad_cuello_hombros | Shoulder_Circles |
+
+| press_suelo_mancuernas | Dumbbell_Floor_Press |
+| crunch_bicicleta | Air_Bike |
+| remo_kettlebell | One-Arm_Kettlebell_Row |
 
 ## Bibliotecas
 
