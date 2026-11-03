@@ -61,6 +61,7 @@ fun RoutinesScreen(
     items: Map<Long, List<RoutineItem>> = emptyMap(),
     onSaveRoutine: (Long?, RoutineDraft) -> Unit = { _, _ -> },
     onDeleteRoutine: (Long) -> Unit = {},
+    onStart: (Long) -> Unit = {},
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
     var editing by rememberSaveable { mutableStateOf<EditorTarget?>(null) }
@@ -89,6 +90,7 @@ fun RoutinesScreen(
             onEdit = { r -> editing = EditorTarget(r.id, draftOf(r)) },
             onDuplicate = { r -> editing = EditorTarget(null, draftOf(r, " (copia)")) },
             onDelete = onDeleteRoutine,
+            onStart = onStart,
         ) else ExerciseCatalogList(exercises, equipment)
     }
 }
@@ -104,6 +106,7 @@ private fun RoutineList(
     onEdit: (Routine) -> Unit,
     onDuplicate: (Routine) -> Unit,
     onDelete: (Long) -> Unit,
+    onStart: (Long) -> Unit,
 ) {
     var openId by rememberSaveable { mutableStateOf<Long?>(null) }
     var confirmDelete by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -123,6 +126,7 @@ private fun RoutineList(
                             val vol = it.reps?.let { n -> "$n reps" } ?: "${it.seconds} s"
                             Text("• ${names[it.exerciseId] ?: it.exerciseId}: ${it.sets} × $vol, descanso ${it.restSeconds} s")
                         }
+                        if (its.isNotEmpty()) Button({ onStart(r.id) }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.workout_start)) }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton({ onDuplicate(r) }) { Text(stringResource(R.string.editor_duplicate)) }
                             if (!r.predefined) {

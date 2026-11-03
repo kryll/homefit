@@ -71,4 +71,24 @@
     <string name="err_sets">Series: de 1 a 20.</string>
     <string name="err_volume">Repeticiones de 1 a 100, o segundos de 5 a 600.</string>
     <string name="err_rest">Descanso: de 0 a 600 segundos.</string>
+    <string name="workout_progress">Series hechas: %1$d de %2$d</string>
+    <string name="workout_finished">¡Entreno terminado!</string>
+    <string name="workout_finished_sets">Series completadas: %1$d</string>
+    <string name="workout_close">Cerrar</string>
+    <string name="workout_get_ready">Prepárate</string>
+    <string name="workout_work">¡Ahora!</string>
+    <string name="workout_rest">Descanso</string>
+    <string name="workout_rate_title">Esfuerzo percibido (RPE)</string>
+    <string name="workout_rate_hint">¿Cuánto te ha costado la serie? 1 es muy fácil y 10 es el máximo.</string>
+    <string name="workout_no_rpe">Sin RPE</string>
+    <string name="workout_set_of">Serie %1$d de %2$d</string>
+    <string name="workout_seconds_unit">segundos</string>
+    <string name="workout_reps_unit">repeticiones</string>
+    <string name="workout_next">Siguiente: %1$s</string>
+    <string name="workout_done">Hecho</string>
+    <string name="workout_pause">Pausa</string>
+    <string name="workout_resume">Reanudar</string>
+    <string name="workout_skip">Saltar</string>
+    <string name="workout_exit">Salir del entreno</string>
+    <string name="workout_start">Entrenar</string>
 </resources>
