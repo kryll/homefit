@@ -9,6 +9,10 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNode
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.data.ScheduledSession
 import com.kryll.homefit.data.WorkoutSession
@@ -61,6 +65,7 @@ class PlanUiTest {
             }
         }
         rule.onNodeWithText("Tu semana").assertIsDisplayed()
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
         rule.onNodeWithText("Mié 4 nov · hoy").assertIsDisplayed()
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
         rule.onNodeWithText("Entrenar").assertIsDisplayed()
@@ -77,6 +82,7 @@ class PlanUiTest {
     @Test fun doneWorkoutHidesTrainButton() {
         val w = WorkoutSession(1, 1, ms(today, 8), ms(today, 9), 3600)
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, listOf(w), ReminderPrefs(), true) } }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
         assertEquals(0, rule.onAllNodes(androidx.compose.ui.test.hasText("Entrenar")).fetchSemanticsNodes().size)
     }
@@ -98,9 +104,10 @@ class PlanUiTest {
     @Test fun assignDialogCallsBackWithRoutine() {
         var got: Pair<LocalDate, Long?>? = null
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), ReminderPrefs(), true, onAssign = { d, r -> got = d to r }) } }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Asignar"))
         rule.onAllNodesWithText("Asignar")[0].performClick()
         rule.onNodeWithText("Cardio suave").performClick()
-        assertEquals(today to 2L, got)
+        assertEquals(com.kryll.homefit.domain.CalendarPeriod.weekStart(today) to 2L, got)
     }
 
     @Test fun leadShowsNotificationTimeAndEmitsSteps() {

@@ -44,7 +44,7 @@ fun dayLabel(d: LocalDate): String {
     return "$dow ${d.dayOfMonth} ${d.month.getDisplayName(TextStyle.SHORT, ES)}"
 }
 
-/** Semana de siete días desde hoy: qué rutina toca cada día, y el recordatorio diario. */
+/** Calendario semanal/mensual navegable con detalle del día y recordatorio diario. */
 @Composable
 fun PlanScreen(
     today: LocalDate,
@@ -64,10 +64,29 @@ fun PlanScreen(
     var assigning by rememberSaveable { mutableStateOf<Long?>(null) } // epochDay del día que se está editando
     val names = routines.associate { it.id to it.name }
     fun dateOf(ms: Long) = Instant.ofEpochMilli(ms).atZone(zone).toLocalDate()
-    val days = (0 until 7).map { today.plusDays(it.toLong()) }
+    var monthly by rememberSaveable { mutableStateOf(false) }
+    var anchorEpoch by rememberSaveable { mutableStateOf(today.toEpochDay()) }
+    val anchor = LocalDate.ofEpochDay(anchorEpoch)
+    val month = java.time.YearMonth.from(anchor)
+    val weekStart = com.kryll.homefit.domain.CalendarPeriod.weekStart(anchor)
+    val days = if (monthly) listOf(anchor) else (0 until 7).map { weekStart.plusDays(it.toLong()) }
 
     LazyColumn(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text(stringResource(R.string.plan_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 16.dp)) }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.FilterChip(!monthly, { monthly = false }, { Text(stringResource(R.string.calendar_week)) })
+                androidx.compose.material3.FilterChip(monthly, { monthly = true }, { Text(stringResource(R.string.calendar_month)) })
+                TextButton({ anchorEpoch = today.toEpochDay() }) { Text(stringResource(R.string.calendar_today)) }
+            }
+            Text(if (monthly) month.month.getDisplayName(TextStyle.FULL, ES).replaceFirstChar { it.uppercase() } + " ${month.year}"
+                else dayLabel(weekStart) + " - " + dayLabel(weekStart.plusDays(6)) + " ${weekStart.year}", style = MaterialTheme.typography.titleMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton({ anchorEpoch = (if (monthly) anchor.minusMonths(1) else anchor.minusWeeks(1)).toEpochDay() }) { Text(stringResource(R.string.calendar_previous)) }
+                OutlinedButton({ anchorEpoch = (if (monthly) anchor.plusMonths(1) else anchor.plusWeeks(1)).toEpochDay() }) { Text(stringResource(R.string.calendar_next)) }
+            }
+            if (monthly) MonthCalendar(month, anchor, scheduled.map { dateOf(it.startMillis) }.toSet()) { anchorEpoch = it.toEpochDay() }
+        }
         item {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -109,6 +128,7 @@ fun PlanScreen(
                 Button(onAuto, enabled = routines.isNotEmpty()) { Text(stringResource(R.string.plan_auto)) }
                 OutlinedButton(onClear) { Text(stringResource(R.string.plan_clear)) }
             }
+            Text(stringResource(R.string.calendar_auto_hint), style = MaterialTheme.typography.bodySmall)
             if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
         }
         items(days, key = { it.toEpochDay() }) { d ->
