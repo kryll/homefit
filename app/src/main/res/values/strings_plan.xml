@@ -39,4 +39,5 @@
     <string name="plan_skipped">Saltada</string>
     <string name="plan_moved">Movida</string>
     <string name="plan_move_title">Mover la sesión de %1$s</string>
+    <string name="plan_move_to">Mover a %1$s</string>
 </resources>
