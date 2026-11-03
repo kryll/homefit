@@ -98,4 +98,9 @@ tasks.withType<Test>().configureEach {
     systemProperty("robolectric.offline", "true")
     systemProperty("robolectric.dependency.dir", depsDir.absolutePath)
     maxHeapSize = "768m"
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStackTraces = true
+        showStandardStreams = false
+    }
 }

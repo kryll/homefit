@@ -134,9 +134,9 @@ class SettingsUiTest {
             }
         }
         rule.onNodeWithText("Nueva versión 1.2.0 disponible").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Abrir descarga").performClick()
+        rule.onNodeWithText("Abrir descarga").performScrollTo().performClick()
         assertEquals("https://example.test/rel", opened)
-        rule.onNodeWithText("Buscar actualizaciones").performClick()
+        rule.onNodeWithText("Buscar actualizaciones").performScrollTo().performClick()
         assertEquals(1, checked)
         capture("ajustes_actualizacion")
     }
