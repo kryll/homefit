@@ -27,6 +27,11 @@ import androidx.navigation.compose.rememberNavController
 import com.kryll.homefit.R
 import com.kryll.homefit.HomeFitApp
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.kryll.homefit.domain.WorkItem
 import com.kryll.homefit.data.RoutineRepository
 import com.kryll.homefit.data.UserEquipment
 import androidx.compose.runtime.collectAsState
@@ -113,10 +118,23 @@ private fun RoutinesTab() {
     val allItems by db.routineDao().observeAllItems().collectAsState(initial = emptyList())
     val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
+    var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val active = workoutId
+    if (active != null) {
+        val names = exercises.associate { it.id to it.name }
+        val plan = (allItems.filter { it.routineId == active }.sortedBy { it.position }).map {
+            WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds)
+        }
+        if (plan.isEmpty()) { workoutId = null } else {
+            WorkoutScreen(plan, onExit = { _, _ -> workoutId = null })
+            return
+        }
+    }
     RoutinesScreen(
         routines, exercises, map,
         items = allItems.groupBy { it.routineId },
         onSaveRoutine = { id, draft -> scope.launch { repo.save(id, draft) } },
         onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
+        onStart = { workoutId = it },
     )
 }
