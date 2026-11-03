@@ -1,0 +1,310 @@
+[
+ {
+  "name": "Cuerpo completo sin material",
+  "goal": "salud",
+  "level": "principiante",
+  "type": "fuerza",
+  "notes": "Tres días por semana. Sin equipo.",
+  "items": [
+   {
+    "exerciseId": "sentadilla",
+    "sets": 3,
+    "reps": 12,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "flexiones_rodillas",
+    "sets": 3,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "puente_gluteos",
+    "sets": 3,
+    "reps": 15,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "superman",
+    "sets": 3,
+    "reps": 12,
+    "seconds": null,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "plancha_rodillas",
+    "sets": 3,
+    "reps": null,
+    "seconds": 30,
+    "restSeconds": 30
+   }
+  ]
+ },
+ {
+  "name": "Fuerza en casa intermedio",
+  "goal": "fuerza",
+  "level": "intermedio",
+  "type": "fuerza",
+  "notes": "Requiere mancuernas y banco.",
+  "items": [
+   {
+    "exerciseId": "sentadilla_goblet",
+    "sets": 4,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 75
+   },
+   {
+    "exerciseId": "press_banca_mancuernas",
+    "sets": 4,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 75
+   },
+   {
+    "exerciseId": "remo_mancuerna",
+    "sets": 4,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 60
+   },
+   {
+    "exerciseId": "peso_muerto_rumano",
+    "sets": 3,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 75
+   },
+   {
+    "exerciseId": "press_militar_mancuernas",
+    "sets": 3,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 60
+   },
+   {
+    "exerciseId": "plancha",
+    "sets": 3,
+    "reps": null,
+    "seconds": 45,
+    "restSeconds": 45
+   }
+  ]
+ },
+ {
+  "name": "HIIT 20 minutos",
+  "goal": "perder_peso",
+  "level": "intermedio",
+  "type": "cardio",
+  "notes": "Intervalos de 40 s de trabajo.",
+  "items": [
+   {
+    "exerciseId": "jumping_jacks",
+    "sets": 3,
+    "reps": null,
+    "seconds": 40,
+    "restSeconds": 20
+   },
+   {
+    "exerciseId": "sentadilla_salto",
+    "sets": 3,
+    "reps": null,
+    "seconds": 40,
+    "restSeconds": 20
+   },
+   {
+    "exerciseId": "mountain_climbers",
+    "sets": 3,
+    "reps": null,
+    "seconds": 40,
+    "restSeconds": 20
+   },
+   {
+    "exerciseId": "burpees_sin_salto",
+    "sets": 3,
+    "reps": null,
+    "seconds": 40,
+    "restSeconds": 20
+   },
+   {
+    "exerciseId": "patinador",
+    "sets": 3,
+    "reps": null,
+    "seconds": 40,
+    "restSeconds": 20
+   }
+  ]
+ },
+ {
+  "name": "Core y abdomen",
+  "goal": "salud",
+  "level": "principiante",
+  "type": "core",
+  "notes": "Fortalece la zona media.",
+  "items": [
+   {
+    "exerciseId": "crunch",
+    "sets": 3,
+    "reps": 15,
+    "seconds": null,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "dead_bug",
+    "sets": 3,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "bird_dog",
+    "sets": 3,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "plancha",
+    "sets": 3,
+    "reps": null,
+    "seconds": 30,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "plancha_lateral",
+    "sets": 2,
+    "reps": null,
+    "seconds": 25,
+    "restSeconds": 30
+   }
+  ]
+ },
+ {
+  "name": "Tren inferior",
+  "goal": "hipertrofia",
+  "level": "principiante",
+  "type": "fuerza",
+  "notes": "Piernas y glúteos sin material.",
+  "items": [
+   {
+    "exerciseId": "sentadilla",
+    "sets": 4,
+    "reps": 15,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "zancada_atras",
+    "sets": 3,
+    "reps": 12,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "puente_gluteos",
+    "sets": 4,
+    "reps": 15,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "elevacion_gemelos",
+    "sets": 3,
+    "reps": 20,
+    "seconds": null,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "sentadilla_sumo",
+    "sets": 3,
+    "reps": 15,
+    "seconds": null,
+    "restSeconds": 45
+   }
+  ]
+ },
+ {
+  "name": "Tren superior con banda",
+  "goal": "hipertrofia",
+  "level": "principiante",
+  "type": "fuerza",
+  "notes": "Solo banda elástica.",
+  "items": [
+   {
+    "exerciseId": "press_pecho_banda",
+    "sets": 3,
+    "reps": 12,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "remo_banda",
+    "sets": 3,
+    "reps": 12,
+    "seconds": null,
+    "restSeconds": 45
+   },
+   {
+    "exerciseId": "face_pull_banda",
+    "sets": 3,
+    "reps": 15,
+    "seconds": null,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "curl_banda",
+    "sets": 3,
+    "reps": 12,
+    "seconds": null,
+    "restSeconds": 30
+   }
+  ]
+ },
+ {
+  "name": "Movilidad y estiramientos",
+  "goal": "salud",
+  "level": "principiante",
+  "type": "movilidad",
+  "notes": "Para días de descanso o calentar.",
+  "items": [
+   {
+    "exerciseId": "gato_camello",
+    "sets": 2,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 15
+   },
+   {
+    "exerciseId": "movilidad_cuello_hombros",
+    "sets": 2,
+    "reps": 10,
+    "seconds": null,
+    "restSeconds": 15
+   },
+   {
+    "exerciseId": "estiramiento_cadera",
+    "sets": 2,
+    "reps": null,
+    "seconds": 30,
+    "restSeconds": 15
+   },
+   {
+    "exerciseId": "estiramiento_isquios",
+    "sets": 2,
+    "reps": null,
+    "seconds": 30,
+    "restSeconds": 15
+   },
+   {
+    "exerciseId": "postura_nino",
+    "sets": 1,
+    "reps": null,
+    "seconds": 45,
+    "restSeconds": 0
+   }
+  ]
+ }
+]

@@ -14,6 +14,6 @@ class HomeFitApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
-        CoroutineScope(Dispatchers.IO).launch { ExerciseSeeder.seedIfEmpty(this@HomeFitApp, container.database) }
+        CoroutineScope(Dispatchers.IO).launch { ExerciseSeeder.seedIfEmpty(this@HomeFitApp, container.database); com.kryll.homefit.data.RoutineSeeder.seedIfEmpty(this@HomeFitApp, container.database) }
     }
 }
