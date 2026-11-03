@@ -127,4 +127,17 @@ class WorkoutUiTest {
 
     private fun androidx.compose.ui.test.junit4.ComposeTestRule.onAllNodesWithTextCount(t: String) =
         onAllNodesWithText(t).fetchSemanticsNodes().size
+    @Test fun workoutRequestsScreenOnAndRestoresPreviousValueOnDispose() {
+        val visible = androidx.compose.runtime.mutableStateOf(true)
+        var view: android.view.View? = null
+        rule.setContent {
+            view = androidx.compose.ui.platform.LocalView.current
+            if (visible.value) HomeFitTheme {
+                WorkoutContent(WorkoutState(Phase.WORK, 0, 1, 0, false), items[0], items, 0, 5, {}, {}, {}, {}, {})
+            }
+        }
+        rule.runOnIdle { assertEquals(true, view!!.keepScreenOn); visible.value = false }
+        rule.waitForIdle()
+        rule.runOnIdle { assertEquals(false, view!!.keepScreenOn) }
+    }
 }

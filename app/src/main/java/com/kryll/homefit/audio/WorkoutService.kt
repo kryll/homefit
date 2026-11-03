@@ -66,6 +66,7 @@ class WorkoutService : Service() {
         }
         when (intent?.action) {
             ACTION_TOGGLE -> runner.togglePause()
+            ACTION_NEXT -> runner.skip()
             ACTION_FINISH -> { finishFromNotification(runner); return START_NOT_STICKY }
         }
         if (loop == null) {
@@ -134,6 +135,7 @@ class WorkoutService : Service() {
         const val NOTIFICATION_ID = 1001
         const val ACTION_STOP = "com.kryll.homefit.action.STOP_WORKOUT"
         const val ACTION_TOGGLE = "com.kryll.homefit.action.TOGGLE_PAUSE"
+        const val ACTION_NEXT = "com.kryll.homefit.action.NEXT_WORKOUT"
         const val ACTION_FINISH = "com.kryll.homefit.action.FINISH_WORKOUT"
         const val EXTRA_TITLE = "title"
         /** Tope de seguridad: 3 horas. */
@@ -168,6 +170,7 @@ class WorkoutService : Service() {
                 .setContentTitle(title ?: context.getString(R.string.workout_notification_title))
                 .setContentText(context.getString(if (paused) R.string.workout_notification_paused else R.string.workout_notification_text))
                 .addAction(0, context.getString(if (paused) R.string.workout_action_resume else R.string.workout_action_pause), action(context, 1, ACTION_TOGGLE))
+                .addAction(0, context.getString(R.string.workout_action_next), action(context, 3, ACTION_NEXT))
                 .addAction(0, context.getString(R.string.workout_action_finish), action(context, 2, ACTION_FINISH))
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
