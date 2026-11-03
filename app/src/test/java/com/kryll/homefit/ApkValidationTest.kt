@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34], application = HomeFitApp::class)
 class ApkValidationTest {
-    private val context: Context get() = RuntimeEnvironment.getApplication<Application>()
+    private val context: Context get() = RuntimeEnvironment.getApplication()
     @Test fun refusesUnreadableApkAndDoesNotOpenInstaller() {
         val f = File(context.cacheDir, "updates/invalid.apk").apply { parentFile!!.mkdirs(); writeText("not an apk") }
         assertTrue(runCatching { ApkDownloader.verify(context, f) }.isFailure)
