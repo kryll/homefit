@@ -153,6 +153,18 @@ private fun RoutinesTab() {
 private fun WorkoutWithCues(plan: List<WorkItem>, onExit: (List<SetResult>, Boolean) -> Unit) {
     val context = LocalContext.current.applicationContext
     val player = remember { CuePlayer(context) }
-    DisposableEffect(Unit) { onDispose { player.release() } }
+    DisposableEffect(Unit) {
+        com.kryll.homefit.audio.WorkoutService.start(context, null)
+        onDispose {
+            player.release()
+            com.kryll.homefit.audio.WorkoutService.stop(context)
+        }
+    }
+    val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+    }
     WorkoutScreen(plan, onExit = onExit, onCue = { player.play(it) })
 }
