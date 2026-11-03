@@ -1,4 +1,8 @@
 <resources>
     <string name="workout_rest_minus">Descanso −5 s</string>
     <string name="workout_rest_plus">Descanso +5 s</string>
+    <string name="workout_repeat">Repetir ejercicio</string>
+    <string name="workout_repeat_warning">Reinicia este ejercicio desde la primera serie. Las series registradas se conservan. La serie en curso sin terminar no se guardará.</string>
+    <string name="workout_repeat_cancel">Cancelar</string>
+    <string name="workout_repeat_confirm">Reiniciar</string>
 </resources>
