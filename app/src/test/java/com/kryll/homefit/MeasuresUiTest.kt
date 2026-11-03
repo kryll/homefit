@@ -39,7 +39,7 @@ class MeasuresUiTest {
         FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
     private fun scrollTo(text: String) {
-        rule.onNode(hasScrollAction()).performScrollToNode(androidx.compose.ui.test.hasText(text))
+        rule.onNode(androidx.compose.ui.test.hasScrollToNodeAction()).performScrollToNode(androidx.compose.ui.test.hasText(text))
     }
 
     @Test fun savesWhatWasTypedAndRejectsEmpty() {

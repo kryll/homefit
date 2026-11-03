@@ -52,7 +52,7 @@ class AppRootUiTest {
     }
 
     private fun scrollTo(text: String) {
-        rule.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+        rule.onNode(androidx.compose.ui.test.hasScrollToNodeAction()).performScrollToNode(hasText(text))
     }
 
     private fun tab(label: String) = rule.onAllNodesWithText(label)[0].performClick()
