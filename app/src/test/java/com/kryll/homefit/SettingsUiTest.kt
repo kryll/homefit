@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performScrollTo
 
 import androidx.compose.ui.test.hasText
 
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.data.ThemeMode
@@ -134,8 +133,7 @@ class SettingsUiTest {
                 )
             }
         }
-        rule.onNode(androidx.compose.ui.test.hasScrollToNodeAction()).performScrollToNode(hasText("Nueva versión 1.2.0 disponible"))
-        rule.onNodeWithText("Nueva versión 1.2.0 disponible").assertIsDisplayed()
+        rule.onNodeWithText("Nueva versión 1.2.0 disponible").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Abrir descarga").performClick()
         assertEquals("https://example.test/rel", opened)
         rule.onNodeWithText("Buscar actualizaciones").performClick()
@@ -145,7 +143,6 @@ class SettingsUiTest {
 
     @Test fun updateErrorIsShown() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", null, null, updateState = com.kryll.homefit.domain.UpdateState.Failed) } }
-        rule.onNode(androidx.compose.ui.test.hasScrollToNodeAction()).performScrollToNode(hasText("No se pudo comprobar. Inténtalo más tarde."))
-        rule.onNodeWithText("No se pudo comprobar. Inténtalo más tarde.").assertIsDisplayed()
+        rule.onNodeWithText("No se pudo comprobar. Inténtalo más tarde.").performScrollTo().assertIsDisplayed()
     }
 }
