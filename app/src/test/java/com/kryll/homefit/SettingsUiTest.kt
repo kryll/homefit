@@ -4,14 +4,16 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.data.ThemeMode
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+import com.kryll.homefit.ui.ImportConfirmContent
 import com.kryll.homefit.ui.ImportSummary
 import com.kryll.homefit.ui.SettingsScreen
 import com.kryll.homefit.ui.theme.HomeFitTheme
@@ -35,12 +37,6 @@ class SettingsUiTest {
         val view = rule.activity.window.decorView
         val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bmp))
-        val dir = File("build/outputs/compose-shots").apply { mkdirs() }
-        FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
-    }
-
-    private fun captureDialog(name: String) {
-        val bmp = rule.onNode(androidx.compose.ui.test.isDialog()).captureToImage().asAndroidBitmap()
         val dir = File("build/outputs/compose-shots").apply { mkdirs() }
         FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
@@ -74,9 +70,22 @@ class SettingsUiTest {
             }
         }
         rule.onNodeWithText("Contiene: rutinas propias 2, entrenos 5, días planificados 3, medidas 1. Se borrarán tus rutinas propias, entrenos, plan y medidas actuales y se sustituirán por estos. No se puede deshacer. Si algo falla a medias, se restaura lo que tenías.").assertIsDisplayed()
-        captureDialog("ajustes_importar")
         rule.onNodeWithText("Importar").performClick()
         assertEquals(true, confirmed)
+    }
+
+    /** Renderiza el contenido del diálogo directamente (la captura no incluye ventanas de diálogo). */
+    @Test fun importConfirmContentCapture() {
+        rule.setContent {
+            HomeFitTheme {
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().padding(24.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    ImportConfirmContent(ImportSummary(2, 5, 3, 1), {}, {})
+                }
+            }
+        }
+        rule.onNodeWithText("¿Importar esta copia?").assertIsDisplayed()
+        rule.onNodeWithText("Cancelar").assertIsDisplayed()
+        capture("ajustes_importar")
     }
 
     @Test fun showsMessage() {

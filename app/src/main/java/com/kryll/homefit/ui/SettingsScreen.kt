@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -100,15 +99,24 @@ fun SettingsScreen(
     }
 
     if (pendingImport != null) {
-        AlertDialog(
-            onDismissRequest = onCancelImport,
-            title = { Text(stringResource(R.string.backup_import_title)) },
-            text = {
-                Text(stringResource(R.string.backup_import_summary, pendingImport.routines, pendingImport.workouts, pendingImport.scheduled, pendingImport.measurements))
-            },
-            confirmButton = { TextButton(onConfirmImport) { Text(stringResource(R.string.backup_import_confirm)) } },
-            dismissButton = { TextButton(onCancelImport) { Text(stringResource(R.string.backup_cancel)) } },
-        )
+        androidx.compose.ui.window.Dialog(onDismissRequest = onCancelImport) {
+            ImportConfirmContent(pendingImport, onConfirmImport, onCancelImport)
+        }
+    }
+}
+
+/** Contenido del diálogo de importar; separado para poder renderizarlo y revisarlo en una captura. */
+@Composable
+fun ImportConfirmContent(summary: ImportSummary, onConfirm: () -> Unit, onCancel: () -> Unit) {
+    androidx.compose.material3.Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
+        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(stringResource(R.string.backup_import_title), style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.backup_import_summary, summary.routines, summary.workouts, summary.scheduled, summary.measurements))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onCancel) { Text(stringResource(R.string.backup_cancel)) }
+                TextButton(onConfirm) { Text(stringResource(R.string.backup_import_confirm)) }
+            }
+        }
     }
 }
 
