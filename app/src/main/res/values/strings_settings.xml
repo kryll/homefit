@@ -14,13 +14,13 @@
     <string name="settings_plus">+</string>
     <string name="settings_audio_note">Los cambios se aplican también a un entreno en marcha.</string>
     <string name="settings_backup">Copia de seguridad</string>
-    <string name="settings_backup_note">Guarda tu perfil, rutinas propias, entrenos, plan y medidas en un archivo JSON. El catálogo de ejercicios no se incluye.</string>
+    <string name="settings_backup_note">Guarda tu perfil, rutinas propias, entrenos, plan y medidas en un archivo JSON. El catálogo de ejercicios no se incluye. La copia no está cifrada: guárdala en un sitio de confianza.</string>
     <string name="backup_export">Exportar copia</string>
     <string name="backup_import">Importar copia</string>
     <string name="backup_exported">Copia guardada.</string>
     <string name="backup_export_failed">No se pudo guardar la copia.</string>
     <string name="backup_import_title">¿Importar esta copia?</string>
-    <string name="backup_import_summary">Contiene: rutinas propias %1$d, entrenos %2$d, días planificados %3$d, medidas %4$d. Sustituirá tus rutinas propias, entrenos, plan y medidas actuales.</string>
+    <string name="backup_import_summary">Contiene: rutinas propias %1$d, entrenos %2$d, días planificados %3$d, medidas %4$d. Se borrarán tus rutinas propias, entrenos, plan y medidas actuales y se sustituirán por estos. No se puede deshacer. Si algo falla a medias, se restaura lo que tenías.</string>
     <string name="backup_import_confirm">Importar</string>
     <string name="backup_cancel">Cancelar</string>
     <string name="backup_imported">Copia importada.</string>
@@ -29,6 +29,7 @@
     <string name="backup_err_corrupt">El archivo está dañado o incompleto.</string>
     <string name="backup_err_invalid">La copia tiene datos no válidos (%1$s).</string>
     <string name="backup_err_unknown_exercise">La copia usa un ejercicio que esta versión no tiene: %1$s.</string>
+    <string name="backup_err_failed">La importación falló y se restauraron tus datos anteriores.</string>
     <string name="backup_err_read">No se pudo leer el archivo.</string>
     <string name="settings_about">Acerca de</string>
     <string name="settings_units_note">Las unidades (kg/lb, cm/in) llegarán con las medidas corporales.</string>

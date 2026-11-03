@@ -4,7 +4,9 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -37,6 +39,12 @@ class SettingsUiTest {
         FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
+    private fun captureDialog(name: String) {
+        val bmp = rule.onNode(androidx.compose.ui.test.isDialog()).captureToImage().asAndroidBitmap()
+        val dir = File("build/outputs/compose-shots").apply { mkdirs() }
+        FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
     @Test fun showsSectionsAndCurrentValues() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(beepVolume = 0.8f, ttsRate = 1.25f), "1.2.3", null, null) } }
         rule.onNodeWithText("Ajustes").assertIsDisplayed()
@@ -65,8 +73,8 @@ class SettingsUiTest {
                 SettingsScreen(AppSettings(), "1", null, ImportSummary(2, 5, 3, 1), onConfirmImport = { confirmed = true })
             }
         }
-        rule.onNodeWithText("Contiene: rutinas propias 2, entrenos 5, días planificados 3, medidas 1. Sustituirá tus rutinas propias, entrenos, plan y medidas actuales.").assertIsDisplayed()
-        capture("ajustes_importar")
+        rule.onNodeWithText("Contiene: rutinas propias 2, entrenos 5, días planificados 3, medidas 1. Se borrarán tus rutinas propias, entrenos, plan y medidas actuales y se sustituirán por estos. No se puede deshacer. Si algo falla a medias, se restaura lo que tenías.").assertIsDisplayed()
+        captureDialog("ajustes_importar")
         rule.onNodeWithText("Importar").performClick()
         assertEquals(true, confirmed)
     }

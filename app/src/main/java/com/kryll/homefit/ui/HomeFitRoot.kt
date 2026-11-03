@@ -41,6 +41,7 @@ import com.kryll.homefit.data.UserEquipment
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 private enum class Tab(val route: String, @StringRes val label: Int, @StringRes val placeholder: Int, val icon: ImageVector) {
@@ -247,10 +248,13 @@ private fun SettingsTab() {
             pending = null
             if (b != null) scope.launch {
                 message = runCatching {
-                    repo.restore(b)
-                    app.container.settings.update { cur -> b.settings.copy(onboardingDone = cur.onboardingDone || b.profile != null) }
+                    com.kryll.homefit.data.BackupApplier(
+                        repo,
+                        currentSettings = { app.container.settings.settings.first() },
+                        writeSettings = { n -> app.container.settings.update { n } },
+                    ).apply(b)
                     context.getString(R.string.backup_imported)
-                }.getOrElse { errorText(it) }
+                }.getOrElse { if (it is com.kryll.homefit.data.BackupException) errorText(it) else context.getString(R.string.backup_err_failed) }
             }
         },
     )
