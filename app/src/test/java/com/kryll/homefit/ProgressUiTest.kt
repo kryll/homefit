@@ -7,7 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -57,8 +57,9 @@ class ProgressUiTest {
         rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(sessions, now, zone), sessions, zone) } }
         rule.onNodeWithText("Tu progreso").assertIsDisplayed()
         rule.onNodeWithText("Racha (días)").assertIsDisplayed()
-        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Entreno libre"))
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Fuerza en casa"))
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entreno libre"))
         rule.onNodeWithText("Entreno libre").assertIsDisplayed()
         rule.onNodeWithText("Incompleto").assertIsDisplayed()
         rule.onNodeWithText("10 min · 1 serie").assertIsDisplayed()
@@ -68,9 +69,9 @@ class ProgressUiTest {
 
     @Test fun expandingASessionListsItsSets() {
         rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(sessions, now, zone), sessions, zone) } }
-        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Fuerza en casa"))
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Fuerza en casa"))
         rule.onNodeWithText("Fuerza en casa").performClick()
-        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Plancha · serie 1 · 30 s · RPE 9"))
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Plancha · serie 1 · 30 s · RPE 9"))
         rule.onNodeWithText("Sentadilla · serie 1 · 12 rep · RPE 7").assertIsDisplayed()
         rule.onNodeWithText("Plancha · serie 1 · 30 s · RPE 9").assertIsDisplayed()
         capture("progreso_detalle")
@@ -91,7 +92,9 @@ class ProgressUiTest {
 
     @Test fun chartsShowRealWeeklyCountsAndExerciseProgress() {
         rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(trained, now, zone), trained, zone) } }
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrenos por semana"))
         rule.onNodeWithText("Entrenos por semana").assertIsDisplayed()
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Mejor serie: de 10 a 15 rep en 3 días"))
         rule.onNodeWithText("Mejor serie por ejercicio").assertIsDisplayed()
         rule.onNodeWithText("Mejor serie: de 10 a 15 rep en 3 días").assertIsDisplayed()
         capture("progreso_graficas")
