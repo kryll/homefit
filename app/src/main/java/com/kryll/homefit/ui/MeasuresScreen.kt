@@ -1,6 +1,7 @@
 package com.kryll.homefit.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +57,10 @@ private fun label(f: MeasureField): Int = when (f) {
     MeasureField.FAT -> R.string.measure_fat
 }
 
+/** Valores de un campo en orden cronológico (un valor por registro que lo tenga). */
+fun fieldPoints(items: List<BodyMeasurement>, f: MeasureField): List<Pair<Long, Float>> =
+    items.sortedWith(compareBy({ it.epochDay }, { it.id })).mapNotNull { m -> MeasureInput.stored(m, f)?.let { m.epochDay to it } }
+
 /** Pesos en orden cronológico (un valor por registro con peso). */
 fun weightSeries(items: List<BodyMeasurement>): List<Float> = weightPoints(items).map { it.second }
 
@@ -93,7 +99,15 @@ fun MeasuresContent(
         val unit = when (f) { MeasureField.WEIGHT -> wl; MeasureField.FAT -> "%"; else -> ll }
         stringResource(R.string.measure_label_unit, stringResource(label(f)), unit)
     }
-    val points = weightPoints(items).map { it.first to Units.weightToDisplay(it.second, weightUnit) }
+    var chartField by remember { mutableStateOf(MeasureField.WEIGHT) }
+    val chartUnit = when (chartField) { MeasureField.WEIGHT -> wl; MeasureField.FAT -> "%"; else -> ll }
+    val points = fieldPoints(items, chartField).map { (d, v) ->
+        d to when (chartField) {
+            MeasureField.WEIGHT -> Units.weightToDisplay(v, weightUnit)
+            MeasureField.FAT -> v
+            else -> Units.lengthToDisplay(v, lengthUnit)
+        }
+    }
     val series = points.map { it.second }
 
     LazyColumn(
@@ -135,11 +149,18 @@ fun MeasuresContent(
         }
         item { Text(stringResource(R.string.measures_chart_title), style = MaterialTheme.typography.titleMedium) }
         item {
-            if (series.size < 2) Text(stringResource(R.string.measures_chart_need_two), style = MaterialTheme.typography.bodyMedium)
+            Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                MeasureField.entries.forEach { f ->
+                    FilterChip(selected = f == chartField, onClick = { chartField = f }, label = { Text(stringResource(label(f))) })
+                }
+            }
+        }
+        item {
+            if (series.size < 2) Text(stringResource(R.string.measures_chart_need_two, stringResource(label(chartField)).lowercase()), style = MaterialTheme.typography.bodyMedium)
             else {
                 val first = points.first().first
                 val last = points.last().first
-                val desc = points.joinToString("; ") { dayText(it.first) + ": " + num(it.second) + " " + wl }
+                val desc = points.joinToString("; ") { dayText(it.first) + ": " + num(it.second) + " " + chartUnit }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     LineChart(points, Modifier.fillMaxWidth().height(160.dp).semantics { contentDescription = desc })
                     androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -147,10 +168,10 @@ fun MeasuresContent(
                         Text(dayText(last), style = MaterialTheme.typography.bodySmall)
                     }
                     Text(
-                        stringResource(R.string.measures_chart_range, num(series.min()), num(series.max()), (last - first).toInt(), wl),
+                        stringResource(R.string.measures_chart_range, num(series.min()), num(series.max()), (last - first).toInt(), chartUnit),
                         style = MaterialTheme.typography.bodySmall,
                     )
-                    points.forEach { Text(dayText(it.first) + ": " + num(it.second) + " " + wl, style = MaterialTheme.typography.bodySmall) }
+                    points.forEach { Text(dayText(it.first) + ": " + num(it.second) + " " + chartUnit, style = MaterialTheme.typography.bodySmall) }
                 }
             }
         }

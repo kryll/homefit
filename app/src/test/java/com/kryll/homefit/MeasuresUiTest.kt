@@ -76,7 +76,7 @@ class MeasuresUiTest {
             BodyMeasurement(id = 1, epochDay = 20386, weightKg = 72f, bodyFatPct = 19f),
         )
         rule.setContent { HomeFitTheme { MeasuresContent(items, 20400, {}) } }
-        scrollTo("Peso a lo largo del tiempo")
+        scrollTo("Evolución de las medidas")
         scrollTo("Mín 70,5 kg · Máx 72 kg · 14 días entre la primera y la última")
         rule.onNodeWithText("Mín 70,5 kg · Máx 72 kg · 14 días entre la primera y la última").assertIsDisplayed()
         capture("medidas_grafica")
@@ -86,10 +86,27 @@ class MeasuresUiTest {
         capture("medidas_historial")
     }
 
+    @Test fun chartSwitchesToAnotherMeasure() {
+        val items = listOf(
+            BodyMeasurement(id = 3, epochDay = 20400, weightKg = 70.5f, waistCm = 80f),
+            BodyMeasurement(id = 2, epochDay = 20393, waistCm = 81f),
+            BodyMeasurement(id = 1, epochDay = 20386, weightKg = 72f, bodyFatPct = 19f),
+        )
+        rule.setContent { HomeFitTheme { MeasuresContent(items, 20400, {}) } }
+        scrollTo("Evolución de las medidas")
+        rule.onNodeWithText("Cintura").performClick()
+        rule.onNodeWithText("Mín 80 cm · Máx 81 cm · 7 días entre la primera y la última").assertIsDisplayed()
+        rule.onNodeWithText("1 nov 2025: 80 cm").assertIsDisplayed()
+        capture("medidas_grafica_cintura")
+        rule.onNodeWithText("Grasa corporal").performClick()
+        scrollTo("Anota grasa corporal en al menos dos días para ver la gráfica.")
+        rule.onNodeWithText("Anota grasa corporal en al menos dos días para ver la gráfica.").assertIsDisplayed()
+    }
+
     @Test fun chartNeedsTwoWeights() {
         rule.setContent { HomeFitTheme { MeasuresContent(listOf(BodyMeasurement(id = 1, epochDay = 1, weightKg = 70f)), 2, {}) } }
-        scrollTo("Anota el peso en al menos dos días para ver la gráfica.")
-        rule.onNodeWithText("Anota el peso en al menos dos días para ver la gráfica.").assertIsDisplayed()
+        scrollTo("Anota peso en al menos dos días para ver la gráfica.")
+        rule.onNodeWithText("Anota peso en al menos dos días para ver la gráfica.").assertIsDisplayed()
     }
 
     @Test fun poundsAndInchesChangeLabelsAndHistory() {

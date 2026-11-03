@@ -15,8 +15,8 @@
     <string name="measures_err_empty">Escribe al menos una medida.</string>
     <string name="measures_err_invalid">Revisa el valor de %1$s.</string>
     <string name="measures_saved">Medidas guardadas.</string>
-    <string name="measures_chart_title">Peso a lo largo del tiempo</string>
-    <string name="measures_chart_need_two">Anota el peso en al menos dos días para ver la gráfica.</string>
+    <string name="measures_chart_title">Evolución de las medidas</string>
+    <string name="measures_chart_need_two">Anota %1$s en al menos dos días para ver la gráfica.</string>
     <string name="measures_history">Historial</string>
     <string name="measures_empty">Todavía no has anotado medidas.</string>
     <string name="measures_item_weight">Peso %1$s %2$s</string>
