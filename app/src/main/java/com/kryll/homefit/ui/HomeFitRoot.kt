@@ -108,6 +108,8 @@ private fun MainTabs() {
                             startRequest = id
                             nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
                         })
+                    } else if (tab == Tab.Progress) {
+                        ProgressTab()
                     } else if (tab == Tab.Settings) {
                         SettingsTab()
                     } else {
@@ -350,5 +352,50 @@ private fun SettingsTab() {
                 }.getOrElse { if (it is com.kryll.homefit.data.BackupException) errorText(it) else context.getString(R.string.backup_err_failed) }
             }
         },
+    )
+}
+
+@Composable
+private fun ProgressTab() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val db = app.container.database
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    val sets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val exercises by db.exerciseDao().observeAll().collectAsState(initial = emptyList())
+    val rows = remember(workouts, sets, routines, exercises) {
+        com.kryll.homefit.domain.ProgressStats.rows(
+            workouts, sets, routines.associate { it.id to it.name }, exercises.associate { it.id to it.name },
+        )
+    }
+    val summary = remember(rows) {
+        com.kryll.homefit.domain.ProgressStats.summary(rows, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+    }
+    val measurements by db.measurementDao().observeAll().collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val unitSettings by (context.applicationContext as HomeFitApp).container.settings.settings
+        .collectAsState(initial = com.kryll.homefit.data.AppSettings())
+    var exportMessage by remember { mutableStateOf<String?>(null) }
+    val exportCsv = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            exportMessage = runCatching {
+                val csv = com.kryll.homefit.domain.MeasureCsv.build(measurements, unitSettings.weightUnit, unitSettings.lengthUnit)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.measures_exported)
+            }.getOrElse { context.getString(R.string.measures_export_failed) }
+        }
+    }
+    ProgressWithMeasures(
+        summary, rows, measurements,
+        onSave = { m -> scope.launch { if (m.id != 0L) db.measurementDao().update(m) else db.measurementDao().insert(m) } },
+        onDelete = { id -> scope.launch { db.measurementDao().deleteById(id) } },
+        weightUnit = unitSettings.weightUnit, lengthUnit = unitSettings.lengthUnit,
+        onExport = { exportCsv.launch("homefit-medidas-${java.time.LocalDate.now()}.csv") },
+        exportMessage = exportMessage,
     )
 }

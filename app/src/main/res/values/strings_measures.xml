@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="measures_tab_summary">Resumen</string>
+    <string name="measures_tab_measures">Medidas</string>
+    <string name="measures_title">Tus medidas</string>
+    <string name="measures_hint">Rellena solo lo que quieras anotar hoy. Peso en %1$s, perímetros en %2$s.</string>
+    <string name="measure_weight">Peso</string>
+    <string name="measure_waist">Cintura</string>
+    <string name="measure_chest">Pecho</string>
+    <string name="measure_arm">Brazo</string>
+    <string name="measure_thigh">Muslo</string>
+    <string name="measure_hip">Cadera</string>
+    <string name="measure_fat">Grasa corporal</string>
+    <string name="measures_save">Guardar medidas</string>
+    <string name="measures_err_empty">Escribe al menos una medida.</string>
+    <string name="measures_err_invalid">Revisa el valor de %1$s.</string>
+    <string name="measures_saved">Medidas guardadas.</string>
+    <string name="measures_chart_title">Peso a lo largo del tiempo</string>
+    <string name="measures_chart_need_two">Anota el peso en al menos dos días para ver la gráfica.</string>
+    <string name="measures_history">Historial</string>
+    <string name="measures_empty">Todavía no has anotado medidas.</string>
+    <string name="measures_item_weight">Peso %1$s %2$s</string>
+    <string name="measures_item_waist">Cintura %1$s %2$s</string>
+    <string name="measures_item_chest">Pecho %1$s %2$s</string>
+    <string name="measures_item_arm">Brazo %1$s %2$s</string>
+    <string name="measures_item_thigh">Muslo %1$s %2$s</string>
+    <string name="measures_item_hip">Cadera %1$s %2$s</string>
+    <string name="measures_item_fat">Grasa %1$s %%</string>
+    <string name="measures_chart_range">Mín %1$s %4$s · Máx %2$s %4$s · %3$d días entre la primera y la última</string>
+    <string name="measures_delete">Borrar</string>
+    <string name="measures_delete_confirm">¿Borrar este registro? No se puede deshacer.</string>
+    <string name="measures_cancel">Cancelar</string>
+    <string name="measures_delete_yes">Sí, borrar</string>
+    <string name="measure_label_unit">%1$s (%2$s)</string>
+    <string name="measures_edit">Editar</string>
+    <string name="measures_editing">Editando el registro del %1$s</string>
+    <string name="measures_save_edit">Guardar cambios</string>
+    <string name="measures_edit_cancel">Cancelar edición</string>
+    <string name="measures_export">Exportar CSV</string>
+    <string name="measures_exported">Medidas exportadas.</string>
+    <string name="measures_export_failed">No se pudo exportar.</string>
+</resources>
