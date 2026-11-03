@@ -48,8 +48,8 @@
     <string name="editor_name">Nombre de la rutina</string>
     <string name="editor_sets">Series</string>
     <string name="editor_reps">Repeticiones</string>
-    <string name="editor_seconds">Segundos</string>
-    <string name="editor_rest">Descanso (s)</string>
+    <string name="editor_seconds">Segundos por serie</string>
+    <string name="editor_rest">Descanso entre series (segundos)</string>
     <string name="editor_by_reps">Por repeticiones</string>
     <string name="editor_by_time">Por tiempo</string>
     <string name="editor_up">Subir</string>

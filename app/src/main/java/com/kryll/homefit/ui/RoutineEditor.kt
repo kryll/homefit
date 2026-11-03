@@ -83,12 +83,12 @@ fun RoutineEditorScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         NumberField(stringResource(R.string.editor_sets), item.sets, Modifier.weight(1f)) { draft = draft.update(index, item.copy(sets = it)) }
                         if (item.timed) {
-                            NumberField(stringResource(R.string.editor_seconds), item.seconds, Modifier.weight(1f)) { draft = draft.update(index, item.copy(seconds = it)) }
+                            NumberField(stringResource(R.string.editor_seconds), item.seconds, Modifier.weight(1f), suffix = "s") { draft = draft.update(index, item.copy(seconds = it)) }
                         } else {
                             NumberField(stringResource(R.string.editor_reps), item.reps, Modifier.weight(1f)) { draft = draft.update(index, item.copy(reps = it)) }
                         }
-                        NumberField(stringResource(R.string.editor_rest), item.restSeconds, Modifier.weight(1f)) { draft = draft.update(index, item.copy(restSeconds = it)) }
                     }
+                    NumberField(stringResource(R.string.editor_rest), item.restSeconds, Modifier.fillMaxWidth(), suffix = "s") { draft = draft.update(index, item.copy(restSeconds = it)) }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.Center) {
                         FilterChip(!item.timed, { draft = draft.update(index, item.asReps()) }, { Text(stringResource(R.string.editor_by_reps)) })
                         FilterChip(item.timed, { draft = draft.update(index, item.asTimed()) }, { Text(stringResource(R.string.editor_by_time)) })
@@ -123,10 +123,11 @@ private fun errorText(e: DraftError) = when (e) {
 }
 
 @Composable
-private fun NumberField(label: String, value: Int?, modifier: Modifier, onChange: (Int?) -> Unit) {
+private fun NumberField(label: String, value: Int?, modifier: Modifier, suffix: String? = null, onChange: (Int?) -> Unit) {
     OutlinedTextField(
         value = value?.toString() ?: "", onValueChange = { onChange(digits(it)) },
         label = { Text(label, maxLines = 1) }, singleLine = true,
+        suffix = suffix?.let { { Text(it) } },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = modifier,
     )
 }

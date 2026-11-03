@@ -15,6 +15,23 @@ data class DraftItem(
     val timed: Boolean get() = seconds != null
     fun asTimed() = copy(reps = null, seconds = seconds ?: 30)
     fun asReps() = copy(seconds = null, reps = reps ?: 10)
+
+    companion object {
+        /** Ejercicios que se prescriben por tiempo (isométricos, estiramientos, cardio), con sus segundos iniciales. */
+        val TIMED_DEFAULTS: Map<String, Int> = mapOf(
+            "plancha" to 30, "plancha_rodillas" to 30, "plancha_lateral" to 25, "hollow_hold" to 20,
+            "estiramiento_isquios" to 30, "estiramiento_cadera" to 30, "estiramiento_pecho" to 30,
+            "postura_nino" to 45,
+            "jumping_jacks" to 40, "mountain_climbers" to 40, "burpees_sin_salto" to 40, "sentadilla_salto" to 40,
+            "patinador" to 40, "rodillas_altas" to 45, "skipping_lateral" to 45, "shadow_boxing" to 45,
+        )
+
+        /** Modo y valor iniciales según la prescripción del ejercicio. */
+        fun forExercise(id: String): DraftItem {
+            val secs = TIMED_DEFAULTS[id]
+            return if (secs != null) DraftItem(id, reps = null, seconds = secs) else DraftItem(id)
+        }
+    }
 }
 
 /** Rutina en edición. Se valida aquí, sin depender de Android. */
@@ -40,7 +57,7 @@ data class RoutineDraft(
         return e
     }
 
-    fun add(exerciseId: String) = copy(items = items + DraftItem(exerciseId))
+    fun add(exerciseId: String) = copy(items = items + DraftItem.forExercise(exerciseId))
     fun remove(index: Int) = copy(items = items.filterIndexed { i, _ -> i != index })
     fun update(index: Int, item: DraftItem) = copy(items = items.mapIndexed { i, old -> if (i == index) item else old })
 
