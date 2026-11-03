@@ -10,7 +10,7 @@ object ProgressionData {
         return sessions.sortedByDescending { it.startMillis }.map { s ->
             SessionSets(
                 s.routineId, s.startMillis,
-                (bySession[s.id] ?: emptyList()).groupBy({ it.exerciseId }, { LoggedSet(it.rpe) }),
+                (bySession[s.id] ?: emptyList()).groupBy({ it.exerciseId }, { LoggedSet(it.rpe, it.reps, it.seconds) }),
             )
         }
     }

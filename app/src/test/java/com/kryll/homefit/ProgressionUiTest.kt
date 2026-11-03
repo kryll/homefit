@@ -61,7 +61,7 @@ class ProgressionUiTest {
         rule.onNodeWithText("Semana de descarga").assertIsDisplayed()
         rule.onNodeWithText("Fuerza en casa").performClick()
         rule.onNodeWithText("Mantén: esta semana es de descarga, no subas.").assertIsDisplayed()
-        rule.onNodeWithText("Mantén: aún no se guardan las repeticiones reales, así que no se sugiere subir.").assertIsDisplayed()
+        rule.onNodeWithText("Mantén: no hay registro de que hicieras todas las repeticiones o el tiempo, así que no se sugiere subir.").assertIsDisplayed()
         capture("progresion_sugerencias")
     }
 

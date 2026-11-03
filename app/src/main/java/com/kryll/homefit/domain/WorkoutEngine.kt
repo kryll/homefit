@@ -30,7 +30,11 @@ sealed class Cue {
     object Finished : Cue()
 }
 
-data class SetResult(val itemIndex: Int, val set: Int, val rpe: Int?, val skipped: Boolean, val workSeconds: Int)
+/** [reps] y [weightKg] son lo que el usuario confirmó al acabar la serie; null = no registrado (no se sabe). */
+data class SetResult(
+    val itemIndex: Int, val set: Int, val rpe: Int?, val skipped: Boolean, val workSeconds: Int,
+    val reps: Int? = null, val weightKg: Float? = null,
+)
 
 data class WorkoutState(
     val phase: Phase,
@@ -117,6 +121,15 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
         }
     }
 
+    /** Guarda lo realmente hecho en la última serie (repeticiones y carga opcional). Solo en RATE. */
+    fun record(reps: Int?, weightKg: Float?) {
+        if (phase != Phase.RATE) return
+        require(reps == null || reps in 0..MAX_REPS) { "repeticiones" }
+        require(weightKg == null || (weightKg > 0f && weightKg <= MAX_WEIGHT_KG)) { "peso" }
+        val last = results.lastIndex
+        results[last] = results[last].copy(reps = reps, weightKg = weightKg)
+    }
+
     /** Guarda el RPE (1 a 10) o null si no lo da. Solo en RATE. */
     fun rate(rpe: Int?) {
         if (phase != Phase.RATE) return
@@ -124,6 +137,19 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
         val last = results.lastIndex
         results[last] = results[last].copy(rpe = rpe)
         afterRate()
+    }
+
+    companion object {
+        const val MAX_REPS = 200
+        const val MAX_WEIGHT_KG = 500f
+
+        fun stepReps(reps: Int, delta: Int): Int = (reps + delta).coerceIn(0, MAX_REPS)
+
+        /** Carga en pasos de 0,5 kg; null = sin peso (peso corporal). Bajar de 0,5 vuelve a "sin peso". */
+        fun stepWeight(w: Float?, delta: Int): Float? {
+            val next = ((w ?: 0f) * 2).let { Math.round(it) + delta } / 2f
+            return if (next <= 0f) null else next.coerceAtMost(MAX_WEIGHT_KG)
+        }
     }
 
     private fun countdown() {

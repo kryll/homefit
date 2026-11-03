@@ -10,7 +10,7 @@
     <string name="prog_hold_no_rpe">Mantén: anota el RPE al entrenar para recibir una sugerencia.</string>
     <string name="prog_hold_right">Mantén: el esfuerzo fue el adecuado.</string>
     <string name="prog_hold_ceiling">Mantén: ya estás en el máximo de este ejercicio.</string>
-    <string name="prog_hold_no_achieved">Mantén: aún no se guardan las repeticiones reales, así que no se sugiere subir.</string>
+    <string name="prog_hold_no_achieved">Mantén: no hay registro de que hicieras todas las repeticiones o el tiempo, así que no se sugiere subir.</string>
     <string name="prog_hold_deload">Mantén: esta semana es de descarga, no subas.</string>
     <string name="deload_title">Semana de descarga</string>
     <string name="deload_long_block">Llevas varias semanas seguidas entrenando. Esta semana haz cerca del 60 % de las series para recuperar.</string>
