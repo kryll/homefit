@@ -122,7 +122,7 @@ class SettingsUiTest {
     @Test fun updateStatesAreShown() {
         var checked = 0
         var opened = ""
-        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", null, "https://example.test/rel")
+        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", "https://github.com/kryll/homefit/releases/download/v1.2.0/homefit.apk", "https://example.test/rel")
         rule.setContent {
             HomeFitTheme {
                 SettingsScreen(
@@ -134,8 +134,8 @@ class SettingsUiTest {
             }
         }
         rule.onNodeWithText("Nueva versión 1.2.0 disponible").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Abrir descarga").performScrollTo().performClick()
-        assertEquals("https://example.test/rel", opened)
+        rule.onNodeWithText("Descargar APK").performScrollTo().performClick()
+        assertEquals(info.apkUrl, opened)
         rule.onNodeWithText("Buscar actualizaciones").performScrollTo().performClick()
         assertEquals(1, checked)
         capture("ajustes_actualizacion")
@@ -144,5 +144,21 @@ class SettingsUiTest {
     @Test fun updateErrorIsShown() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", null, null, updateState = com.kryll.homefit.domain.UpdateState.Failed) } }
         rule.onNodeWithText("No se pudo comprobar. Inténtalo más tarde.").performScrollTo().assertIsDisplayed()
+    }
+    @Test fun verifiedApkOffersAndroidInstallerButDoesNotInstallItself() {
+        var installs = 0
+        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", "https://github.com/kryll/homefit/releases/download/v1.2.0/homefit.apk", "")
+        rule.setContent { HomeFitTheme {
+            SettingsScreen(AppSettings(), "1.0.0", null, null,
+                updateState = com.kryll.homefit.domain.UpdateState.Available(info),
+                downloadState = com.kryll.homefit.update.DownloadUi(file = File("fixture.apk")),
+                onInstallUpdate = { installs++ })
+        } }
+        assertEquals(0, installs)
+        rule.onNodeWithText("Instalar actualización").performScrollTo().assertIsDisplayed()
+        rule.waitForIdle(); rule.mainClock.advanceTimeByFrame(); rule.waitForIdle()
+        rule.runOnIdle { capture("ajustes_instalar_apk") }
+        rule.onNodeWithText("Instalar actualización").performClick()
+        assertEquals(1, installs)
     }
 }

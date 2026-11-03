@@ -43,7 +43,7 @@ object UpdateCheck {
         var apk: String? = null
         if (assets != null) for (i in 0 until assets.length()) {
             val url = assets.optJSONObject(i)?.optString("browser_download_url").orEmpty()
-            if (url.endsWith(".apk")) { apk = url; break }
+            if (com.kryll.homefit.update.UpdateSecurity.trustedApk(url, tag)) { apk = url; break }
         }
         return ReleaseInfo(tag, tag.removePrefix("v"), apk, o.optString("html_url"))
     }

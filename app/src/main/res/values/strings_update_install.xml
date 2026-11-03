@@ -1,0 +1,10 @@
+<resources>
+    <string name="updates_launch_notice">Hay una nueva versión. Puedes descargarla desde Ajustes. No se instalará nada sin tu confirmación.</string>
+    <string name="updates_acknowledge">Entendido</string>
+    <string name="updates_no_apk">Esta versión aún no tiene un APK de este repositorio para descargar.</string>
+    <string name="updates_downloading">Descargando APK %1$s</string>
+    <string name="updates_download">Descargar APK</string>
+    <string name="updates_install">Instalar actualización</string>
+    <string name="updates_install_help">APK comprobado: mismo paquete y firma, versión superior. Android pedirá confirmar. Si solicita permitir instalaciones de esta app, actívalo y vuelve a pulsar Instalar. No desinstales la app: haz una copia de seguridad antes de actualizar.</string>
+    <string name="updates_download_failed">No se ha podido descargar o verificar el APK. Revisa la conexión y prueba de nuevo. No se iniciará la instalación.</string>
+</resources>

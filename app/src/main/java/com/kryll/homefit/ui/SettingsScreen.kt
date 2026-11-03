@@ -45,6 +45,8 @@ fun SettingsScreen(
     updateState: com.kryll.homefit.domain.UpdateState = com.kryll.homefit.domain.UpdateState.Idle,
     onCheckUpdates: () -> Unit = {},
     onOpenUpdate: (String) -> Unit = {},
+    downloadState: com.kryll.homefit.update.DownloadUi = com.kryll.homefit.update.DownloadUi(),
+    onInstallUpdate: () -> Unit = {},
 ) {
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -144,7 +146,18 @@ fun SettingsScreen(
                 com.kryll.homefit.domain.UpdateState.Failed -> Text(stringResource(R.string.updates_error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 is com.kryll.homefit.domain.UpdateState.Available -> {
                     Text(stringResource(R.string.updates_new, u.info.version), style = MaterialTheme.typography.bodyMedium)
-                    OutlinedButton(onClick = { onOpenUpdate(u.info.apkUrl ?: u.info.pageUrl) }) { Text(stringResource(R.string.updates_open)) }
+                    if (u.info.apkUrl == null) Text(stringResource(R.string.updates_no_apk))
+                    else when {
+                        downloadState.busy -> Text(stringResource(R.string.updates_downloading, downloadState.percent?.let { "$it%" } ?: "…"))
+                        downloadState.file != null -> {
+                            Text(stringResource(R.string.updates_install_help), style = MaterialTheme.typography.bodySmall)
+                            OutlinedButton(onClick = onInstallUpdate) { Text(stringResource(R.string.updates_install)) }
+                        }
+                        else -> {
+                            if (downloadState.failed) Text(stringResource(R.string.updates_download_failed), color = MaterialTheme.colorScheme.error)
+                            OutlinedButton(onClick = { onOpenUpdate(u.info.apkUrl) }) { Text(stringResource(R.string.updates_download)) }
+                        }
+                    }
                 }
                 com.kryll.homefit.domain.UpdateState.Idle -> {}
             }

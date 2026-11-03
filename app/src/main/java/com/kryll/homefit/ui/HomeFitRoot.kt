@@ -70,11 +70,22 @@ fun HomeFitRoot() {
         }
         return
     }
-    MainTabs()
+    val updater: com.kryll.homefit.update.UpdateViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    androidx.compose.runtime.LaunchedEffect(updater) { updater.checkOnLaunch() }
+    val updateNotice by updater.launchNotice.collectAsState()
+    updateNotice?.let { info ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { updater.dismissNotice() },
+            title = { Text(stringResource(R.string.updates_new, info.version)) },
+            text = { Text(stringResource(R.string.updates_launch_notice)) },
+            confirmButton = { androidx.compose.material3.TextButton({ updater.dismissNotice() }) { Text(stringResource(R.string.updates_acknowledge)) } },
+        )
+    }
+    MainTabs(updater)
 }
 
 @Composable
-private fun MainTabs() {
+private fun MainTabs(updater: com.kryll.homefit.update.UpdateViewModel) {
     val nav = rememberNavController()
     var startRequest by rememberSaveable { mutableStateOf<Long?>(null) }
     val entry by nav.currentBackStackEntryAsState()
@@ -111,7 +122,7 @@ private fun MainTabs() {
                     } else if (tab == Tab.Progress) {
                         ProgressTab()
                     } else if (tab == Tab.Settings) {
-                        SettingsTab()
+                        SettingsTab(updater)
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -282,7 +293,7 @@ private fun PlanTab(onStart: (Long) -> Unit) {
 }
 
 @Composable
-private fun SettingsTab() {
+private fun SettingsTab(updater: com.kryll.homefit.update.UpdateViewModel) {
     val context = LocalContext.current
     val app = context.applicationContext as HomeFitApp
     val scope = rememberCoroutineScope()
@@ -331,7 +342,22 @@ private fun SettingsTab() {
             }.onSuccess { pending = it }.onFailure { message = errorText(it) }
         }
     }
-    var updateState by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<com.kryll.homefit.domain.UpdateState>(com.kryll.homefit.domain.UpdateState.Idle) }
+    val updateState by updater.updates.collectAsState()
+    val downloadState by updater.download.collectAsState()
+    fun installDownloaded() {
+        val file = downloadState.file ?: return
+        try {
+            com.kryll.homefit.update.ApkDownloader.verify(context, file)
+            if (android.os.Build.VERSION.SDK_INT >= 26 && !context.packageManager.canRequestPackageInstalls()) {
+                context.startActivity(android.content.Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    android.net.Uri.parse("package:${context.packageName}")))
+            } else {
+                val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.updates", file)
+                context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri, "application/vnd.android.package-archive")
+                    .addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION))
+            }
+        } catch (e: Exception) { updater.installFailed() }
+    }
     val p = pending
     SettingsScreen(
         settings = settings, versionName = versionName, message = message,
@@ -341,18 +367,10 @@ private fun SettingsTab() {
         onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
         onCancelImport = { pending = null },
         updateState = updateState,
-        onCheckUpdates = {
-            updateState = com.kryll.homefit.domain.UpdateState.Checking
-            scope.launch {
-                val info = com.kryll.homefit.data.UpdateChecker.latest()
-                updateState = when {
-                    info == null -> com.kryll.homefit.domain.UpdateState.Failed
-                    com.kryll.homefit.domain.UpdateCheck.isNewer(info.version, versionName) -> com.kryll.homefit.domain.UpdateState.Available(info)
-                    else -> com.kryll.homefit.domain.UpdateState.UpToDate
-                }
-            }
-        },
-        onOpenUpdate = { url -> context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) },
+        onCheckUpdates = { updater.check() },
+        onOpenUpdate = { updater.fetch() },
+        downloadState = downloadState,
+        onInstallUpdate = { installDownloaded() },
         onConfirmImport = {
             val b = pending
             pending = null
