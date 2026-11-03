@@ -1,0 +1,80 @@
+package com.kryll.homefit.audio
+
+import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import com.kryll.homefit.domain.Beep
+import com.kryll.homefit.domain.Cue
+import com.kryll.homefit.domain.toSound
+import java.util.Locale
+
+/**
+ * Reproduce los avisos del entreno: pitidos con ToneGenerator y voz en español con TextToSpeech.
+ * Pide foco de audio con atenuación (ducking) mientras habla, así la música baja y vuelve.
+ * Si el móvil no tiene voz en español, solo suenan los pitidos.
+ */
+class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEnabled: Boolean = true) {
+    private val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 80) }.getOrNull()
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
+    private var pending = 0
+
+    private val attrs = AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+        .build()
+    private val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        .setAudioAttributes(attrs)
+        .build()
+
+    init {
+        tts = TextToSpeech(context) { status ->
+            val engine = tts
+            if (status == TextToSpeech.SUCCESS && engine != null) {
+                val r = engine.setLanguage(Locale("es", "ES"))
+                ttsReady = r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED
+                engine.setAudioAttributes(attrs)
+                engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {}
+                    override fun onDone(utteranceId: String?) = finished()
+                    @Deprecated("Deprecated in Java")
+                    override fun onError(utteranceId: String?) = finished()
+                })
+            }
+        }
+    }
+
+    private fun finished() {
+        pending = (pending - 1).coerceAtLeast(0)
+        if (pending == 0) audio.abandonAudioFocusRequest(focus)
+    }
+
+    fun play(cue: Cue) {
+        val sound = cue.toSound()
+        if (beepEnabled) when (sound.beep) {
+            Beep.TICK -> tone?.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
+            Beep.GO -> tone?.startTone(ToneGenerator.TONE_PROP_BEEP2, 300)
+            Beep.DONE -> tone?.startTone(ToneGenerator.TONE_PROP_ACK, 250)
+            Beep.NONE -> Unit
+        }
+        val text = sound.speech
+        if (speechEnabled && ttsReady && text != null) {
+            if (pending == 0) audio.requestAudioFocus(focus)
+            pending++
+            val queue = if (cue is Cue.Go || cue is Cue.Rest) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
+            if (queue == TextToSpeech.QUEUE_FLUSH) pending = 1
+            tts?.speak(text, queue, null, "cue-${System.nanoTime()}")
+        }
+    }
+
+    fun release() {
+        tts?.stop(); tts?.shutdown(); tts = null
+        tone?.release()
+        audio.abandonAudioFocusRequest(focus)
+    }
+}

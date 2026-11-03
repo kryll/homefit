@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -102,6 +103,15 @@ interface SessionDao {
     @Insert
     suspend fun insertSets(items: List<SetLog>)
 
+    @Update
+    suspend fun updateWorkout(session: WorkoutSession)
+
+    @Query("DELETE FROM set_log WHERE sessionId = :sessionId")
+    suspend fun deleteSets(sessionId: Long)
+
     @Query("SELECT * FROM workout_session ORDER BY startMillis DESC")
     fun observeWorkouts(): Flow<List<WorkoutSession>>
+
+    @Query("SELECT * FROM set_log WHERE sessionId = :sessionId ORDER BY id")
+    suspend fun setsOf(sessionId: Long): List<SetLog>
 }

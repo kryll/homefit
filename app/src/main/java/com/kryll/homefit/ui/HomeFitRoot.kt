@@ -27,6 +27,16 @@ import androidx.navigation.compose.rememberNavController
 import com.kryll.homefit.R
 import com.kryll.homefit.HomeFitApp
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.kryll.homefit.domain.WorkItem
+import com.kryll.homefit.domain.SetResult
+import com.kryll.homefit.audio.CuePlayer
+import androidx.compose.runtime.DisposableEffect
+import com.kryll.homefit.data.RoutineRepository
+import com.kryll.homefit.data.WorkoutRepository
 import com.kryll.homefit.data.UserEquipment
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -110,9 +120,64 @@ private fun RoutinesTab() {
     val gear by db.exerciseDao().observeEquipment().collectAsState(initial = emptyList())
     val map = gear.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() }
     val allItems by db.routineDao().observeAllItems().collectAsState(initial = emptyList())
+    val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
+    var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var workoutStart by rememberSaveable { mutableStateOf(0L) }
+    val workoutRepo = app.container.workoutRepository
+    val active = workoutId
+    if (active != null) {
+        val names = exercises.associate { it.id to it.name }
+        val plan = (allItems.filter { it.routineId == active }.sortedBy { it.position }).map {
+            WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds)
+        }
+        if (plan.isEmpty()) { workoutId = null } else {
+            WorkoutWithCues(plan, workoutStart, active, onExit = { results, finished ->
+                val end = System.currentTimeMillis()
+                scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
+                workoutId = null
+            })
+            return
+        }
+    }
     RoutinesScreen(
         routines, exercises, map,
         items = allItems.groupBy { it.routineId },
+        onSaveRoutine = { id, draft -> scope.launch { repo.save(id, draft) } },
+        onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
+        onStart = { workoutId = it; workoutStart = System.currentTimeMillis() },
+    )
+}
+
+@Composable
+private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: Long?, onExit: (List<SetResult>, Boolean) -> Unit) {
+    val context = LocalContext.current.applicationContext
+    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan, routineId) }
+    androidx.compose.runtime.LaunchedEffect(runner) { com.kryll.homefit.audio.WorkoutService.start(context, null) }
+    val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+    }
+    val snap by runner.snapshot.collectAsState()
+    // Cerrada desde la notificación (Terminar): el servicio ya la guardó, así que solo salimos de la pantalla.
+    androidx.compose.runtime.LaunchedEffect(snap.closed) {
+        if (snap.closed) onExit(emptyList(), false)
+    }
+    WorkoutContent(
+        state = snap.state, item = snap.item, items = plan, completedSets = snap.completedSets, totalSets = snap.totalSets,
+        onDone = { runner.done() },
+        onSkip = { runner.skip() },
+        onPause = { runner.togglePause() },
+        onRate = { runner.rate(it) },
+        onExit = {
+            val r = runner.exit()
+            if (r != null) {
+                com.kryll.homefit.audio.WorkoutService.stop(context)
+                com.kryll.homefit.audio.WorkoutHost.clear()
+                onExit(r.first, r.second)
+            }
+        },
     )
 }

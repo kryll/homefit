@@ -81,4 +81,40 @@ class RoutinesUiTest {
         rule.onNodeWithContentDescription("Flexiones: posición inicial").assertIsDisplayed()
         capture("ejercicio_detalle")
     }
+
+    @Test fun editorCreatesRoutineAndShowsValidation() {
+        var saved: com.kryll.homefit.domain.RoutineDraft? = null
+        rule.setContent {
+            HomeFitTheme {
+                RoutinesScreen(routines, catalog.exercises, equipment, onSaveRoutine = { _, d -> saved = d })
+            }
+        }
+        rule.onNodeWithText("Nueva rutina").performClick()
+        rule.onNodeWithText("Guardar rutina").performClick()
+        rule.onNodeWithText("Escribe un nombre.").assertIsDisplayed()
+        rule.onNodeWithText("Añade al menos un ejercicio.").assertIsDisplayed()
+        capture("editor_errores")
+        rule.onNodeWithText("Nombre de la rutina").performTextInput("Mi rutina de prueba")
+        val first = catalog.exercises[0]
+        val second = catalog.exercises[1]
+        rule.onNodeWithText("Añadir ejercicio").performClick()
+        rule.waitForIdle()
+        capture("editor_selector")
+        rule.onNodeWithText(first.name).performClick()
+        rule.onNodeWithText("Añadir ejercicio").performClick()
+        rule.onNodeWithText(second.name).performClick()
+        rule.waitForIdle()
+        capture("editor_con_ejercicios")
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Guardar rutina"))
+        rule.waitForIdle()
+        rule.onNodeWithText("Guardar rutina").assertIsDisplayed()
+        capture("editor_guardar_tras_scroll")
+        rule.onNodeWithText("Guardar rutina").performClick()
+        rule.waitForIdle()
+        val d = saved!!
+        d.items.forEach { assertEquals(it.exerciseId in com.kryll.homefit.domain.DraftItem.TIMED_DEFAULTS, it.timed) }
+        assertEquals("Mi rutina de prueba", d.name)
+        assertEquals(listOf(first.id, second.id), d.items.map { it.exerciseId })
+        assertTrue(d.errors().isEmpty())
+    }
 }
