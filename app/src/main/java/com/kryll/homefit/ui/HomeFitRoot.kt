@@ -205,5 +205,6 @@ private fun ProgressTab() {
     ProgressWithMeasures(
         summary, rows, measurements,
         onSave = { m -> scope.launch { db.measurementDao().insert(m) } },
+        onDelete = { id -> scope.launch { db.measurementDao().deleteById(id) } },
     )
 }

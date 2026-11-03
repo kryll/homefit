@@ -68,6 +68,7 @@ fun MeasuresContent(
     items: List<BodyMeasurement>,
     today: Long,
     onSave: (BodyMeasurement) -> Unit,
+    onDelete: (Long) -> Unit = {},
 ) {
     val texts = remember { mutableStateMapOf<MeasureField, String>() }
     var error by remember { mutableStateOf<String?>(null) }
@@ -136,13 +137,14 @@ fun MeasuresContent(
         if (items.isEmpty()) {
             item { Text(stringResource(R.string.measures_empty), style = MaterialTheme.typography.bodyMedium) }
         } else {
-            items(items, key = { it.id }) { m -> MeasureCard(m) }
+            items(items, key = { it.id }) { m -> MeasureCard(m, onDelete) }
         }
     }
 }
 
 @Composable
-private fun MeasureCard(m: BodyMeasurement) {
+private fun MeasureCard(m: BodyMeasurement, onDelete: (Long) -> Unit) {
+    var confirming by remember(m.id) { mutableStateOf(false) }
     val date = DateTimeFormatter.ofPattern("d MMM yyyy", es).format(LocalDate.ofEpochDay(m.epochDay))
     val parts = buildList {
         m.weightKg?.let { add(stringResource(R.string.measures_item_weight, num(it))) }
@@ -157,6 +159,15 @@ private fun MeasureCard(m: BodyMeasurement) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(date, style = MaterialTheme.typography.titleSmall)
             Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
+            if (!confirming) {
+                androidx.compose.material3.TextButton(onClick = { confirming = true }) { Text(stringResource(R.string.measures_delete)) }
+            } else {
+                Text(stringResource(R.string.measures_delete_confirm), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.TextButton(onClick = { confirming = false }) { Text(stringResource(R.string.measures_cancel)) }
+                    androidx.compose.material3.TextButton(onClick = { onDelete(m.id) }) { Text(stringResource(R.string.measures_delete_yes)) }
+                }
+            }
         }
     }
 }
@@ -191,6 +202,7 @@ fun ProgressWithMeasures(
     rows: List<com.kryll.homefit.domain.SessionRow>,
     measurements: List<BodyMeasurement>,
     onSave: (BodyMeasurement) -> Unit,
+    onDelete: (Long) -> Unit = {},
 ) {
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
     Column(Modifier.fillMaxSize()) {
@@ -199,6 +211,6 @@ fun ProgressWithMeasures(
             androidx.compose.material3.Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.measures_tab_measures)) })
         }
         if (tab == 0) ProgressContent(summary, rows)
-        else MeasuresContent(measurements, LocalDate.now().toEpochDay(), onSave)
+        else MeasuresContent(measurements, LocalDate.now().toEpochDay(), onSave, onDelete)
     }
 }

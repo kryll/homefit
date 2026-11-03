@@ -32,6 +32,9 @@ interface MeasurementDao {
 
     @Insert
     suspend fun insert(measurement: BodyMeasurement): Long
+
+    @Query("DELETE FROM body_measurement WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
 
 @Dao
