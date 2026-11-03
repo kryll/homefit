@@ -88,7 +88,7 @@ private fun SessionCard(s: SessionRow, zone: ZoneId) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(s.routineName ?: stringResource(R.string.progress_free_workout), style = MaterialTheme.typography.titleSmall)
             Text(date, style = MaterialTheme.typography.bodySmall)
-            Text(stringResource(R.string.progress_session_summary, s.durationSeconds / 60, s.sets.size), style = MaterialTheme.typography.bodyMedium)
+            Text(androidx.compose.ui.platform.LocalContext.current.resources.getQuantityString(R.plurals.progress_session_summary, s.sets.size, s.durationSeconds / 60, s.sets.size), style = MaterialTheme.typography.bodyMedium)
             if (s.incomplete) {
                 Text(stringResource(R.string.progress_incomplete), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error)
             }

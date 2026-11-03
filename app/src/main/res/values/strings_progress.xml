@@ -12,7 +12,10 @@
     <string name="progress_empty">Aún no has entrenado. Cuando termines tu primer entreno aparecerá aquí.</string>
     <string name="progress_free_workout">Entreno libre</string>
     <string name="progress_incomplete">Incompleto</string>
-    <string name="progress_session_summary">%1$d min · %2$d series</string>
+    <plurals name="progress_session_summary">
+        <item quantity="one">%1$d min · %2$d serie</item>
+        <item quantity="other">%1$d min · %2$d series</item>
+    </plurals>
     <string name="progress_set_reps">%1$s · serie %2$d · %3$d rep</string>
     <string name="progress_set_seconds">%1$s · serie %2$d · %3$d s</string>
     <string name="progress_set_rpe">RPE %1$d</string>

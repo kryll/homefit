@@ -57,6 +57,8 @@ class ProgressUiTest {
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
         rule.onNodeWithText("Entreno libre").assertIsDisplayed()
         rule.onNodeWithText("Incompleto").assertIsDisplayed()
+        rule.onNodeWithText("10 min · 1 serie").assertIsDisplayed()
+        rule.onNodeWithText("25 min · 3 series").assertIsDisplayed()
         capture("progreso_historial")
     }
 
