@@ -261,11 +261,7 @@
       "Mantén la espalda pegada al banco."
     ],
     "easierVariantId": "fondos_banco_rodillas",
-    "harderVariantId": "fondos_paralelas",
-    "images": [
-      "media/fondos_banco_0.jpg",
-      "media/fondos_banco_1.jpg"
-    ]
+    "harderVariantId": "fondos_paralelas"
   },
   {
     "id": "fondos_banco_rodillas",
@@ -483,11 +479,7 @@
       "Piensa en juntar las escápulas."
     ],
     "easierVariantId": null,
-    "harderVariantId": null,
-    "images": [
-      "media/pajaros_0.jpg",
-      "media/pajaros_1.jpg"
-    ]
+    "harderVariantId": null
   },
   {
     "id": "pike_push_up",
@@ -931,11 +923,7 @@
       "Codos entre las rodillas abajo."
     ],
     "easierVariantId": "sentadilla",
-    "harderVariantId": null,
-    "images": [
-      "media/sentadilla_goblet_0.jpg",
-      "media/sentadilla_goblet_1.jpg"
-    ]
+    "harderVariantId": null
   },
   {
     "id": "sentadilla_sumo",
@@ -1669,11 +1657,7 @@
       "Movimientos lentos."
     ],
     "easierVariantId": null,
-    "harderVariantId": null,
-    "images": [
-      "media/dead_bug_0.jpg",
-      "media/dead_bug_1.jpg"
-    ]
+    "harderVariantId": null
   },
   {
     "id": "bird_dog",
@@ -1752,11 +1736,7 @@
       "Pies en el suelo lo hace más fácil."
     ],
     "easierVariantId": null,
-    "harderVariantId": null,
-    "images": [
-      "media/russian_twist_0.jpg",
-      "media/russian_twist_1.jpg"
-    ]
+    "harderVariantId": null
   },
   {
     "id": "hollow_hold",
@@ -2215,11 +2195,7 @@
       "Pasos controlados."
     ],
     "easierVariantId": null,
-    "harderVariantId": null,
-    "images": [
-      "media/paseo_monstruo_0.jpg",
-      "media/paseo_monstruo_1.jpg"
-    ]
+    "harderVariantId": null
   },
   {
     "id": "pallof_press",
@@ -2294,11 +2270,7 @@
       "Ritmo lento."
     ],
     "easierVariantId": null,
-    "harderVariantId": null,
-    "images": [
-      "media/gato_camello_0.jpg",
-      "media/gato_camello_1.jpg"
-    ]
+    "harderVariantId": null
   },
   {
     "id": "postura_nino",
@@ -2350,11 +2322,7 @@
       "Sin dolor."
     ],
     "easierVariantId": null,
-    "harderVariantId": null,
-    "images": [
-      "media/estiramiento_isquios_0.jpg",
-      "media/estiramiento_isquios_1.jpg"
-    ]
+    "harderVariantId": null
   },
   {
     "id": "estiramiento_cuadriceps",
