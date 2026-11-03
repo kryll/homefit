@@ -95,6 +95,7 @@ class MeasuresUiTest {
         )
         rule.setContent { HomeFitTheme { MeasuresContent(items, 20400, {}) } }
         scrollTo("Evolución de las medidas")
+        scrollTo("Cintura")
         rule.onNodeWithText("Cintura").performClick()
         scrollTo("Mín 80 cm · Máx 81 cm · 7 días entre la primera y la última")
         rule.onNodeWithText("Mín 80 cm · Máx 81 cm · 7 días entre la primera y la última").assertIsDisplayed()
