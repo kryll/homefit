@@ -14,6 +14,13 @@ import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.kryll.homefit.MainActivity
 import com.kryll.homefit.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Servicio en primer plano que mantiene vivo el proceso mientras hay un entreno en marcha,
@@ -22,6 +29,9 @@ import com.kryll.homefit.R
  */
 class WorkoutService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var loop: Job? = null
+    private var player: CuePlayer? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -43,10 +53,34 @@ class WorkoutService : Service() {
                 acquire(MAX_WAKE_MS)
             }
         }
+        val runner = WorkoutHost.runner
+        if (runner == null || runner.isClosed) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        if (loop == null) {
+            val p = CuePlayer(applicationContext).also { player = it }
+            runner.cueListener = { p.play(it) }
+            loop = scope.launch {
+                // El reloj vive aquí, no en la pantalla: sigue con la pantalla apagada.
+                while (!runner.isClosed && !runner.isFinished) {
+                    runner.sync()
+                    delay(TICK_MS)
+                }
+                if (!runner.isClosed) {
+                    delay(FINISH_GRACE_MS) // deja terminar el aviso de fin
+                    stopSelf()
+                }
+            }
+        }
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
+        scope.cancel()
+        WorkoutHost.runner?.cueListener = null
+        player?.release()
+        player = null
         wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = null
         super.onDestroy()
@@ -58,6 +92,8 @@ class WorkoutService : Service() {
         const val ACTION_STOP = "com.kryll.homefit.action.STOP_WORKOUT"
         const val EXTRA_TITLE = "title"
         /** Tope de seguridad: 3 horas. */
+        const val TICK_MS = 250L
+        const val FINISH_GRACE_MS = 6000L
         const val MAX_WAKE_MS = 3L * 60 * 60 * 1000
 
         fun ensureChannel(context: Context) {

@@ -132,7 +132,7 @@ private fun RoutinesTab() {
             WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds)
         }
         if (plan.isEmpty()) { workoutId = null } else {
-            WorkoutWithCues(plan, onExit = { results, finished ->
+            WorkoutWithCues(plan, workoutStart, onExit = { results, finished ->
                 val end = System.currentTimeMillis()
                 scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
                 workoutId = null
@@ -150,21 +150,30 @@ private fun RoutinesTab() {
 }
 
 @Composable
-private fun WorkoutWithCues(plan: List<WorkItem>, onExit: (List<SetResult>, Boolean) -> Unit) {
+private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, onExit: (List<SetResult>, Boolean) -> Unit) {
     val context = LocalContext.current.applicationContext
-    val player = remember { CuePlayer(context) }
-    DisposableEffect(Unit) {
-        com.kryll.homefit.audio.WorkoutService.start(context, null)
-        onDispose {
-            player.release()
-            com.kryll.homefit.audio.WorkoutService.stop(context)
-        }
-    }
+    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan) }
+    androidx.compose.runtime.LaunchedEffect(runner) { com.kryll.homefit.audio.WorkoutService.start(context, null) }
     val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
     ) { }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         if (android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
     }
-    WorkoutScreen(plan, onExit = onExit, onCue = { player.play(it) })
+    val snap by runner.snapshot.collectAsState()
+    WorkoutContent(
+        state = snap.state, item = snap.item, items = plan, completedSets = snap.completedSets, totalSets = snap.totalSets,
+        onDone = { runner.done() },
+        onSkip = { runner.skip() },
+        onPause = { runner.togglePause() },
+        onRate = { runner.rate(it) },
+        onExit = {
+            val r = runner.exit()
+            if (r != null) {
+                com.kryll.homefit.audio.WorkoutService.stop(context)
+                com.kryll.homefit.audio.WorkoutHost.clear()
+                onExit(r.first, r.second)
+            }
+        },
+    )
 }
