@@ -87,11 +87,26 @@ private fun MainTabs() {
         NavHost(nav, startDestination = Tab.Today.route, modifier = Modifier.padding(padding)) {
             Tab.entries.forEach { tab ->
                 composable(tab.route) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(stringResource(tab.placeholder))
+                    if (tab == Tab.Routines) {
+                        RoutinesTab()
+                    } else {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(stringResource(tab.placeholder))
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun RoutinesTab() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val db = app.container.database
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val exercises by db.exerciseDao().observeAll().collectAsState(initial = emptyList())
+    val gear by db.exerciseDao().observeEquipment().collectAsState(initial = emptyList())
+    val map = gear.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() }
+    RoutinesScreen(routines, exercises, map)
 }

@@ -52,6 +52,9 @@ interface ExerciseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEquipment(items: List<ExerciseEquipment>)
+
+    @Query("SELECT * FROM exercise_equipment")
+    fun observeEquipment(): Flow<List<ExerciseEquipment>>
 }
 
 @Dao

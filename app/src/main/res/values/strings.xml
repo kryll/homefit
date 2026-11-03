@@ -27,4 +27,15 @@
     <string name="onb_minutes">Minutos por sesión</string>
     <string name="onb_equipment">Material disponible (opcional)</string>
     <string name="onb_start">Empezar</string>
+    <string name="routines_tab">Rutinas</string>
+    <string name="exercises_tab">Ejercicios</string>
+    <string name="filter_muscle">Grupo muscular</string>
+    <string name="filter_difficulty">Dificultad</string>
+    <string name="filter_equipment">Material</string>
+    <string name="exercise_count">%1$d ejercicios</string>
+    <string name="steps">Pasos</string>
+    <string name="mistakes">Errores comunes</string>
+    <string name="safety">Seguridad</string>
+    <string name="easier">Variante más fácil: %1$s</string>
+    <string name="harder">Variante más difícil: %1$s</string>
 </resources>
