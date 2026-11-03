@@ -280,6 +280,7 @@ fun ProgressWithMeasures(
     summary: com.kryll.homefit.domain.ProgressSummary,
     rows: List<com.kryll.homefit.domain.SessionRow>,
     measurements: List<BodyMeasurement>,
+    volume: List<com.kryll.homefit.domain.MuscleVolume> = emptyList(),
     onSave: (BodyMeasurement) -> Unit,
     onDelete: (Long) -> Unit = {},
     weightUnit: WeightUnit = WeightUnit.KG,
@@ -293,7 +294,7 @@ fun ProgressWithMeasures(
             androidx.compose.material3.Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.measures_tab_summary)) })
             androidx.compose.material3.Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.measures_tab_measures)) })
         }
-        if (tab == 0) ProgressContent(summary, rows)
+        if (tab == 0) ProgressContent(summary, rows, volume = volume)
         else MeasuresContent(measurements, LocalDate.now().toEpochDay(), onSave, onDelete, weightUnit, lengthUnit, onExport, exportMessage)
     }
 }

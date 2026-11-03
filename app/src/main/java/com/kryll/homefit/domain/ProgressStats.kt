@@ -5,7 +5,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-data class SetRow(val exerciseName: String, val setIndex: Int, val reps: Int?, val seconds: Int?, val rpe: Int?, val weightKg: Float? = null)
+data class SetRow(val exerciseName: String, val setIndex: Int, val reps: Int?, val seconds: Int?, val rpe: Int?, val weightKg: Float? = null, val exerciseId: String = "")
+
+/** Series y repeticiones/tiempo acumulados en un grupo muscular. */
+data class MuscleVolume(val muscle: String, val sets: Int, val reps: Int, val seconds: Int)
 
 data class SessionRow(
     val id: Long,
@@ -49,6 +52,22 @@ object ProgressStats {
         )
     }
 
+    /** Series (y reps/segundos) por grupo muscular principal, de más a menos series. Ejercicios sin grupo conocido no cuentan. */
+    fun volumeByMuscle(sessions: List<SessionRow>, primaryMuscleOf: (String) -> String?): List<MuscleVolume> {
+        val sets = LinkedHashMap<String, Int>()
+        val reps = HashMap<String, Int>()
+        val secs = HashMap<String, Int>()
+        sessions.forEach { s -> s.sets.forEach { r ->
+            val m = primaryMuscleOf(r.exerciseId) ?: return@forEach
+            sets[m] = (sets[m] ?: 0) + 1
+            reps[m] = (reps[m] ?: 0) + (r.reps ?: 0)
+            secs[m] = (secs[m] ?: 0) + (r.seconds ?: 0)
+        } }
+        return sets.entries.sortedByDescending { it.value }.map { (m, n) ->
+            MuscleVolume(m, n, reps[m] ?: 0, secs[m] ?: 0)
+        }
+    }
+
     private fun streak(days: Set<LocalDate>, today: LocalDate): Int {
         var d = when {
             today in days -> today
@@ -74,7 +93,7 @@ object ProgressStats {
                 routineName = s.routineId?.let { routineNames[it] },
                 incomplete = s.notes == com.kryll.homefit.data.WorkoutRepository.NOTE_INCOMPLETE,
                 sets = (bySession[s.id] ?: emptyList()).sortedBy { it.id }.map {
-                    SetRow(exerciseNames[it.exerciseId] ?: it.exerciseId, it.setIndex, it.reps, it.seconds, it.rpe, it.weightKg)
+                    SetRow(exerciseNames[it.exerciseId] ?: it.exerciseId, it.setIndex, it.reps, it.seconds, it.rpe, it.weightKg, it.exerciseId)
                 },
             )
         }

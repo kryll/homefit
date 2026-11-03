@@ -123,4 +123,18 @@ class ProgressUiTest {
         rule.waitForIdle()
         rule.runOnIdle { capture("progreso_carga") }
     }
+    @Test fun volumeByMuscleIsListed() {
+        val volume = listOf(
+            com.kryll.homefit.domain.MuscleVolume("piernas", 6, 72, 0),
+            com.kryll.homefit.domain.MuscleVolume("core", 3, 0, 90),
+            com.kryll.homefit.domain.MuscleVolume("pecho", 2, 20, 0),
+        )
+        rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(sessions, now, zone), sessions, zone, volume = volume) } }
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Volumen por grupo muscular"))
+        rule.onNodeWithText("Volumen por grupo muscular").assertIsDisplayed()
+        rule.onNodeWithText("Piernas · 6 series · 72 reps").assertIsDisplayed()
+        rule.onNodeWithText("Core · 3 series · 90 s").assertIsDisplayed()
+        rule.onNodeWithText("Pecho · 2 series · 20 reps").assertIsDisplayed()
+        capture("progreso_volumen")
+    }
 }

@@ -41,6 +41,7 @@ fun ProgressContent(
     summary: ProgressSummary,
     sessions: List<SessionRow>,
     zone: ZoneId = ZoneId.systemDefault(),
+    volume: List<com.kryll.homefit.domain.MuscleVolume> = emptyList(),
 ) {
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -70,6 +71,16 @@ fun ProgressContent(
         }
         item { WeeklyChart(sessions, zone) }
         item { ExerciseChart(sessions, zone) }
+        if (volume.isNotEmpty()) {
+            item { Text(stringResource(R.string.progress_volume_title), style = MaterialTheme.typography.titleMedium) }
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        volume.forEach { v -> Text(muscleText(v), style = MaterialTheme.typography.bodyMedium) }
+                    }
+                }
+            }
+        }
         item { Text(stringResource(R.string.progress_history), style = MaterialTheme.typography.titleMedium) }
         if (sessions.isEmpty()) {
             item { Text(stringResource(R.string.progress_empty), style = MaterialTheme.typography.bodyMedium) }
@@ -107,6 +118,14 @@ private fun SessionCard(s: SessionRow, zone: ZoneId) {
             }
         }
     }
+}
+
+@Composable
+private fun muscleText(v: com.kryll.homefit.domain.MuscleVolume): String {
+    val parts = mutableListOf(stringResource(R.string.progress_volume_sets, v.sets))
+    if (v.reps > 0) parts += stringResource(R.string.progress_volume_reps, v.reps)
+    if (v.seconds > 0) parts += stringResource(R.string.progress_volume_seconds, v.seconds)
+    return v.muscle.replaceFirstChar { it.uppercase() } + " · " + parts.joinToString(" · ")
 }
 
 @Composable

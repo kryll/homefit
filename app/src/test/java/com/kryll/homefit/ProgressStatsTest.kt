@@ -68,4 +68,25 @@ class ProgressStatsTest {
         assertEquals("Fuerza", rows[1].routineName)
         assertEquals("Sentadilla", rows[1].sets.single().exerciseName); assertEquals(7, rows[1].sets.single().rpe)
     }
+    @Test fun volumeGroupsByPrimaryMuscleSortedBySets() {
+        val sets = listOf(
+            SetRow("Sentadilla", 1, 12, null, 7, exerciseId = "squat"),
+            SetRow("Sentadilla", 2, 12, null, 8, exerciseId = "squat"),
+            SetRow("Plancha", 1, null, 30, 9, exerciseId = "plank"),
+            SetRow("Flexiones", 1, 10, null, 7, exerciseId = "pushup"),
+            SetRow("Raro", 1, 5, null, null, exerciseId = "unknown"),
+        )
+        val muscles = mapOf("squat" to "piernas", "plank" to "core", "pushup" to "pecho")
+        val v = ProgressStats.volumeByMuscle(listOf(row(1, ms(2026, 11, 3), sets = sets))) { muscles[it] }
+        assertEquals(listOf("piernas", "core", "pecho"), v.map { it.muscle })
+        assertEquals(com.kryll.homefit.domain.MuscleVolume("piernas", 2, 24, 0), v[0])
+        assertEquals(com.kryll.homefit.domain.MuscleVolume("core", 1, 0, 30), v[1])
+        assertEquals(com.kryll.homefit.domain.MuscleVolume("pecho", 1, 10, 0), v[2])
+    }
+
+    @Test fun volumeIsEmptyWithoutSetsOrKnownMuscles() {
+        assertEquals(emptyList<com.kryll.homefit.domain.MuscleVolume>(), ProgressStats.volumeByMuscle(emptyList()) { "pecho" })
+        val sets = listOf(SetRow("Raro", 1, 5, null, null, exerciseId = "unknown"))
+        assertEquals(emptyList<com.kryll.homefit.domain.MuscleVolume>(), ProgressStats.volumeByMuscle(listOf(row(1, ms(2026, 11, 3), sets = sets))) { null })
+    }
 }
