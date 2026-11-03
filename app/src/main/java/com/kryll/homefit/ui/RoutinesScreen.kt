@@ -3,6 +3,10 @@ package com.kryll.homefit.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,11 +80,21 @@ private fun RoutineList(routines: List<Routine>) {
 private fun ExerciseCatalogList(all: List<Exercise>, equipment: Map<String, Set<String>>) {
     var filter by rememberSaveable { mutableStateOf(ExerciseFilterState()) }
     var openId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showFilters by rememberSaveable { mutableStateOf(false) }
     val muscles = all.map { it.primaryMuscle }.distinct().sorted()
     val gear = equipment.values.flatten().distinct().sorted()
     val shown = filterExercises(all, equipment, filter.toFilter())
     LazyColumn(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
+            val active = listOfNotNull(filter.muscle?.let { label(it) }, filter.difficulty, filter.equipment?.let { label(it) })
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                OutlinedButton(onClick = { showFilters = !showFilters }) {
+                    Text(stringResource(if (showFilters) R.string.filters_hide else R.string.filters_show, active.size))
+                }
+                if (active.isNotEmpty()) TextButton(onClick = { filter = ExerciseFilterState() }) { Text(stringResource(R.string.filters_clear)) }
+            }
+            if (active.isNotEmpty()) Text(active.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+            if (showFilters) {
             Text(stringResource(R.string.filter_muscle))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 muscles.forEach { m -> FilterChip(filter.muscle == m, { filter = filter.copy(muscle = if (filter.muscle == m) null else m) }, { Text(label(m)) }) }
@@ -92,6 +106,7 @@ private fun ExerciseCatalogList(all: List<Exercise>, equipment: Map<String, Set<
             Text(stringResource(R.string.filter_equipment))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 gear.forEach { g -> FilterChip(filter.equipment == g, { filter = filter.copy(equipment = if (filter.equipment == g) null else g) }, { Text(label(g)) }) }
+            }
             }
             Text(stringResource(R.string.exercise_count, shown.size), style = MaterialTheme.typography.labelLarge)
         }

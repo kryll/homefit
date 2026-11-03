@@ -38,4 +38,7 @@
     <string name="safety">Seguridad</string>
     <string name="easier">Variante más fácil: %1$s</string>
     <string name="harder">Variante más difícil: %1$s</string>
+    <string name="filters_show">Filtros (%1$d)</string>
+    <string name="filters_hide">Ocultar filtros (%1$d)</string>
+    <string name="filters_clear">Limpiar</string>
 </resources>
