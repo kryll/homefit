@@ -1,7 +1,6 @@
 package com.kryll.homefit.ui
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -150,7 +149,7 @@ fun MeasuresContent(
         }
         item { Text(stringResource(R.string.measures_chart_title), style = MaterialTheme.typography.titleMedium) }
         item {
-            Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MeasureField.entries.forEach { f ->
                     FilterChip(selected = f == chartField, onClick = { chartField = f }, label = { Text(stringResource(label(f))) })
                 }

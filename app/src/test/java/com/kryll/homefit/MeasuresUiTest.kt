@@ -100,6 +100,7 @@ class MeasuresUiTest {
         rule.onNodeWithText("1 nov 2025: 81 cm").assertIsDisplayed()
         rule.onNodeWithText("8 nov 2025: 80 cm").assertIsDisplayed()
         capture("medidas_grafica_cintura")
+        scrollTo("Grasa corporal")
         rule.onNodeWithText("Grasa corporal").performClick()
         scrollTo("Anota grasa corporal en al menos dos días para ver la gráfica.")
         rule.onNodeWithText("Anota grasa corporal en al menos dos días para ver la gráfica.").assertIsDisplayed()
