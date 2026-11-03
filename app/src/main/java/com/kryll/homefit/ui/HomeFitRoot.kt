@@ -171,6 +171,7 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
         onSkip = { runner.skip() },
         onPause = { runner.togglePause() },
         onRate = { runner.rate(it) },
+        onRecord = { r, w -> runner.record(r, w) },
         onExit = {
             val r = runner.exit()
             if (r != null) {
