@@ -20,6 +20,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
@@ -31,6 +33,7 @@ class WorkoutService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var loop: Job? = null
+    private var checkpoints: Job? = null
     private var player: CuePlayer? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -61,6 +64,15 @@ class WorkoutService : Service() {
         if (loop == null) {
             val p = CuePlayer(applicationContext).also { player = it }
             runner.cueListener = { p.play(it) }
+            val repo = (application as com.kryll.homefit.HomeFitApp).container.workoutRepository
+            val start = WorkoutHost.startMillis
+            val routine = WorkoutHost.routineId
+            // Punto de control tras cada serie y cada RPE: si el proceso muere, el entreno queda guardado como incompleto.
+            checkpoints = scope.launch {
+                runner.snapshot.map { it.completedSets * 10 + it.state.phase.ordinal }.distinctUntilChanged().collect {
+                    repo.checkpoint(routine, runner.items, start, System.currentTimeMillis(), runner.results) { runner.isClosed }
+                }
+            }
             loop = scope.launch {
                 // El reloj vive aquí, no en la pantalla: sigue con la pantalla apagada.
                 while (!runner.isClosed && !runner.isFinished) {

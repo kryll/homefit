@@ -28,6 +28,7 @@ class WorkoutRunner(
 
     @Volatile var cueListener: ((Cue) -> Unit)? = null
     val snapshot: StateFlow<WorkoutSnapshot> get() = flow
+    val results: List<SetResult> @Synchronized get() = engine.setResults
     val isClosed: Boolean @Synchronized get() = closed
     val isFinished: Boolean @Synchronized get() = engine.state().phase == Phase.FINISHED
 

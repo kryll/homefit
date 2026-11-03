@@ -9,12 +9,16 @@ object WorkoutHost {
     @Volatile var runner: WorkoutRunner? = null
         private set
     @Volatile private var key: Long? = null
+    /** Id de ruta y hora de inicio (ms de reloj de pared, es también la clave) para los puntos de control. */
+    @Volatile var routineId: Long? = null
+        private set
+    val startMillis: Long get() = key ?: 0L
 
     @Synchronized
-    fun begin(sessionKey: Long, plan: List<WorkItem>): WorkoutRunner {
+    fun begin(sessionKey: Long, plan: List<WorkItem>, routine: Long? = null): WorkoutRunner {
         val cur = runner
         if (cur != null && key == sessionKey && !cur.isClosed) return cur
-        return WorkoutRunner(plan, now = { SystemClock.elapsedRealtime() }).also { runner = it; key = sessionKey }
+        return WorkoutRunner(plan, now = { SystemClock.elapsedRealtime() }).also { runner = it; key = sessionKey; routineId = routine }
     }
 
     @Synchronized
