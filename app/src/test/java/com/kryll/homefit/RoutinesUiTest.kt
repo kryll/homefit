@@ -10,7 +10,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNode
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.domain.ExerciseCatalog
@@ -103,7 +106,7 @@ class RoutinesUiTest {
         rule.onNodeWithText(second.name).performClick()
         rule.waitForIdle()
         capture("editor_con_ejercicios")
-        rule.onNodeWithText("Guardar rutina").performScrollTo()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Guardar rutina"))
         rule.waitForIdle()
         rule.onNodeWithText("Guardar rutina").assertIsDisplayed()
         capture("editor_guardar_tras_scroll")
