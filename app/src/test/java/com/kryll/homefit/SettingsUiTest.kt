@@ -46,9 +46,9 @@ class SettingsUiTest {
     @Test fun showsSectionsAndCurrentValues() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(beepVolume = 0.8f, ttsRate = 1.25f), "1.2.3", null, null) } }
         rule.onNodeWithText("Ajustes").assertIsDisplayed()
-        rule.onNodeWithText("Volumen de los pitidos: 80 %").assertIsDisplayed()
-        rule.onNodeWithText("Velocidad de la voz: 1,25×").assertIsDisplayed()
         capture("ajustes_arriba")
+        rule.onNodeWithText("Volumen de los pitidos: 80 %").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Velocidad de la voz: 1,25×").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
     }
 
@@ -61,7 +61,7 @@ class SettingsUiTest {
 
     @Test fun zeroVolumeSaysBeepsAreOff() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(beepVolume = 0f), "1", null, null) } }
-        rule.onNodeWithText("Pitidos desactivados").assertIsDisplayed()
+        rule.onNodeWithText("Pitidos desactivados").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun importAsksForConfirmationWithCounts() {
