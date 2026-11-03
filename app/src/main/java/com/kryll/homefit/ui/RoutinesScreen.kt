@@ -62,6 +62,9 @@ fun RoutinesScreen(
     onSaveRoutine: (Long?, RoutineDraft) -> Unit = { _, _ -> },
     onDeleteRoutine: (Long) -> Unit = {},
     onStart: (Long) -> Unit = {},
+    /** Clave: id de rutina y de ejercicio. */
+    suggestions: Map<Pair<Long, String>, com.kryll.homefit.domain.Suggestion> = emptyMap(),
+    deload: com.kryll.homefit.domain.DeloadReason? = null,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
     var editing by rememberSaveable { mutableStateOf<EditorTarget?>(null) }
@@ -91,6 +94,8 @@ fun RoutinesScreen(
             onDuplicate = { r -> editing = EditorTarget(null, draftOf(r, " (copia)")) },
             onDelete = onDeleteRoutine,
             onStart = onStart,
+            suggestions = suggestions,
+            deload = deload,
         ) else ExerciseCatalogList(exercises, equipment)
     }
 }
@@ -107,11 +112,21 @@ private fun RoutineList(
     onDuplicate: (Routine) -> Unit,
     onDelete: (Long) -> Unit,
     onStart: (Long) -> Unit,
+    suggestions: Map<Pair<Long, String>, com.kryll.homefit.domain.Suggestion> = emptyMap(),
+    deload: com.kryll.homefit.domain.DeloadReason? = null,
 ) {
     var openId by rememberSaveable { mutableStateOf<Long?>(null) }
     var confirmDelete by rememberSaveable { mutableStateOf<Long?>(null) }
     val names = exercises.associate { it.id to it.name }
     LazyColumn(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (deload != null) item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.deload_title), style = MaterialTheme.typography.titleMedium)
+                    Text(deloadText(deload), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
         item { Button(onNew, Modifier.fillMaxWidth()) { Text(stringResource(R.string.editor_new)) } }
         items(routines, key = { it.id }) { r ->
             val its = items[r.id] ?: emptyList()
@@ -125,6 +140,9 @@ private fun RoutineList(
                         its.forEach {
                             val vol = it.reps?.let { n -> "$n reps" } ?: "${it.seconds} s"
                             Text("• ${names[it.exerciseId] ?: it.exerciseId}: ${it.sets} × $vol, descanso ${it.restSeconds} s")
+                            suggestionText(suggestions[r.id to it.exerciseId]) { id -> names[id] ?: id }?.let { t ->
+                                Text(t, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                            }
                         }
                         if (its.isNotEmpty()) Button({ onStart(r.id) }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.workout_start)) }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

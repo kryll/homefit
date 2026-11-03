@@ -12,6 +12,9 @@ interface ProfileDao {
     @Query("SELECT * FROM user_profile WHERE id = 1")
     fun observeProfile(): Flow<UserProfile?>
 
+    @Query("SELECT * FROM user_profile WHERE id = 1")
+    suspend fun profile(): UserProfile?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveProfile(profile: UserProfile)
 
@@ -97,6 +100,18 @@ interface SessionDao {
     @Query("SELECT * FROM scheduled_session WHERE startMillis BETWEEN :from AND :to ORDER BY startMillis")
     fun observeScheduled(from: Long, to: Long): Flow<List<ScheduledSession>>
 
+    @Query("SELECT * FROM scheduled_session ORDER BY startMillis")
+    fun observeAllScheduled(): Flow<List<ScheduledSession>>
+
+    @Query("SELECT * FROM scheduled_session WHERE startMillis >= :from AND startMillis < :to ORDER BY startMillis")
+    suspend fun scheduledBetween(from: Long, to: Long): List<ScheduledSession>
+
+    @Query("DELETE FROM scheduled_session WHERE startMillis >= :from AND startMillis < :to")
+    suspend fun deleteScheduledBetween(from: Long, to: Long)
+
+    @Query("SELECT * FROM workout_session WHERE startMillis >= :from AND startMillis < :to ORDER BY startMillis")
+    suspend fun workoutsBetween(from: Long, to: Long): List<WorkoutSession>
+
     @Insert
     suspend fun insertWorkout(session: WorkoutSession): Long
 
@@ -111,6 +126,9 @@ interface SessionDao {
 
     @Query("SELECT * FROM workout_session ORDER BY startMillis DESC")
     fun observeWorkouts(): Flow<List<WorkoutSession>>
+
+    @Query("SELECT * FROM set_log ORDER BY id")
+    fun observeAllSets(): Flow<List<SetLog>>
 
     @Query("SELECT * FROM set_log WHERE sessionId = :sessionId ORDER BY id")
     suspend fun setsOf(sessionId: Long): List<SetLog>
