@@ -31,12 +31,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.kryll.homefit.R
 import com.kryll.homefit.data.BodyMeasurement
+import com.kryll.homefit.data.LengthUnit
+import com.kryll.homefit.data.WeightUnit
+import com.kryll.homefit.domain.Units
 import com.kryll.homefit.domain.MeasureField
 import com.kryll.homefit.domain.MeasureInput
 import com.kryll.homefit.domain.MeasureResult
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 private val es = Locale("es", "ES")
 private fun num(v: Float): String = String.format(es, "%.1f", v).removeSuffix(",0")
@@ -69,23 +73,37 @@ fun MeasuresContent(
     today: Long,
     onSave: (BodyMeasurement) -> Unit,
     onDelete: (Long) -> Unit = {},
+    weightUnit: WeightUnit = WeightUnit.KG,
+    lengthUnit: LengthUnit = LengthUnit.CM,
+    onExport: (() -> Unit)? = null,
+    exportMessage: String? = null,
 ) {
     val texts = remember { mutableStateMapOf<MeasureField, String>() }
+    var editing by remember { mutableStateOf<BodyMeasurement?>(null) }
+    var prefill by remember { mutableStateOf<Map<MeasureField, String>>(emptyMap()) }
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val uiScope = androidx.compose.runtime.rememberCoroutineScope()
+    val wl = Units.weightLabel(weightUnit)
+    val ll = Units.lengthLabel(lengthUnit)
     var error by remember { mutableStateOf<String?>(null) }
     var saved by remember { mutableStateOf(false) }
     val errEmpty = stringResource(R.string.measures_err_empty)
     val errInvalidFmt = stringResource(R.string.measures_err_invalid)
-    val labels = MeasureField.entries.associateWith { stringResource(label(it)) }
-    val series = weightSeries(items)
-    val points = weightPoints(items)
+    val labels = MeasureField.entries.associateWith { f ->
+        val unit = when (f) { MeasureField.WEIGHT -> wl; MeasureField.FAT -> "%"; else -> ll }
+        stringResource(R.string.measure_label_unit, stringResource(label(f)), unit)
+    }
+    val points = weightPoints(items).map { it.first to Units.weightToDisplay(it.second, weightUnit) }
+    val series = points.map { it.second }
 
     LazyColumn(
-        Modifier.fillMaxSize(),
+        Modifier.fillMaxSize(), state = listState,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(stringResource(R.string.measures_title), style = MaterialTheme.typography.headlineSmall) }
-        item { Text(stringResource(R.string.measures_hint), style = MaterialTheme.typography.bodySmall) }
+        item { Text(stringResource(R.string.measures_hint, wl, ll), style = MaterialTheme.typography.bodySmall) }
+        editing?.let { e -> item { Text(stringResource(R.string.measures_editing, dayText(e.epochDay)), style = MaterialTheme.typography.titleSmall) } }
         items(MeasureField.entries.toList(), key = { it.name }) { f ->
             OutlinedTextField(
                 value = texts[f].orEmpty(),
@@ -100,14 +118,17 @@ fun MeasuresContent(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Button(
                     onClick = {
-                        when (val r = MeasureInput.build(today, texts.toMap())) {
-                            is MeasureResult.Ok -> { onSave(r.measurement); texts.clear(); error = null; saved = true }
+                        when (val r = MeasureInput.build(today, texts.toMap(), weightUnit, lengthUnit, editing, prefill)) {
+                            is MeasureResult.Ok -> { onSave(r.measurement); texts.clear(); editing = null; prefill = emptyMap(); error = null; saved = true }
                             is MeasureResult.Invalid -> { error = errInvalidFmt.format(labels.getValue(r.field)); saved = false }
                             MeasureResult.Empty -> { error = errEmpty; saved = false }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.measures_save)) }
+                ) { Text(stringResource(if (editing != null) R.string.measures_save_edit else R.string.measures_save)) }
+                if (editing != null) androidx.compose.material3.TextButton(onClick = { editing = null; prefill = emptyMap(); texts.clear(); error = null }) {
+                    Text(stringResource(R.string.measures_edit_cancel))
+                }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 if (saved) Text(stringResource(R.string.measures_saved), style = MaterialTheme.typography.bodySmall)
             }
@@ -118,7 +139,7 @@ fun MeasuresContent(
             else {
                 val first = points.first().first
                 val last = points.last().first
-                val desc = points.joinToString("; ") { dayText(it.first) + ": " + num(it.second) + " kg" }
+                val desc = points.joinToString("; ") { dayText(it.first) + ": " + num(it.second) + " " + wl }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     LineChart(points, Modifier.fillMaxWidth().height(160.dp).semantics { contentDescription = desc })
                     androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -126,33 +147,47 @@ fun MeasuresContent(
                         Text(dayText(last), style = MaterialTheme.typography.bodySmall)
                     }
                     Text(
-                        stringResource(R.string.measures_chart_range, num(series.min()), num(series.max()), (last - first).toInt()),
+                        stringResource(R.string.measures_chart_range, num(series.min()), num(series.max()), (last - first).toInt(), wl),
                         style = MaterialTheme.typography.bodySmall,
                     )
-                    points.forEach { Text(dayText(it.first) + ": " + num(it.second) + " kg", style = MaterialTheme.typography.bodySmall) }
+                    points.forEach { Text(dayText(it.first) + ": " + num(it.second) + " " + wl, style = MaterialTheme.typography.bodySmall) }
                 }
             }
         }
         item { Text(stringResource(R.string.measures_history), style = MaterialTheme.typography.titleMedium) }
+        if (onExport != null && items.isNotEmpty()) item {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                androidx.compose.material3.OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.measures_export)) }
+                exportMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+            }
+        }
         if (items.isEmpty()) {
             item { Text(stringResource(R.string.measures_empty), style = MaterialTheme.typography.bodyMedium) }
         } else {
-            items(items, key = { it.id }) { m -> MeasureCard(m, onDelete) }
+            items(items, key = { it.id }) { m ->
+                MeasureCard(m, onDelete, weightUnit, lengthUnit, onEdit = { e ->
+                    editing = e
+                    prefill = MeasureInput.prefill(e, weightUnit, lengthUnit)
+                    texts.clear(); texts.putAll(prefill)
+                    saved = false; error = null
+                    uiScope.launch { listState.animateScrollToItem(0) }
+                })
+            }
         }
     }
 }
 
 @Composable
-private fun MeasureCard(m: BodyMeasurement, onDelete: (Long) -> Unit) {
+private fun MeasureCard(m: BodyMeasurement, onDelete: (Long) -> Unit, wu: WeightUnit, lu: LengthUnit, onEdit: (BodyMeasurement) -> Unit) {
     var confirming by remember(m.id) { mutableStateOf(false) }
     val date = DateTimeFormatter.ofPattern("d MMM yyyy", es).format(LocalDate.ofEpochDay(m.epochDay))
     val parts = buildList {
-        m.weightKg?.let { add(stringResource(R.string.measures_item_weight, num(it))) }
-        m.waistCm?.let { add(stringResource(R.string.measures_item_waist, num(it))) }
-        m.chestCm?.let { add(stringResource(R.string.measures_item_chest, num(it))) }
-        m.armCm?.let { add(stringResource(R.string.measures_item_arm, num(it))) }
-        m.thighCm?.let { add(stringResource(R.string.measures_item_thigh, num(it))) }
-        m.hipCm?.let { add(stringResource(R.string.measures_item_hip, num(it))) }
+        m.weightKg?.let { add(stringResource(R.string.measures_item_weight, num(Units.weightToDisplay(it, wu)), Units.weightLabel(wu))) }
+        m.waistCm?.let { add(stringResource(R.string.measures_item_waist, num(Units.lengthToDisplay(it, lu)), Units.lengthLabel(lu))) }
+        m.chestCm?.let { add(stringResource(R.string.measures_item_chest, num(Units.lengthToDisplay(it, lu)), Units.lengthLabel(lu))) }
+        m.armCm?.let { add(stringResource(R.string.measures_item_arm, num(Units.lengthToDisplay(it, lu)), Units.lengthLabel(lu))) }
+        m.thighCm?.let { add(stringResource(R.string.measures_item_thigh, num(Units.lengthToDisplay(it, lu)), Units.lengthLabel(lu))) }
+        m.hipCm?.let { add(stringResource(R.string.measures_item_hip, num(Units.lengthToDisplay(it, lu)), Units.lengthLabel(lu))) }
         m.bodyFatPct?.let { add(stringResource(R.string.measures_item_fat, num(it))) }
     }
     Card(Modifier.fillMaxWidth()) {
@@ -160,7 +195,10 @@ private fun MeasureCard(m: BodyMeasurement, onDelete: (Long) -> Unit) {
             Text(date, style = MaterialTheme.typography.titleSmall)
             Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
             if (!confirming) {
-                androidx.compose.material3.TextButton(onClick = { confirming = true }) { Text(stringResource(R.string.measures_delete)) }
+                androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.TextButton(onClick = { onEdit(m) }) { Text(stringResource(R.string.measures_edit)) }
+                    androidx.compose.material3.TextButton(onClick = { confirming = true }) { Text(stringResource(R.string.measures_delete)) }
+                }
             } else {
                 Text(stringResource(R.string.measures_delete_confirm), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -203,6 +241,10 @@ fun ProgressWithMeasures(
     measurements: List<BodyMeasurement>,
     onSave: (BodyMeasurement) -> Unit,
     onDelete: (Long) -> Unit = {},
+    weightUnit: WeightUnit = WeightUnit.KG,
+    lengthUnit: LengthUnit = LengthUnit.CM,
+    onExport: (() -> Unit)? = null,
+    exportMessage: String? = null,
 ) {
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
     Column(Modifier.fillMaxSize()) {
@@ -211,6 +253,6 @@ fun ProgressWithMeasures(
             androidx.compose.material3.Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.measures_tab_measures)) })
         }
         if (tab == 0) ProgressContent(summary, rows)
-        else MeasuresContent(measurements, LocalDate.now().toEpochDay(), onSave, onDelete)
+        else MeasuresContent(measurements, LocalDate.now().toEpochDay(), onSave, onDelete, weightUnit, lengthUnit, onExport, exportMessage)
     }
 }

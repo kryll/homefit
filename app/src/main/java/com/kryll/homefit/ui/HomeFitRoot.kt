@@ -373,9 +373,29 @@ private fun ProgressTab() {
     }
     val measurements by db.measurementDao().observeAll().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val unitSettings by (context.applicationContext as HomeFitApp).container.settings.settings
+        .collectAsState(initial = com.kryll.homefit.data.AppSettings())
+    var exportMessage by remember { mutableStateOf<String?>(null) }
+    val exportCsv = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            exportMessage = runCatching {
+                val csv = com.kryll.homefit.domain.MeasureCsv.build(measurements, unitSettings.weightUnit, unitSettings.lengthUnit)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.measures_exported)
+            }.getOrElse { context.getString(R.string.measures_export_failed) }
+        }
+    }
     ProgressWithMeasures(
         summary, rows, measurements,
-        onSave = { m -> scope.launch { db.measurementDao().insert(m) } },
+        onSave = { m -> scope.launch { if (m.id != 0L) db.measurementDao().update(m) else db.measurementDao().insert(m) } },
         onDelete = { id -> scope.launch { db.measurementDao().deleteById(id) } },
+        weightUnit = unitSettings.weightUnit, lengthUnit = unitSettings.lengthUnit,
+        onExport = { exportCsv.launch("homefit-medidas-${java.time.LocalDate.now()}.csv") },
+        exportMessage = exportMessage,
     )
 }

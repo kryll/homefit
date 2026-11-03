@@ -106,4 +106,13 @@ class SettingsUiTest {
         assertEquals(6, s.defaultCountdownSeconds)
         capture("ajustes_entreno")
     }
+
+    @Test fun unitChipsChangeWeightAndLengthUnits() {
+        var s = AppSettings()
+        rule.setContent { HomeFitTheme { SettingsScreen(s, "1", null, null, onChange = { t -> s = t(s) }) } }
+        rule.onNodeWithText("Peso: lb").performScrollTo().performClick()
+        assertEquals(com.kryll.homefit.data.WeightUnit.LB, s.weightUnit)
+        rule.onNodeWithText("Medidas: in").performScrollTo().performClick()
+        assertEquals(com.kryll.homefit.data.LengthUnit.IN, s.lengthUnit)
+    }
 }

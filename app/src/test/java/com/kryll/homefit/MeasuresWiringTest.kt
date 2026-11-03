@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.kryll.homefit.data.HomeFitDatabase
@@ -79,5 +80,32 @@ class MeasuresWiringTest {
         rule.onNodeWithText("Sí, borrar").performClick()
         rule.waitUntil(5000) { runBlocking { db.measurementDao().observeAll().first().isEmpty() } }
         rule.waitUntil(5000) { rule.onAllNodesWithText("Peso 71,4 kg").fetchSemanticsNodes().isEmpty() }
+    }
+
+    @Test fun editUpdatesTheSameRecord() {
+        runBlocking { db.measurementDao().insert(com.kryll.homefit.data.BodyMeasurement(epochDay = 50, weightKg = 70f, waistCm = 80f)) }
+        rule.setContent {
+            HomeFitTheme {
+                val items by db.measurementDao().observeAll().collectAsState(initial = emptyList())
+                val scope = rememberCoroutineScope()
+                MeasuresContent(
+                    items, 100,
+                    onSave = { m -> scope.launch { if (m.id != 0L) db.measurementDao().update(m) else db.measurementDao().insert(m) } },
+                    onDelete = { id -> scope.launch { db.measurementDao().deleteById(id) } },
+                )
+            }
+        }
+        val id = runBlocking { db.measurementDao().observeAll().first() }.single().id
+        scrollTo("Editar")
+        rule.onNodeWithText("Editar").performClick()
+        rule.onNodeWithText("Guardar cambios").assertExists()
+        rule.onNodeWithText("Peso (kg)").performTextReplacement("72,5")
+        scrollTo("Guardar cambios")
+        rule.onNodeWithText("Guardar cambios").performClick()
+        rule.waitUntil(5000) { runBlocking { db.measurementDao().observeAll().first().single().weightKg } == 72.5f }
+        val after = runBlocking { db.measurementDao().observeAll().first() }.single()
+        assertEquals(id, after.id)
+        assertEquals(50L, after.epochDay)
+        assertEquals(80f, after.waistCm!!, 0f)
     }
 }
