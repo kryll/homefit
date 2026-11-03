@@ -32,6 +32,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.kryll.homefit.domain.WorkItem
+import com.kryll.homefit.domain.SetResult
+import com.kryll.homefit.audio.CuePlayer
+import androidx.compose.runtime.DisposableEffect
 import com.kryll.homefit.data.RoutineRepository
 import com.kryll.homefit.data.WorkoutRepository
 import com.kryll.homefit.data.UserEquipment
@@ -129,7 +132,7 @@ private fun RoutinesTab() {
             WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds)
         }
         if (plan.isEmpty()) { workoutId = null } else {
-            WorkoutScreen(plan, onExit = { results, finished ->
+            WorkoutWithCues(plan, onExit = { results, finished ->
                 val end = System.currentTimeMillis()
                 scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
                 workoutId = null
@@ -144,4 +147,12 @@ private fun RoutinesTab() {
         onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
         onStart = { workoutId = it; workoutStart = System.currentTimeMillis() },
     )
+}
+
+@Composable
+private fun WorkoutWithCues(plan: List<WorkItem>, onExit: (List<SetResult>, Boolean) -> Unit) {
+    val context = LocalContext.current.applicationContext
+    val player = remember { CuePlayer(context) }
+    DisposableEffect(Unit) { onDispose { player.release() } }
+    WorkoutScreen(plan, onExit = onExit, onCue = { player.play(it) })
 }
