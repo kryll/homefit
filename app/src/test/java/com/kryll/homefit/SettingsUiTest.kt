@@ -69,7 +69,7 @@ class SettingsUiTest {
                 SettingsScreen(AppSettings(), "1", null, ImportSummary(2, 5, 3, 1), onConfirmImport = { confirmed = true })
             }
         }
-        rule.onNodeWithText("Contiene: rutinas propias 2, entrenos 5, días planificados 3, medidas 1. Se borrarán tus rutinas propias, entrenos, plan y medidas actuales y se sustituirán por estos. No se puede deshacer. Si algo falla a medias, se restaura lo que tenías.").assertIsDisplayed()
+        rule.onNodeWithText("Contiene: rutinas propias 2, entrenos 5, días planificados 3, medidas 1. Se borrarán tus rutinas propias, entrenos, plan y medidas actuales y se sustituirán por estos. No se puede deshacer. Se intenta volver a tus datos si falla, pero no está garantizado: haz antes una copia.").assertIsDisplayed()
         rule.onNodeWithText("Importar").performClick()
         assertEquals(true, confirmed)
     }

@@ -20,7 +20,7 @@
     <string name="backup_exported">Copia guardada.</string>
     <string name="backup_export_failed">No se pudo guardar la copia.</string>
     <string name="backup_import_title">¿Importar esta copia?</string>
-    <string name="backup_import_summary">Contiene: rutinas propias %1$d, entrenos %2$d, días planificados %3$d, medidas %4$d. Se borrarán tus rutinas propias, entrenos, plan y medidas actuales y se sustituirán por estos. No se puede deshacer. Si algo falla a medias, se restaura lo que tenías.</string>
+    <string name="backup_import_summary">Contiene: rutinas propias %1$d, entrenos %2$d, días planificados %3$d, medidas %4$d. Se borrarán tus rutinas propias, entrenos, plan y medidas actuales y se sustituirán por estos. No se puede deshacer. Se intenta volver a tus datos si falla, pero no está garantizado: haz antes una copia.</string>
     <string name="backup_import_confirm">Importar</string>
     <string name="backup_cancel">Cancelar</string>
     <string name="backup_imported">Copia importada.</string>
@@ -29,7 +29,7 @@
     <string name="backup_err_corrupt">El archivo está dañado o incompleto.</string>
     <string name="backup_err_invalid">La copia tiene datos no válidos (%1$s).</string>
     <string name="backup_err_unknown_exercise">La copia usa un ejercicio que esta versión no tiene: %1$s.</string>
-    <string name="backup_err_failed">La importación falló y se restauraron tus datos anteriores.</string>
+    <string name="backup_err_failed">La importación falló. Se intentó volver a tus datos anteriores: compruébalos.</string>
     <string name="backup_err_read">No se pudo leer el archivo.</string>
     <string name="settings_about">Acerca de</string>
     <string name="settings_units_note">Las unidades (kg/lb, cm/in) llegarán con las medidas corporales.</string>
