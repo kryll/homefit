@@ -59,6 +59,7 @@ class WorkoutRunner(
     /** Llamar a menudo (el servicio lo hace cada 250 ms). */
     @Synchronized fun sync() { if (closed) return; advance(); publish() }
 
+    @Synchronized fun adjustRest(delta: Int) { if (closed) return; advance(); engine.adjustRest(delta); publish() }
     @Synchronized fun done() { if (closed) return; advance(); engine.done(); publish() }
     @Synchronized fun skip() { if (closed) return; advance(); engine.skip(); publish() }
     @Synchronized fun rate(rpe: Int?) { if (closed) return; advance(); engine.rate(rpe); publish() }

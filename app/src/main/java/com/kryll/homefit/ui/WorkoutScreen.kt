@@ -71,6 +71,7 @@ fun WorkoutScreen(
         onPause = { if (state.paused) engine.resume() else engine.pause(); publish() },
         onRate = { engine.rate(it); publish() },
         onRecord = { r, w -> engine.record(r, w); publish() },
+        onAdjustRest = { engine.adjustRest(it); publish() },
         onExit = { onExit(engine.setResults, state.phase == Phase.FINISHED) },
     )
 }
@@ -89,6 +90,7 @@ fun WorkoutContent(
     onRate: (Int?) -> Unit,
     onExit: () -> Unit,
     onRecord: (Int?, Float?) -> Unit = { _, _ -> },
+    onAdjustRest: (Int) -> Unit = {},
 ) {
     val view = androidx.compose.ui.platform.LocalView.current
     androidx.compose.runtime.DisposableEffect(view) {
@@ -126,6 +128,10 @@ fun WorkoutContent(
                 Text("${state.remaining}", fontSize = 96.sp, style = MaterialTheme.typography.displayLarge)
                 Text(stringResource(R.string.workout_seconds_unit))
                 if (state.phase == Phase.REST) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton({ onAdjustRest(-5) }) { Text(stringResource(R.string.workout_rest_minus)) }
+                        OutlinedButton({ onAdjustRest(5) }) { Text(stringResource(R.string.workout_rest_plus)) }
+                    }
                     val next = if (state.set < item.sets) item.name else items.getOrNull(state.itemIndex + 1)?.name
                     if (next != null) Text(stringResource(R.string.workout_next, next), style = MaterialTheme.typography.bodyMedium)
                 }

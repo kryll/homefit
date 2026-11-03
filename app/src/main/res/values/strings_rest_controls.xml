@@ -1,0 +1,4 @@
+<resources>
+    <string name="workout_rest_minus">Descanso −5 s</string>
+    <string name="workout_rest_plus">Descanso +5 s</string>
+</resources>
