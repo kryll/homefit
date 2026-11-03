@@ -42,6 +42,9 @@ fun SettingsScreen(
     onImport: () -> Unit = {},
     onConfirmImport: () -> Unit = {},
     onCancelImport: () -> Unit = {},
+    updateState: com.kryll.homefit.domain.UpdateState = com.kryll.homefit.domain.UpdateState.Idle,
+    onCheckUpdates: () -> Unit = {},
+    onOpenUpdate: (String) -> Unit = {},
 ) {
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -132,6 +135,19 @@ fun SettingsScreen(
 
         Section(R.string.settings_about) {
             Text(stringResource(R.string.version_label, versionName))
+            OutlinedButton(onClick = onCheckUpdates, enabled = updateState !is com.kryll.homefit.domain.UpdateState.Checking) {
+                Text(stringResource(R.string.updates_check))
+            }
+            when (val u = updateState) {
+                com.kryll.homefit.domain.UpdateState.Checking -> Text(stringResource(R.string.updates_checking), style = MaterialTheme.typography.bodySmall)
+                com.kryll.homefit.domain.UpdateState.UpToDate -> Text(stringResource(R.string.updates_latest), style = MaterialTheme.typography.bodySmall)
+                com.kryll.homefit.domain.UpdateState.Failed -> Text(stringResource(R.string.updates_error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                is com.kryll.homefit.domain.UpdateState.Available -> {
+                    Text(stringResource(R.string.updates_new, u.info.version), style = MaterialTheme.typography.bodyMedium)
+                    OutlinedButton(onClick = { onOpenUpdate(u.info.apkUrl ?: u.info.pageUrl) }) { Text(stringResource(R.string.updates_open)) }
+                }
+                com.kryll.homefit.domain.UpdateState.Idle -> {}
+            }
             Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
         }
     }

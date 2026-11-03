@@ -329,6 +329,7 @@ private fun SettingsTab() {
             }.onSuccess { pending = it }.onFailure { message = errorText(it) }
         }
     }
+    var updateState by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<com.kryll.homefit.domain.UpdateState>(com.kryll.homefit.domain.UpdateState.Idle) }
     val p = pending
     SettingsScreen(
         settings = settings, versionName = versionName, message = message,
@@ -337,6 +338,19 @@ private fun SettingsTab() {
         onExport = { export.launch("homefit-copia-${java.time.LocalDate.now()}.json") },
         onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
         onCancelImport = { pending = null },
+        updateState = updateState,
+        onCheckUpdates = {
+            updateState = com.kryll.homefit.domain.UpdateState.Checking
+            scope.launch {
+                val info = com.kryll.homefit.data.UpdateChecker.latest()
+                updateState = when {
+                    info == null -> com.kryll.homefit.domain.UpdateState.Failed
+                    com.kryll.homefit.domain.UpdateCheck.isNewer(info.version, versionName) -> com.kryll.homefit.domain.UpdateState.Available(info)
+                    else -> com.kryll.homefit.domain.UpdateState.UpToDate
+                }
+            }
+        },
+        onOpenUpdate = { url -> context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) },
         onConfirmImport = {
             val b = pending
             pending = null
