@@ -418,6 +418,10 @@ private fun ProgressTab() {
     val summary = remember(rows) {
         com.kryll.homefit.domain.ProgressStats.summary(rows, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
     }
+    val volume = remember(rows, exercises) {
+        val primary = exercises.associate { it.id to it.primaryMuscle }
+        com.kryll.homefit.domain.ProgressStats.volumeByMuscle(rows) { primary[it] }
+    }
     val measurements by db.measurementDao().observeAll().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -438,7 +442,7 @@ private fun ProgressTab() {
         }
     }
     ProgressWithMeasures(
-        summary, rows, measurements,
+        summary, rows, measurements, volume = volume,
         onSave = { m -> scope.launch { if (m.id != 0L) db.measurementDao().update(m) else db.measurementDao().insert(m) } },
         onDelete = { id -> scope.launch { db.measurementDao().deleteById(id) } },
         weightUnit = unitSettings.weightUnit, lengthUnit = unitSettings.lengthUnit,
