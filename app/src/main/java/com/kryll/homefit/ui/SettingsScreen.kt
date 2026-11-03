@@ -63,6 +63,21 @@ fun SettingsScreen(
             }
         }
 
+        Section(R.string.settings_workout) {
+            Text(stringResource(R.string.settings_default_rest, settings.defaultRestSeconds))
+            Stepper(
+                onMinus = { onChange { it.copy(defaultRestSeconds = SettingsRules.stepRest(it.defaultRestSeconds, -1)) } },
+                onPlus = { onChange { it.copy(defaultRestSeconds = SettingsRules.stepRest(it.defaultRestSeconds, 1)) } },
+            )
+            Text(stringResource(R.string.settings_default_rest_note), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.settings_countdown, settings.defaultCountdownSeconds))
+            Stepper(
+                onMinus = { onChange { it.copy(defaultCountdownSeconds = SettingsRules.stepCountdown(it.defaultCountdownSeconds, -1)) } },
+                onPlus = { onChange { it.copy(defaultCountdownSeconds = SettingsRules.stepCountdown(it.defaultCountdownSeconds, 1)) } },
+            )
+            Text(stringResource(R.string.settings_countdown_note), style = MaterialTheme.typography.bodySmall)
+        }
+
         Section(R.string.settings_audio) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.settings_voice), Modifier.weight(1f))

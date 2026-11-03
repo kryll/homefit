@@ -7,6 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.data.ThemeMode
@@ -91,5 +93,17 @@ class SettingsUiTest {
     @Test fun showsMessage() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", "Copia guardada.", null) } }
         rule.onNodeWithText("Copia guardada.").assertIsDisplayed()
+    }
+
+    @Test fun restAndCountdownSettingsAreShownAndEmitted() {
+        var s = AppSettings(defaultRestSeconds = 45, defaultCountdownSeconds = 5)
+        rule.setContent { HomeFitTheme { SettingsScreen(s, "1", null, null, onChange = { t -> s = t(s) }) } }
+        rule.onNodeWithText("Descanso por defecto: 45 s").assertIsDisplayed()
+        rule.onNodeWithText("Cuenta atrás antes de cada ejercicio: 5 s").assertIsDisplayed()
+        rule.onAllNodesWithText("+")[0].performScrollTo().performClick()
+        assertEquals(50, s.defaultRestSeconds)
+        rule.onAllNodesWithText("+")[1].performScrollTo().performClick()
+        assertEquals(6, s.defaultCountdownSeconds)
+        capture("ajustes_entreno")
     }
 }

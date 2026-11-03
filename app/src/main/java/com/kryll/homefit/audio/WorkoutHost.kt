@@ -15,10 +15,10 @@ object WorkoutHost {
     val startMillis: Long get() = key ?: 0L
 
     @Synchronized
-    fun begin(sessionKey: Long, plan: List<WorkItem>, routine: Long? = null): WorkoutRunner {
+    fun begin(sessionKey: Long, plan: List<WorkItem>, routine: Long? = null, getReadySeconds: Int = 5): WorkoutRunner {
         val cur = runner
         if (cur != null && key == sessionKey && !cur.isClosed) return cur
-        return WorkoutRunner(plan, now = { SystemClock.elapsedRealtime() }).also { runner = it; key = sessionKey; routineId = routine }
+        return WorkoutRunner(plan, getReadySeconds, now = { SystemClock.elapsedRealtime() }).also { runner = it; key = sessionKey; routineId = routine }
     }
 
     @Synchronized

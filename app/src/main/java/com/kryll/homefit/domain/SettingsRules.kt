@@ -18,6 +18,16 @@ data class CueSettings(val speech: Boolean, val beepPercent: Int, val speechRate
 object SettingsRules {
     const val RATE_MIN = 0.5f
     const val RATE_MAX = 2.0f
+    const val REST_MIN = 0
+    const val REST_STEP = 5
+    const val COUNTDOWN_MIN = 0
+    const val COUNTDOWN_MAX = 15
+
+    /** Descanso por defecto en pasos de 5 s, dentro de lo que admite el editor de rutinas. */
+    fun stepRest(s: Int, delta: Int): Int = (s + delta * REST_STEP).coerceIn(REST_MIN, RoutineDraft.MAX_REST)
+
+    /** Cuenta atrás previa a cada ejercicio, en pasos de 1 s. */
+    fun stepCountdown(s: Int, delta: Int): Int = (s + delta).coerceIn(COUNTDOWN_MIN, COUNTDOWN_MAX)
 
     /** Volumen de pitidos en pasos del 10 %: 0 = sin pitidos. */
     fun stepVolume(v: Float, delta: Int): Float = (Math.round(v * 10) + delta).coerceIn(0, 10) / 10f
