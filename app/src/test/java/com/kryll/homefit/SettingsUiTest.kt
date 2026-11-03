@@ -155,7 +155,7 @@ class SettingsUiTest {
                 onInstallUpdate = { installs++ })
         } }
         assertEquals(0, installs)
-        rule.onNodeWithText("Instalar actualización").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Instalar actualización").assertIsDisplayed()
         rule.waitForIdle(); rule.mainClock.advanceTimeByFrame(); rule.waitForIdle()
         rule.runOnIdle { capture("ajustes_instalar_apk") }
         rule.onNodeWithText("Instalar actualización").performClick()
