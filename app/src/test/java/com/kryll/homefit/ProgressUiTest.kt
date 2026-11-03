@@ -109,4 +109,18 @@ class ProgressUiTest {
         rule.onNodeWithText("Aún no hay entrenos registrados.").assertIsDisplayed()
         rule.onNodeWithText("Cuando registres series aparecerá aquí tu evolución.").assertIsDisplayed()
     }
+    @Test fun showsRecordedLoadEvolutionWithoutInventingMissingWeights() {
+        val rows = listOf(
+            SessionRow(2, ms(4, 8), 600, "Fuerza", false, listOf(SetRow("Press", 1, 5, null, 8, 20f))),
+            SessionRow(1, ms(2, 8), 600, "Fuerza", false, listOf(SetRow("Press", 1, 10, null, 7, 17.5f))),
+        )
+        rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(rows, now, zone), rows, zone) } }
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("4 nov: 20,0 kg"))
+        rule.onNodeWithText("2 nov: 17,5 kg").assertIsDisplayed()
+        rule.onNodeWithText("4 nov: 20,0 kg").assertIsDisplayed()
+        rule.waitForIdle()
+        rule.mainClock.advanceTimeByFrame()
+        rule.waitForIdle()
+        rule.runOnIdle { capture("progreso_carga") }
+    }
 }

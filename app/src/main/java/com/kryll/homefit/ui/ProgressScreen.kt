@@ -198,6 +198,19 @@ private fun ExerciseChart(sessions: List<SessionRow>, zone: ZoneId) {
                 )
             }
             Text(stringResource(R.string.charts_exercise_note), style = MaterialTheme.typography.bodySmall)
+            val loads = ProgressCharts.weightSeries(sessions, name, zone)
+            Text(stringResource(R.string.charts_load_title), style = MaterialTheme.typography.titleSmall)
+            if (loads.size < 2) {
+                Text(stringResource(R.string.charts_load_empty), style = MaterialTheme.typography.bodySmall)
+            } else {
+                val fmt = DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES"))
+                val desc = loads.joinToString("; ") { fmt.format(java.time.LocalDate.ofEpochDay(it.first)) + ": " + it.second + " kg" }
+                LineChart(loads, Modifier.fillMaxWidth().height(140.dp).semantics { contentDescription = desc })
+                loads.forEach { (day, kg) ->
+                    Text(stringResource(R.string.charts_load_point, fmt.format(java.time.LocalDate.ofEpochDay(day)), java.lang.String.format(Locale("es", "ES"), "%.1f", kg)), style = MaterialTheme.typography.bodySmall)
+                }
+                Text(stringResource(R.string.charts_load_note), style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
