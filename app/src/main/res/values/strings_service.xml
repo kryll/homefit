@@ -7,4 +7,5 @@
     <string name="workout_action_pause">Pausar</string>
     <string name="workout_action_resume">Reanudar</string>
     <string name="workout_action_finish">Terminar</string>
+    <string name="workout_action_next">Siguiente</string>
 </resources>
