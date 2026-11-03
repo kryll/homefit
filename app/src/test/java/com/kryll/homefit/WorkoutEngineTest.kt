@@ -122,4 +122,18 @@ class WorkoutEngineTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun itemNeedsExactlyOneVolume() { WorkItem("x", "X", 1, 5, 30, 10) }
+    @Test fun adjustsOnlyCurrentRestWithBoundsAndNoInventedResults() {
+        val e = WorkoutEngine(listOf(squat), getReadySeconds = 0)
+        e.adjustRest(5)
+        assertEquals(0, e.state().remaining)
+        e.done(); e.record(9, 10f); e.rate(7)
+        val results = e.setResults
+        e.adjustRest(5); assertEquals(35, e.state().remaining)
+        e.adjustRest(-100); assertEquals(0, e.state().remaining)
+        assertEquals(Phase.REST, e.state().phase)
+        e.adjustRest(1000); assertEquals(600, e.state().remaining)
+        assertEquals(results, e.setResults)
+        e.skip(); e.done(); e.rate(7)
+        assertEquals(Phase.FINISHED, e.state().phase)
+    }
 }

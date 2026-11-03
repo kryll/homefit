@@ -140,4 +140,15 @@ class WorkoutUiTest {
         rule.waitForIdle()
         rule.runOnIdle { assertEquals(false, view!!.keepScreenOn) }
     }
+    @Test fun restControlsPassFiveSecondDeltas() {
+        val deltas = mutableListOf<Int>()
+        rule.setContent { HomeFitTheme {
+            WorkoutContent(WorkoutState(Phase.REST, 0, 1, 30, false), items[0], items, 1, 5, {}, {}, {}, {}, {}, onAdjustRest = { deltas += it })
+        } }
+        rule.onNodeWithText("Descanso +5 s").performClick()
+        rule.onNodeWithText("Descanso −5 s").performClick()
+        assertEquals(listOf(5, -5), deltas)
+        rule.waitForIdle(); rule.mainClock.advanceTimeByFrame(); rule.waitForIdle()
+        rule.runOnIdle { capture("entreno_descanso_ajustable") }
+    }
 }
