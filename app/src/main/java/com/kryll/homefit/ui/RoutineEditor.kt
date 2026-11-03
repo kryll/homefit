@@ -39,7 +39,6 @@ import java.text.Normalizer
 private val GOALS = listOf("perder_grasa", "tonificar", "ganar_fuerza", "resistencia")
 private val LEVELS = listOf("principiante", "intermedio", "avanzado")
 
-internal fun plain(s: String) = Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").lowercase()
 
 private fun digits(s: String): Int? = s.filter { it.isDigit() }.take(4).toIntOrNull()
 
@@ -130,12 +129,6 @@ private fun NumberField(label: String, value: Int?, modifier: Modifier, suffix: 
         suffix = suffix?.let { { Text(it) } },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = modifier,
     )
-}
-
-/** Búsqueda por nombre sin distinguir mayúsculas ni tildes. */
-internal fun searchExercises(exercises: List<Exercise>, query: String, limit: Int = 8): List<Exercise> {
-    val q = plain(query.trim())
-    return exercises.filter { plain(it.name).contains(q) }.take(limit)
 }
 
 @Composable
