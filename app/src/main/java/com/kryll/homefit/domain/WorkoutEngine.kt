@@ -8,6 +8,8 @@ data class WorkItem(
     val reps: Int?,
     val seconds: Int?,
     val restSeconds: Int,
+    /** Ejercicios con lado: la voz avisa "Cambio de lado" a la mitad de series por tiempo. */
+    val alternateSides: Boolean = false,
 ) {
     init {
         require(sets >= 1) { "sets" }
@@ -22,11 +24,14 @@ enum class Phase { GET_READY, WORK, RATE, REST, FINISHED }
 /** Avisos que la capa de Android convierte en pitidos o voz. */
 sealed class Cue {
     data class Countdown(val secondsLeft: Int) : Cue()
-    data class GetReady(val exerciseName: String, val set: Int, val sets: Int) : Cue()
+    data class GetReady(val exerciseName: String, val set: Int, val sets: Int, val reps: Int? = null, val seconds: Int? = null) : Cue()
     data class Go(val exerciseName: String, val set: Int, val sets: Int, val reps: Int?, val seconds: Int?) : Cue()
     data class SetDone(val exerciseName: String) : Cue()
-    data class Rest(val seconds: Int, val nextName: String?) : Cue()
+    /** [nextSets]/[nextReps]/[nextSeconds]: esquema del siguiente ejercicio cuando cambia; null dentro del mismo. */
+    data class Rest(val seconds: Int, val nextName: String?, val nextSets: Int? = null, val nextReps: Int? = null, val nextSeconds: Int? = null) : Cue()
     object Halfway : Cue()
+    object TenSecondsLeft : Cue()
+    object SwitchSides : Cue()
     object Finished : Cue()
 }
 
@@ -93,7 +98,8 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
                 if (s != null) {
                     remaining = s - workElapsed
                     if (remaining in 1..3) cues += Cue.Countdown(remaining)
-                    if (remaining == s / 2 && s >= 20) cues += Cue.Halfway
+                    if (remaining == s / 2 && s >= 20) cues += if (current.alternateSides) Cue.SwitchSides else Cue.Halfway
+                    if (remaining == 10 && s >= 30) cues += Cue.TenSecondsLeft
                     if (remaining <= 0) finishWork(skipped = false)
                 } else {
                     remaining = workElapsed
@@ -170,6 +176,7 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
 
     private fun countdown() {
         remaining--
+        if (remaining == 10) cues += Cue.TenSecondsLeft
         if (remaining in 1..3) cues += Cue.Countdown(remaining)
     }
 
@@ -177,7 +184,7 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
         phase = Phase.GET_READY
         remaining = getReadySeconds
         if (getReadySeconds == 0) { enterWork(); return }
-        cues += Cue.GetReady(current.name, set, current.sets)
+        cues += Cue.GetReady(current.name, set, current.sets, current.reps, current.seconds)
     }
 
     private fun enterWork() {
@@ -203,8 +210,9 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
         if (item.restSeconds == 0) { nextAfterRest(); return }
         phase = Phase.REST
         remaining = item.restSeconds
-        val next = if (lastSet) items[index + 1].name else item.name
-        cues += Cue.Rest(item.restSeconds, next)
+        val next = if (lastSet) items[index + 1] else null
+        cues += if (next != null) Cue.Rest(item.restSeconds, next.name, next.sets, next.reps, next.seconds)
+            else Cue.Rest(item.restSeconds, item.name)
     }
 
     private fun nextAfterRest() {
