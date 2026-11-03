@@ -123,16 +123,16 @@ private fun RoutinesTab() {
     val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
     val loggedSets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
     val sessionSets = remember(workouts, loggedSets) { com.kryll.homefit.domain.ProgressionData.sessionSets(workouts, loggedSets) }
+    val deload = remember(sessionSets) { com.kryll.homefit.domain.Deload.advice(sessionSets, System.currentTimeMillis(), java.time.ZoneId.systemDefault()) }
     val harder = remember(exercises) { exercises.associate { it.id to it.harderVariantId } }
-    val suggestions = remember(sessionSets, allItems, harder) {
+    val suggestions = remember(sessionSets, allItems, harder, deload) {
         buildMap {
             allItems.groupBy { it.routineId }.forEach { (rid, its) ->
                 val presc = its.sortedBy { it.position }.map { com.kryll.homefit.domain.Prescribed(it.exerciseId, it.sets, it.reps, it.seconds) }
-                com.kryll.homefit.domain.Progression.forRoutine(rid, presc, sessionSets) { harder[it] }.forEach { (ex, sg) -> put(rid to ex, sg) }
+                com.kryll.homefit.domain.Progression.forRoutine(rid, presc, sessionSets, deload = deload != null) { harder[it] }.forEach { (ex, sg) -> put(rid to ex, sg) }
             }
         }
     }
-    val deload = remember(sessionSets) { com.kryll.homefit.domain.Deload.advice(sessionSets, System.currentTimeMillis(), java.time.ZoneId.systemDefault()) }
     val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }

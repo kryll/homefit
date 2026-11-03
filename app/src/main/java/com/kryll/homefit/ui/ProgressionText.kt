@@ -21,6 +21,8 @@ fun suggestionText(s: Suggestion?, nameOf: (String) -> String): String? = when (
             Suggestion.Reason.NO_RPE -> R.string.prog_hold_no_rpe
             Suggestion.Reason.RIGHT_EFFORT -> R.string.prog_hold_right
             Suggestion.Reason.AT_CEILING -> R.string.prog_hold_ceiling
+            Suggestion.Reason.NO_ACHIEVED -> R.string.prog_hold_no_achieved
+            Suggestion.Reason.DELOAD -> R.string.prog_hold_deload
         },
     )
 }

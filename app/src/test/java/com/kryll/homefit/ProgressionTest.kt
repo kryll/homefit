@@ -16,6 +16,8 @@ import org.junit.Test
 
 class ProgressionTest {
     private fun sets(n: Int, rpe: Int?) = List(n) { LoggedSet(rpe) }
+    /** Series con resultado real registrado. */
+    private fun done(n: Int, rpe: Int?, reps: Int? = null, secs: Int? = null) = List(n) { LoggedSet(rpe, reps, secs) }
     private val reps = Prescribed("sentadilla", 3, 10, null)
     private val timed = Prescribed("plancha", 3, null, 30)
 
@@ -28,18 +30,32 @@ class ProgressionTest {
         assertEquals(Suggestion.Hold(Suggestion.Reason.NO_RPE), Progression.suggest(reps, sets(3, null), null))
 
     @Test fun easyEffortAddsRepsUpToCeiling() {
-        assertEquals(Suggestion.AddReps(10, 12), Progression.suggest(reps, sets(3, 6), null))
-        assertEquals(Suggestion.AddReps(14, 15), Progression.suggest(reps.copy(reps = 14), sets(3, 7), null))
+        assertEquals(Suggestion.AddReps(10, 12), Progression.suggest(reps, done(3, 6, reps = 10), null))
+        assertEquals(Suggestion.AddReps(14, 15), Progression.suggest(reps.copy(reps = 14), done(3, 7, reps = 14), null))
     }
 
     @Test fun easyEffortAddsSecondsForTimed() =
-        assertEquals(Suggestion.AddSeconds(30, 35), Progression.suggest(timed, sets(3, 7), null))
+        assertEquals(Suggestion.AddSeconds(30, 35), Progression.suggest(timed, done(3, 7, secs = 30), null))
 
     @Test fun atCeilingGoesToHarderVariantThenSetThenHolds() {
         val top = reps.copy(reps = 15)
-        assertEquals(Suggestion.HarderVariant("flexiones_diamante"), Progression.suggest(top, sets(3, 6), "flexiones_diamante"))
-        assertEquals(Suggestion.AddSet(3, 4), Progression.suggest(top, sets(3, 6), null))
-        assertEquals(Suggestion.Hold(Suggestion.Reason.AT_CEILING), Progression.suggest(top.copy(sets = 5), sets(5, 6), null))
+        assertEquals(Suggestion.HarderVariant("flexiones_diamante"), Progression.suggest(top, done(3, 6, reps = 15), "flexiones_diamante"))
+        assertEquals(Suggestion.AddSet(3, 4), Progression.suggest(top, done(3, 6, reps = 15), null))
+        assertEquals(Suggestion.Hold(Suggestion.Reason.AT_CEILING), Progression.suggest(top.copy(sets = 5), done(5, 6, reps = 15), null))
+    }
+
+    @Test fun easyEffortWithoutRealResultsDoesNotRaise() {
+        assertEquals(Suggestion.Hold(Suggestion.Reason.NO_ACHIEVED), Progression.suggest(reps, sets(3, 6), null))
+        assertEquals(Suggestion.Hold(Suggestion.Reason.NO_ACHIEVED), Progression.suggest(timed, sets(3, 6), null))
+    }
+
+    @Test fun easyEffortWithRepsBelowTargetDoesNotRaise() =
+        assertEquals(Suggestion.Hold(Suggestion.Reason.NO_ACHIEVED), Progression.suggest(reps, done(3, 6, reps = 8), null))
+
+    @Test fun deloadWeekTurnsRaisesIntoHold() {
+        val s = listOf(SessionSets(1, 1000, mapOf("sentadilla" to done(3, 6, reps = 10))))
+        assertEquals(Suggestion.AddReps(10, 12), Progression.forRoutine(1, listOf(reps), s) { null }["sentadilla"])
+        assertEquals(Suggestion.Hold(Suggestion.Reason.DELOAD), Progression.forRoutine(1, listOf(reps), s, deload = true) { null }["sentadilla"])
     }
 
     @Test fun mediumEffortHolds() =
@@ -52,9 +68,9 @@ class ProgressionTest {
     }
 
     @Test fun forRoutineUsesLatestSessionOfThatRoutineWithThatExercise() {
-        val newest = SessionSets(1, 3000, mapOf("sentadilla" to sets(3, 6)))
+        val newest = SessionSets(1, 3000, mapOf("sentadilla" to done(3, 6, reps = 10)))
         val otherRoutine = SessionSets(2, 2500, mapOf("sentadilla" to sets(3, 10)))
-        val older = SessionSets(1, 1000, mapOf("sentadilla" to sets(3, 10), "plancha" to sets(3, 6)))
+        val older = SessionSets(1, 1000, mapOf("sentadilla" to sets(3, 10), "plancha" to done(3, 6, secs = 30)))
         val res = Progression.forRoutine(1, listOf(reps, timed), listOf(newest, otherRoutine, older)) { null }
         assertEquals(Suggestion.AddReps(10, 12), res["sentadilla"])
         assertEquals(Suggestion.AddSeconds(30, 35), res["plancha"]) // viene de la sesion mas antigua que la contiene

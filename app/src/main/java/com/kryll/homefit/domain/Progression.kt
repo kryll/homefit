@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 /** Lo que queda registrado de una serie hecha (las saltadas no se registran). */
-data class LoggedSet(val rpe: Int?)
+data class LoggedSet(val rpe: Int?, val repsDone: Int? = null, val secondsDone: Int? = null)
 
 /** Ejercicio tal como lo prescribe la rutina. */
 data class Prescribed(val exerciseId: String, val sets: Int, val reps: Int?, val seconds: Int?)
@@ -22,7 +22,7 @@ sealed class Suggestion {
     data class AddSet(val from: Int, val to: Int) : Suggestion()
     data class Reduce(val from: Int, val to: Int, val timed: Boolean) : Suggestion()
 
-    enum class Reason { INCOMPLETE, NO_RPE, RIGHT_EFFORT, AT_CEILING }
+    enum class Reason { INCOMPLETE, NO_RPE, RIGHT_EFFORT, AT_CEILING, NO_ACHIEVED, DELOAD }
 }
 
 object ProgressionConfig {
@@ -60,6 +60,9 @@ object Progression {
             return if (to < value) Suggestion.Reduce(value, to, timed) else Suggestion.Hold(Suggestion.Reason.RIGHT_EFFORT)
         }
         if (avg > ProgressionConfig.EASY_RPE) return Suggestion.Hold(Suggestion.Reason.RIGHT_EFFORT)
+        // Subir exige resultados reales: lo prescrito no prueba que se lograra.
+        val done = last.map { if (timed) it.secondsDone else it.repsDone }
+        if (done.any { it == null || it < value }) return Suggestion.Hold(Suggestion.Reason.NO_ACHIEVED)
         val ceiling = if (timed) ProgressionConfig.SECONDS_CEILING else ProgressionConfig.REPS_CEILING
         if (value < ceiling) {
             val to = minOf(ceiling, value + if (timed) 5 else 2)
@@ -75,11 +78,14 @@ object Progression {
         routineId: Long,
         items: List<Prescribed>,
         sessionsNewestFirst: List<SessionSets>,
+        deload: Boolean = false,
         harderOf: (String) -> String?,
     ): Map<String, Suggestion> = items.associate { item ->
         val last = sessionsNewestFirst.firstOrNull { it.routineId == routineId && it.byExercise.containsKey(item.exerciseId) }
             ?.byExercise?.get(item.exerciseId).orEmpty()
-        item.exerciseId to suggest(item, last, harderOf(item.exerciseId))
+        val sg = suggest(item, last, harderOf(item.exerciseId))
+        val raises = sg is Suggestion.AddReps || sg is Suggestion.AddSeconds || sg is Suggestion.HarderVariant || sg is Suggestion.AddSet
+        item.exerciseId to if (deload && raises) Suggestion.Hold(Suggestion.Reason.DELOAD) else sg
     }
 
     fun deloadSets(sets: Int): Int = maxOf(1, Math.round(sets * ProgressionConfig.DELOAD_VOLUME).toInt())
