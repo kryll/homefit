@@ -27,7 +27,6 @@ import androidx.navigation.compose.rememberNavController
 import com.kryll.homefit.R
 import com.kryll.homefit.HomeFitApp
 import androidx.compose.runtime.remember
-import com.kryll.homefit.data.RoutineRepository
 import com.kryll.homefit.data.UserEquipment
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -111,12 +110,9 @@ private fun RoutinesTab() {
     val gear by db.exerciseDao().observeEquipment().collectAsState(initial = emptyList())
     val map = gear.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() }
     val allItems by db.routineDao().observeAllItems().collectAsState(initial = emptyList())
-    val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
     RoutinesScreen(
         routines, exercises, map,
         items = allItems.groupBy { it.routineId },
-        onSaveRoutine = { id, draft -> scope.launch { repo.save(id, draft) } },
-        onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
     )
 }

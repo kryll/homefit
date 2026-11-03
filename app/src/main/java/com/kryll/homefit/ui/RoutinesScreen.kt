@@ -8,8 +8,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
 import com.kryll.homefit.data.RoutineItem
-import com.kryll.homefit.domain.DraftItem
-import com.kryll.homefit.domain.RoutineDraft
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -59,57 +57,26 @@ fun RoutinesScreen(
     exercises: List<Exercise>,
     equipment: Map<String, Set<String>>,
     items: Map<Long, List<RoutineItem>> = emptyMap(),
-    onSaveRoutine: (Long?, RoutineDraft) -> Unit = { _, _ -> },
-    onDeleteRoutine: (Long) -> Unit = {},
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
-    var editing by rememberSaveable { mutableStateOf<EditorTarget?>(null) }
-    editing?.let { target ->
-        RoutineEditorScreen(
-            initial = target.draft,
-            title = stringResource(if (target.id == null) R.string.editor_new else R.string.editor_edit),
-            exercises = exercises,
-            onSave = { onSaveRoutine(target.id, it); editing = null },
-            onCancel = { editing = null },
-        )
-        return
-    }
-    fun draftOf(r: Routine, suffix: String = "") = RoutineDraft(
-        name = r.name + suffix, goal = r.goal, level = r.level,
-        items = (items[r.id] ?: emptyList()).map { DraftItem(it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds) },
-    )
     Column {
         TabRow(selectedTabIndex = tab) {
             Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.routines_tab)) })
             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.exercises_tab)) })
         }
-        if (tab == 0) RoutineList(
-            routines, items, exercises,
-            onNew = { editing = EditorTarget(null, RoutineDraft()) },
-            onEdit = { r -> editing = EditorTarget(r.id, draftOf(r)) },
-            onDuplicate = { r -> editing = EditorTarget(null, draftOf(r, " (copia)")) },
-            onDelete = onDeleteRoutine,
-        ) else ExerciseCatalogList(exercises, equipment)
+        if (tab == 0) RoutineList(routines, items, exercises) else ExerciseCatalogList(exercises, equipment)
     }
 }
-
-private data class EditorTarget(val id: Long?, val draft: RoutineDraft) : java.io.Serializable
 
 @Composable
 private fun RoutineList(
     routines: List<Routine>,
     items: Map<Long, List<RoutineItem>>,
     exercises: List<Exercise>,
-    onNew: () -> Unit,
-    onEdit: (Routine) -> Unit,
-    onDuplicate: (Routine) -> Unit,
-    onDelete: (Long) -> Unit,
 ) {
     var openId by rememberSaveable { mutableStateOf<Long?>(null) }
-    var confirmDelete by rememberSaveable { mutableStateOf<Long?>(null) }
     val names = exercises.associate { it.id to it.name }
     LazyColumn(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { Button(onNew, Modifier.fillMaxWidth()) { Text(stringResource(R.string.editor_new)) } }
         items(routines, key = { it.id }) { r ->
             val its = items[r.id] ?: emptyList()
             Card(Modifier.fillMaxWidth().clickable { openId = if (openId == r.id) null else r.id }) {
@@ -123,26 +90,10 @@ private fun RoutineList(
                             val vol = it.reps?.let { n -> "$n reps" } ?: "${it.seconds} s"
                             Text("• ${names[it.exerciseId] ?: it.exerciseId}: ${it.sets} × $vol, descanso ${it.restSeconds} s")
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton({ onDuplicate(r) }) { Text(stringResource(R.string.editor_duplicate)) }
-                            if (!r.predefined) {
-                                TextButton({ onEdit(r) }) { Text(stringResource(R.string.editor_edit_action)) }
-                                TextButton({ confirmDelete = r.id }) { Text(stringResource(R.string.editor_delete)) }
-                            }
-                        }
                     }
                 }
             }
         }
-    }
-    confirmDelete?.let { id ->
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { confirmDelete = null },
-            title = { Text(stringResource(R.string.editor_delete_title)) },
-            text = { Text(stringResource(R.string.editor_delete_text)) },
-            confirmButton = { TextButton({ onDelete(id); confirmDelete = null; openId = null }) { Text(stringResource(R.string.editor_delete)) } },
-            dismissButton = { TextButton({ confirmDelete = null }) { Text(stringResource(R.string.editor_cancel)) } },
-        )
     }
 }
 
