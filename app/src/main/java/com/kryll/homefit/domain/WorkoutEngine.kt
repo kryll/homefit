@@ -99,8 +99,8 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
                 }
             }
             Phase.REST -> {
-                countdown()
-                if (remaining == 0) nextAfterRest()
+                if (remaining > 0) countdown()
+                if (remaining <= 0) nextAfterRest()
             }
             else -> Unit
         }
