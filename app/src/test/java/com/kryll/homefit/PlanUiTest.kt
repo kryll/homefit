@@ -130,6 +130,7 @@ class PlanUiTest {
             ScheduledSession(3, 1, ms(today.plusDays(2)), "MOVED"),
         )
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList(), ReminderPrefs(), true) } }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
         rule.onNodeWithText("Cardio suave · Saltada").assertIsDisplayed()
         rule.onNodeWithText("Fuerza en casa · Movida").assertIsDisplayed()
