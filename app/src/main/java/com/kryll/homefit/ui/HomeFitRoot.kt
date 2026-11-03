@@ -367,9 +367,14 @@ private fun SettingsTab(updater: com.kryll.homefit.update.UpdateViewModel) {
         } catch (e: Exception) { updater.installFailed() }
     }
     val p = pending
+    val voiceNames = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(listOf<String>()) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        voiceNames.value = com.kryll.homefit.audio.listSpanishVoices(context)
+    }
     SettingsScreen(
         settings = settings, versionName = versionName, message = message,
         pendingImport = p?.let { ImportSummary(it.routines.size, it.workouts.size, it.scheduled.size, it.measurements.size) },
+        availableVoices = voiceNames.value,
         onChange = { t -> scope.launch { app.container.settings.update(t) } },
         onExport = { export.launch("homefit-copia-${java.time.LocalDate.now()}.json") },
         onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },

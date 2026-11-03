@@ -161,4 +161,20 @@ class SettingsUiTest {
         rule.onNodeWithText("Instalar actualización").performClick()
         assertEquals(1, installs)
     }
+
+    @Test fun voiceSelectorListsAndEmits() {
+        val s = androidx.compose.runtime.mutableStateOf(AppSettings(ttsVoice = "es-es-x-eee-local"))
+        val voices = listOf("es-es-x-eee-local", "es-es-x-eef-network")
+        rule.setContent { HomeFitTheme { SettingsScreen(s.value, "1", null, null, availableVoices = voices, onChange = { t -> s.value = t(s.value) }) } }
+        rule.onNodeWithText("Voz de los avisos").performScrollTo().assertIsDisplayed()
+        rule.onAllNodesWithText("es-es-x-eee-local")[0].performClick()
+        rule.onNodeWithText("Elige la voz de los avisos").assertIsDisplayed()
+        capture("ajustes_voz_dialogo")
+        rule.onNodeWithText("es-es-x-eef-network").performClick()
+        assertEquals("es-es-x-eef-network", s.value.ttsVoice)
+        rule.onNodeWithText("es-es-x-eef-network").performClick()
+        rule.onNodeWithText("Predeterminada del sistema").performClick()
+        assertEquals(null, s.value.ttsVoice)
+        capture("ajustes_voz")
+    }
 }
