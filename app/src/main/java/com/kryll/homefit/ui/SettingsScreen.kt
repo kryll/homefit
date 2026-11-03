@@ -35,12 +35,14 @@ fun SettingsScreen(
     versionName: String,
     message: String?,
     pendingImport: ImportSummary?,
+    availableVoices: List<String> = emptyList(),
     onChange: ((AppSettings) -> AppSettings) -> Unit = {},
     onExport: () -> Unit = {},
     onImport: () -> Unit = {},
     onConfirmImport: () -> Unit = {},
     onCancelImport: () -> Unit = {},
 ) {
+    val choosingVoice = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -83,6 +85,12 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_voice), Modifier.weight(1f))
                 Switch(checked = settings.voiceEnabled, onCheckedChange = { v -> onChange { it.copy(voiceEnabled = v) } })
             }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(stringResource(R.string.settings_voice_select), Modifier.weight(1f))
+                TextButton({ choosingVoice.value = true }) {
+                    Text(settings.ttsVoice ?: stringResource(R.string.settings_voice_default))
+                }
+            }
             Text(stringResource(R.string.settings_voice_rate, String.format(Locale("es", "ES"), "%.2f", settings.ttsRate).trimEnd('0').trimEnd(',')))
             Stepper(
                 onMinus = { onChange { it.copy(ttsRate = SettingsRules.stepRate(it.ttsRate, -1)) } },
@@ -111,6 +119,28 @@ fun SettingsScreen(
             Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
             Text(stringResource(R.string.settings_units_note), style = MaterialTheme.typography.bodySmall)
         }
+    }
+
+    if (choosingVoice.value) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { choosingVoice.value = false },
+            title = { Text(stringResource(R.string.settings_voice_dialog)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    TextButton({
+                        onChange { it.copy(ttsVoice = null) }
+                        choosingVoice.value = false
+                    }) { Text(stringResource(R.string.settings_voice_default)) }
+                    availableVoices.forEach { v ->
+                        TextButton({
+                            onChange { it.copy(ttsVoice = v) }
+                            choosingVoice.value = false
+                        }) { Text(v) }
+                    }
+                }
+            },
+            confirmButton = {},
+        )
     }
 
     if (pendingImport != null) {

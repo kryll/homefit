@@ -22,6 +22,7 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
     private var tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 80) }.getOrNull()
     private var tonePercent = 80
     private var speechRate = 1.0f
+    private var voiceName: String? = null
     private var tts: TextToSpeech? = null
     private var ttsReady = false
     private var pending = 0
@@ -55,6 +56,7 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
                 ttsReady = r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED
                 engine.setAudioAttributes(attrs)
                 engine.setSpeechRate(speechRate)
+                applyVoice()
                 engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {}
                     override fun onDone(utteranceId: String?) = finished()
@@ -70,12 +72,25 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
         speechEnabled = s.speech
         beepEnabled = s.beep
         speechRate = s.speechRate
+        voiceName = s.voiceName
         if (ttsReady) tts?.setSpeechRate(speechRate)
+        applyVoice()
         if (s.beep && s.beepPercent != tonePercent) {
             tone?.release()
             tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, s.beepPercent) }.getOrNull()
             tonePercent = s.beepPercent
         }
+    }
+
+    /** Usa la voz elegida si está instalada; con null o si falta, vuelve a la predeterminada en español. */
+    private fun applyVoice() {
+        val engine = tts ?: return
+        if (!ttsReady) return
+        val wanted = voiceName
+        val match = if (wanted != null) {
+            runCatching { engine.voices?.firstOrNull { it.name == wanted && it.locale.language == "es" } }.getOrNull()
+        } else null
+        if (match != null) engine.voice = match else engine.setLanguage(Locale("es", "ES"))
     }
 
     private fun finished() {

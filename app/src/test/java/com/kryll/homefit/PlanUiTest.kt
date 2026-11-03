@@ -123,6 +123,22 @@ class PlanUiTest {
         assertEquals(0, rule.onAllNodesWithText("Mover").fetchSemanticsNodes().size)
     }
 
+    @Test fun resultingStatesAreShownWithoutActions() {
+        val s = listOf(
+            ScheduledSession(1, 1, ms(today), "COMPLETED"),
+            ScheduledSession(2, 2, ms(today.plusDays(1)), "SKIPPED"),
+            ScheduledSession(3, 1, ms(today.plusDays(2)), "MOVED"),
+        )
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList(), ReminderPrefs(), true) } }
+        rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
+        rule.onNodeWithText("Cardio suave · Saltada").assertIsDisplayed()
+        rule.onNodeWithText("Fuerza en casa · Movida").assertIsDisplayed()
+        assertEquals(0, rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithText("Saltar").fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithText("Mover").fetchSemanticsNodes().size)
+        capture("plan_estados_resultantes")
+    }
+
     @Test fun skipAndMoveEmitCallbacks() {
         var skipped: ScheduledSession? = null
         var moved: Pair<Long, LocalDate>? = null
