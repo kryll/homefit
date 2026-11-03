@@ -51,6 +51,10 @@ base64 -w0 homefit.jks   # el resultado va al secret HOMEFIT_KEYSTORE_B64
 
 Guarda una copia del keystore y de sus contraseñas fuera de GitHub. Si se pierde, no se podrán publicar actualizaciones instalables sobre la app ya instalada.
 
+## Actualización desde la app
+
+En Ajustes, «Buscar actualizaciones» consulta la última release pública de GitHub y, si hay una versión más nueva, ofrece abrir su página en el navegador. La comprobación es manual: la app no sondea en segundo plano ni descarga nada por sí misma. Ojo: la API de «última release» de GitHub ignora las pre-releases, así que mientras solo existan versiones 0.x la app dirá que no hay novedades. El APK se instala a mano y solo actualiza si lleva la misma firma.
+
 ## Contribuir
 
 Ver [CONTRIBUTING.md](CONTRIBUTING.md).
