@@ -15,8 +15,8 @@
     <string name="settings_workout">Entreno</string>
     <string name="settings_default_rest">Descanso por defecto: %1$d s</string>
     <string name="settings_default_rest_note">Se usa al añadir un ejercicio nuevo a una rutina. Las rutinas ya creadas conservan su descanso.</string>
-    <string name="settings_countdown">Cuenta atrás antes de cada ejercicio: %1$d s</string>
-    <string name="settings_countdown_note">Se aplica al empezar un entreno nuevo. Con 0 s empieza directamente.</string>
+    <string name="settings_countdown">Cuenta atrás: %1$d s</string>
+    <string name="settings_countdown_note">Pausa antes de cada ejercicio. Se aplica al empezar un entreno nuevo. Con 0 s empieza directamente.</string>
     <string name="settings_audio_note">Los cambios se aplican también a un entreno en marcha.</string>
     <string name="settings_backup">Copia de seguridad</string>
     <string name="settings_backup_note">Guarda tu perfil, rutinas propias, entrenos, plan y medidas en un archivo JSON. El catálogo de ejercicios no se incluye. La copia no está cifrada: guárdala en un sitio de confianza.</string>

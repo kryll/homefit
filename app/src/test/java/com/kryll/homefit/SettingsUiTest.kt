@@ -48,8 +48,8 @@ class SettingsUiTest {
         rule.onNodeWithText("Ajustes").assertIsDisplayed()
         rule.onNodeWithText("Volumen de los pitidos: 80 %").assertIsDisplayed()
         rule.onNodeWithText("Velocidad de la voz: 1,25×").assertIsDisplayed()
-        rule.onNodeWithText("Exportar copia").assertIsDisplayed()
         capture("ajustes_arriba")
+        rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun settingChangesAreEmittedAndApplied() {
@@ -92,14 +92,14 @@ class SettingsUiTest {
 
     @Test fun showsMessage() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", "Copia guardada.", null) } }
-        rule.onNodeWithText("Copia guardada.").assertIsDisplayed()
+        rule.onNodeWithText("Copia guardada.").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun restAndCountdownSettingsAreShownAndEmitted() {
         var s = AppSettings(defaultRestSeconds = 45, defaultCountdownSeconds = 5)
         rule.setContent { HomeFitTheme { SettingsScreen(s, "1", null, null, onChange = { t -> s = t(s) }) } }
         rule.onNodeWithText("Descanso por defecto: 45 s").assertIsDisplayed()
-        rule.onNodeWithText("Cuenta atrás antes de cada ejercicio: 5 s").assertIsDisplayed()
+        rule.onNodeWithText("Cuenta atrás: 5 s").assertIsDisplayed()
         rule.onAllNodesWithText("+")[0].performScrollTo().performClick()
         assertEquals(50, s.defaultRestSeconds)
         rule.onAllNodesWithText("+")[1].performScrollTo().performClick()
