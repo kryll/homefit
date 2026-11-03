@@ -26,7 +26,6 @@ import com.kryll.homefit.R
 import com.kryll.homefit.data.UserProfile
 import com.kryll.homefit.domain.Bmi
 import com.kryll.homefit.domain.ProfileInput
-import java.time.LocalDate
 
 val EQUIPMENT = listOf("mancuernas", "banda_elastica", "banco", "barra_dominadas", "kettlebell", "silla", "comba", "barra_paralelas")
 private val GOALS = listOf("salud", "perder_peso", "hipertrofia", "fuerza")
@@ -37,7 +36,9 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var height by rememberSaveable { mutableStateOf("") }
     var weight by rememberSaveable { mutableStateOf("") }
-    var age by rememberSaveable { mutableStateOf("") }
+    var bDay by rememberSaveable { mutableStateOf("") }
+    var bMonth by rememberSaveable { mutableStateOf("") }
+    var bYear by rememberSaveable { mutableStateOf("") }
     var minutes by rememberSaveable { mutableStateOf("30") }
     var days by rememberSaveable { mutableStateOf(0b0010101) }
     var goal by rememberSaveable { mutableStateOf(GOALS[0]) }
@@ -47,7 +48,8 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
 
     val h = height.replace(',', '.').toFloatOrNull()
     val w = weight.replace(',', '.').toFloatOrNull()
-    val errors = ProfileInput.validate(name, h, w, age.toIntOrNull(), days, minutes.toIntOrNull())
+    val birth = ProfileInput.birthEpochDay(bDay.toIntOrNull(), bMonth.toIntOrNull(), bYear.toIntOrNull())
+    val errors = ProfileInput.validate(name, h, w, birth, days, minutes.toIntOrNull())
     val bmi = if (h != null && w != null) Bmi.compute(w, h) else null
 
     Column(
@@ -57,7 +59,13 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
         Text(stringResource(R.string.onb_title), style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
         field(R.string.onb_name, name, { name = it }, submitted && ProfileInput.Field.NAME in errors, KeyboardType.Text)
-        field(R.string.onb_age, age, { age = it }, submitted && ProfileInput.Field.AGE in errors, KeyboardType.Number)
+        Text(stringResource(R.string.onb_birth))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val e = submitted && ProfileInput.Field.BIRTH in errors
+            OutlinedTextField(bDay, { bDay = it.take(2) }, label = { Text(stringResource(R.string.onb_day)) }, isError = e, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+            OutlinedTextField(bMonth, { bMonth = it.take(2) }, label = { Text(stringResource(R.string.onb_month)) }, isError = e, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+            OutlinedTextField(bYear, { bYear = it.take(4) }, label = { Text(stringResource(R.string.onb_year)) }, isError = e, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1.4f))
+        }
         field(R.string.onb_height, height, { height = it }, submitted && ProfileInput.Field.HEIGHT in errors, KeyboardType.Decimal)
         field(R.string.onb_weight, weight, { weight = it }, submitted && ProfileInput.Field.WEIGHT in errors, KeyboardType.Decimal)
         if (bmi != null) {
@@ -80,10 +88,9 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
             onClick = {
                 submitted = true
                 if (errors.isEmpty()) {
-                    val birth = LocalDate.now().minusYears(age.toLong()).toEpochDay()
                     onDone(
                         UserProfile(
-                            name = name.trim(), sex = "", birthEpochDay = birth, heightCm = h!!, weightKg = w!!,
+                            name = name.trim(), sex = "", birthEpochDay = birth!!, heightCm = h!!, weightKg = w!!,
                             goal = goal, level = level, daysMask = days, minutesPerSession = minutes.toInt(),
                         ),
                         equipment,

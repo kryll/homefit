@@ -13,7 +13,10 @@
     <string name="health_disclaimer">HomeFit no sustituye el consejo médico. Si tienes dudas o alguna condición de salud, consulta a un profesional antes de entrenar.</string>
     <string name="onb_title">Tu perfil</string>
     <string name="onb_name">Nombre</string>
-    <string name="onb_age">Edad</string>
+    <string name="onb_birth">Fecha de nacimiento</string>
+    <string name="onb_day">Día</string>
+    <string name="onb_month">Mes</string>
+    <string name="onb_year">Año</string>
     <string name="onb_height">Altura (cm)</string>
     <string name="onb_weight">Peso (kg)</string>
     <string name="onb_bmi">IMC: %1$.1f (%2$s). Solo orientativo, no es un diagnóstico.</string>
