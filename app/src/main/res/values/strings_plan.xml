@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_channel_name">Recordatorios de entreno</string>
+    <string name="reminder_channel_description">Aviso diario en los días que has elegido para entrenar.</string>
+    <string name="reminder_title">Hoy toca entrenar</string>
+    <string name="reminder_text">Abre HomeFit y elige tu rutina.</string>
+    <string name="reminder_text_routine">Tienes planificada: %1$s.</string>
+
+    <string name="plan_title">Tu semana</string>
+    <string name="plan_reminder_title">Recordatorio diario</string>
+    <string name="plan_reminder_switch">Avisarme los días de entreno</string>
+    <string name="plan_reminder_time">Hora del aviso: %1$02d:%2$02d</string>
+    <string name="plan_hour_minus">− hora</string>
+    <string name="plan_hour_plus">+ hora</string>
+    <string name="plan_min_minus">− 5 min</string>
+    <string name="plan_min_plus">+ 5 min</string>
+    <string name="plan_reminder_note">Solo en los días que elegiste en tu perfil. Android puede retrasar el aviso por el ahorro de batería.</string>
+    <string name="plan_notifications_off">Las notificaciones de HomeFit están desactivadas en el sistema: actívalas para recibir el aviso.</string>
+    <string name="plan_auto">Generar plan de la semana</string>
+    <string name="plan_clear">Vaciar semana</string>
+    <string name="plan_no_routines">Aún no hay rutinas que repartir.</string>
+    <string name="plan_training_day">Día de entreno</string>
+    <string name="plan_rest_day">Descanso</string>
+    <string name="plan_nothing">Sin rutina asignada</string>
+    <string name="plan_done">Hecho</string>
+    <string name="plan_assign">Asignar</string>
+    <string name="plan_assign_title">Rutina para %1$s</string>
+    <string name="plan_assign_none">Sin rutina</string>
+    <string name="plan_cancel">Cancelar</string>
+    <string name="plan_train">Entrenar</string>
+    <string name="plan_today_mark">hoy</string>
+</resources>

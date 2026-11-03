@@ -25,6 +25,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kryll.homefit.R
+import com.kryll.homefit.reminders.reminderPrefs
+import kotlinx.coroutines.flow.first
 import com.kryll.homefit.HomeFitApp
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -74,6 +76,7 @@ fun HomeFitRoot() {
 @Composable
 private fun MainTabs() {
     val nav = rememberNavController()
+    var startRequest by rememberSaveable { mutableStateOf<Long?>(null) }
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination?.route
     Scaffold(
@@ -99,7 +102,16 @@ private fun MainTabs() {
             Tab.entries.forEach { tab ->
                 composable(tab.route) {
                     if (tab == Tab.Routines) {
-                        RoutinesTab()
+                        RoutinesTab(startRequest) { startRequest = null }
+                    } else if (tab == Tab.Today) {
+                        PlanTab(onStart = { id ->
+                            startRequest = id
+                            nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
+                        })
+                    } else if (tab == Tab.Progress) {
+                        ProgressTab()
+                    } else if (tab == Tab.Settings) {
+                        SettingsTab()
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -112,7 +124,7 @@ private fun MainTabs() {
 }
 
 @Composable
-private fun RoutinesTab() {
+private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit = {}) {
     val app = LocalContext.current.applicationContext as HomeFitApp
     val db = app.container.database
     val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
@@ -120,11 +132,30 @@ private fun RoutinesTab() {
     val gear by db.exerciseDao().observeEquipment().collectAsState(initial = emptyList())
     val map = gear.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() }
     val allItems by db.routineDao().observeAllItems().collectAsState(initial = emptyList())
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    val loggedSets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
+    val sessionSets = remember(workouts, loggedSets) { com.kryll.homefit.domain.ProgressionData.sessionSets(workouts, loggedSets) }
+    val deload = remember(sessionSets) { com.kryll.homefit.domain.Deload.advice(sessionSets, System.currentTimeMillis(), java.time.ZoneId.systemDefault()) }
+    val harder = remember(exercises) { exercises.associate { it.id to it.harderVariantId } }
+    val suggestions = remember(sessionSets, allItems, harder, deload) {
+        buildMap {
+            allItems.groupBy { it.routineId }.forEach { (rid, its) ->
+                val presc = its.sortedBy { it.position }.map { com.kryll.homefit.domain.Prescribed(it.exerciseId, it.sets, it.reps, it.seconds) }
+                com.kryll.homefit.domain.Progression.forRoutine(rid, presc, sessionSets, deload = deload != null) { harder[it] }.forEach { (ex, sg) -> put(rid to ex, sg) }
+            }
+        }
+    }
     val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
     var workoutStart by rememberSaveable { mutableStateOf(0L) }
     val workoutRepo = app.container.workoutRepository
+    androidx.compose.runtime.LaunchedEffect(startRequest) {
+        if (startRequest != null && workoutId == null) {
+            workoutId = startRequest; workoutStart = System.currentTimeMillis()
+        }
+        if (startRequest != null) onStartConsumed()
+    }
     val active = workoutId
     if (active != null) {
         val names = exercises.associate { it.id to it.name }
@@ -146,6 +177,8 @@ private fun RoutinesTab() {
         onSaveRoutine = { id, draft -> scope.launch { repo.save(id, draft) } },
         onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
         onStart = { workoutId = it; workoutStart = System.currentTimeMillis() },
+        suggestions = suggestions,
+        deload = deload,
     )
 }
 
@@ -180,5 +213,167 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
                 onExit(r.first, r.second)
             }
         },
+    )
+}
+
+@Composable
+private fun PlanTab(onStart: (Long) -> Unit) {
+    val context = LocalContext.current
+    val app = context.applicationContext as HomeFitApp
+    val db = app.container.database
+    val scope = rememberCoroutineScope()
+    val zone = remember { java.time.ZoneId.systemDefault() }
+    val today = remember { java.time.LocalDate.now(zone) }
+    val settings by app.container.settings.settings.collectAsState(initial = com.kryll.homefit.data.AppSettings())
+    val profile by db.profileDao().observeProfile().collectAsState(initial = null)
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val scheduled by db.sessionDao().observeAllScheduled().collectAsState(initial = emptyList())
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    var refresh by remember { mutableStateOf(0) }
+    val notificationsAllowed = remember(refresh, settings.reminderEnabled) {
+        androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
+    val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { refresh++ }
+    val prefs = settings.reminderPrefs()
+    val mask = profile?.daysMask ?: 0
+
+    fun startOf(d: java.time.LocalDate) = d.atStartOfDay(zone).toInstant().toEpochMilli()
+    fun at(d: java.time.LocalDate) = d.atTime(prefs.hour, prefs.minute).atZone(zone).toInstant().toEpochMilli()
+
+    PlanScreen(
+        today = today, zone = zone, daysMask = mask, routines = routines, scheduled = scheduled, workouts = workouts,
+        prefs = prefs, notificationsAllowed = notificationsAllowed,
+        onAssign = { d, rid ->
+            scope.launch {
+                val dao = db.sessionDao()
+                dao.deleteScheduledBetween(startOf(d), startOf(d.plusDays(1)))
+                if (rid != null) dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = rid, startMillis = at(d), status = "SCHEDULED"))
+            }
+        },
+        onAuto = {
+            val p = profile
+            val pool = routines.filter { p != null && it.goal == p.goal && it.level == p.level }
+                .ifEmpty { routines.filter { p != null && it.goal == p.goal } }
+                .ifEmpty { routines }
+            scope.launch {
+                val dao = db.sessionDao()
+                dao.deleteScheduledBetween(startOf(today), startOf(today.plusDays(7)))
+                com.kryll.homefit.domain.Planning.autoPlan(mask, pool.map { it.id }, today).forEach {
+                    dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId, startMillis = at(it.date), status = "SCHEDULED"))
+                }
+            }
+        },
+        onClear = { scope.launch { db.sessionDao().deleteScheduledBetween(startOf(today), startOf(today.plusDays(7))) } },
+        onStart = onStart,
+        onPrefs = { n ->
+            if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            scope.launch {
+                app.container.settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute) }
+                com.kryll.homefit.reminders.ReminderScheduler.sync(app)
+            }
+        },
+    )
+}
+
+@Composable
+private fun SettingsTab() {
+    val context = LocalContext.current
+    val app = context.applicationContext as HomeFitApp
+    val scope = rememberCoroutineScope()
+    val settings by app.container.settings.settings.collectAsState(initial = com.kryll.homefit.data.AppSettings())
+    val repo = remember { com.kryll.homefit.data.BackupRepository(app.container.database) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var pending by remember { mutableStateOf<com.kryll.homefit.data.Backup?>(null) }
+    val versionName = remember {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
+    }
+    fun errorText(e: Throwable): String = if (e is com.kryll.homefit.data.BackupException) {
+        when (e.kind) {
+            com.kryll.homefit.data.BackupException.Kind.NOT_BACKUP -> context.getString(R.string.backup_err_not_backup)
+            com.kryll.homefit.data.BackupException.Kind.VERSION -> context.getString(R.string.backup_err_version, e.detail)
+            com.kryll.homefit.data.BackupException.Kind.CORRUPT -> context.getString(R.string.backup_err_corrupt)
+            com.kryll.homefit.data.BackupException.Kind.INVALID -> context.getString(R.string.backup_err_invalid, e.detail)
+            com.kryll.homefit.data.BackupException.Kind.UNKNOWN_EXERCISE -> context.getString(R.string.backup_err_unknown_exercise, e.detail)
+        }
+    } else context.getString(R.string.backup_err_read)
+
+    val export = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            message = runCatching {
+                val backup = repo.export(settings, System.currentTimeMillis())
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(com.kryll.homefit.data.BackupCodec.toJson(backup).toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.backup_exported)
+            }.getOrElse { context.getString(R.string.backup_export_failed) }
+        }
+    }
+    val pick = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) scope.launch {
+            message = null
+            runCatching {
+                val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)!!.use { String(it.readBytes(), Charsets.UTF_8) }
+                }
+                val backup = com.kryll.homefit.data.BackupCodec.fromJson(text)
+                repo.validate(backup)
+                backup
+            }.onSuccess { pending = it }.onFailure { message = errorText(it) }
+        }
+    }
+    val p = pending
+    SettingsScreen(
+        settings = settings, versionName = versionName, message = message,
+        pendingImport = p?.let { ImportSummary(it.routines.size, it.workouts.size, it.scheduled.size, it.measurements.size) },
+        onChange = { t -> scope.launch { app.container.settings.update(t) } },
+        onExport = { export.launch("homefit-copia-${java.time.LocalDate.now()}.json") },
+        onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+        onCancelImport = { pending = null },
+        onConfirmImport = {
+            val b = pending
+            pending = null
+            if (b != null) scope.launch {
+                message = runCatching {
+                    com.kryll.homefit.data.BackupApplier(
+                        repo,
+                        currentSettings = { app.container.settings.settings.first() },
+                        writeSettings = { n -> app.container.settings.update { n } },
+                        afterApply = { com.kryll.homefit.reminders.ReminderScheduler.sync(app) },
+                    ).apply(b)
+                    context.getString(R.string.backup_imported)
+                }.getOrElse { if (it is com.kryll.homefit.data.BackupException) errorText(it) else context.getString(R.string.backup_err_failed) }
+            }
+        },
+    )
+}
+
+@Composable
+private fun ProgressTab() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val db = app.container.database
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    val sets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val exercises by db.exerciseDao().observeAll().collectAsState(initial = emptyList())
+    val rows = remember(workouts, sets, routines, exercises) {
+        com.kryll.homefit.domain.ProgressStats.rows(
+            workouts, sets, routines.associate { it.id to it.name }, exercises.associate { it.id to it.name },
+        )
+    }
+    val summary = remember(rows) {
+        com.kryll.homefit.domain.ProgressStats.summary(rows, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+    }
+    val measurements by db.measurementDao().observeAll().collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+    ProgressWithMeasures(
+        summary, rows, measurements,
+        onSave = { m -> scope.launch { db.measurementDao().insert(m) } },
+        onDelete = { id -> scope.launch { db.measurementDao().deleteById(id) } },
     )
 }
