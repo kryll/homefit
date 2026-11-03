@@ -26,7 +26,6 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
     private var ttsReady = false
     private var pending = 0
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
-    private val abandon = Runnable { if (pending == 0) audio.abandonAudioFocusRequest(focus) }
 
     private val attrs = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
@@ -34,15 +33,19 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
         .build()
     private val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         .setAudioAttributes(attrs)
-        .setOnAudioFocusChangeListener { change ->
-            if (change < 0) {
-                tts?.stop()
-                tone?.stopTone()
-                pending = 0
-                handler.removeCallbacks(abandon)
-            }
-        }
+        .setOnAudioFocusChangeListener(::onFocusChange)
         .build()
+
+    private val abandon = Runnable { if (pending == 0) audio.abandonAudioFocusRequest(focus) }
+
+    private fun onFocusChange(change: Int) {
+        if (change < 0) {
+            tts?.stop()
+            tone?.stopTone()
+            pending = 0
+            handler.removeCallbacks(abandon)
+        }
+    }
 
     init {
         tts = TextToSpeech(context) { status ->
