@@ -95,8 +95,10 @@ class MeasuresUiTest {
         rule.setContent { HomeFitTheme { MeasuresContent(items, 20400, {}) } }
         scrollTo("Evolución de las medidas")
         rule.onNodeWithText("Cintura").performClick()
+        scrollTo("Mín 80 cm · Máx 81 cm · 7 días entre la primera y la última")
         rule.onNodeWithText("Mín 80 cm · Máx 81 cm · 7 días entre la primera y la última").assertIsDisplayed()
-        rule.onNodeWithText("1 nov 2025: 80 cm").assertIsDisplayed()
+        rule.onNodeWithText("1 nov 2025: 81 cm").assertIsDisplayed()
+        rule.onNodeWithText("8 nov 2025: 80 cm").assertIsDisplayed()
         capture("medidas_grafica_cintura")
         rule.onNodeWithText("Grasa corporal").performClick()
         scrollTo("Anota grasa corporal en al menos dos días para ver la gráfica.")

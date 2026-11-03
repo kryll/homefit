@@ -47,7 +47,7 @@ class MeasuresWiringTest {
     @After fun tearDown() = db.close()
 
     private fun scrollTo(text: String) {
-        rule.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+        rule.onNode(androidx.compose.ui.test.hasScrollToNodeAction()).performScrollToNode(hasText(text))
     }
 
     @Test fun saveShowsInHistoryAndDeleteNeedsConfirmation() {
