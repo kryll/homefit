@@ -72,7 +72,8 @@ class AppRootUiTest {
         rule.onNodeWithText("Peso (kg)").performTextInput("71,4")
         scrollTo("Guardar medidas")
         rule.onNodeWithText("Guardar medidas").performClick()
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Peso 71,4 kg").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitUntil(10_000) { runCatching { scrollTo("Peso 71,4 kg"); true }.getOrDefault(false) }
+        rule.onNodeWithText("Peso 71,4 kg").assertIsDisplayed()
 
         // Ajustes: pasar a libras y comprobar que se guarda
         tab("Ajustes")
@@ -85,7 +86,7 @@ class AppRootUiTest {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Medidas").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Medidas").performClick()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Peso (lb)").fetchSemanticsNodes().isNotEmpty() }
-        scrollTo("Peso 157,4 lb")
+        rule.waitUntil(10_000) { runCatching { scrollTo("Peso 157,4 lb"); true }.getOrDefault(false) }
         rule.onNodeWithText("Peso 157,4 lb").assertIsDisplayed()
         assertEquals(WeightUnit.LB, runBlocking { app.container.settings.settings.first().weightUnit })
     }
