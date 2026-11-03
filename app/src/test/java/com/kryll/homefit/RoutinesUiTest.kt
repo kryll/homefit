@@ -8,7 +8,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.domain.ExerciseCatalog
 import com.kryll.homefit.ui.ExerciseFilter
@@ -75,5 +77,36 @@ class RoutinesUiTest {
         rule.onNodeWithText("Pasos").assertIsDisplayed()
         rule.onNodeWithContentDescription("Flexiones: posición inicial").assertIsDisplayed()
         capture("ejercicio_detalle")
+    }
+
+    @Test fun editorCreatesRoutineAndShowsValidation() {
+        var saved: com.kryll.homefit.domain.RoutineDraft? = null
+        rule.setContent {
+            HomeFitTheme {
+                RoutinesScreen(routines, catalog.exercises, equipment, onSaveRoutine = { _, d -> saved = d })
+            }
+        }
+        rule.onNodeWithText("Nueva rutina").performClick()
+        rule.onNodeWithText("Guardar rutina").performClick()
+        rule.onNodeWithText("Escribe un nombre.").assertIsDisplayed()
+        rule.onNodeWithText("Añade al menos un ejercicio.").assertIsDisplayed()
+        capture("editor_errores")
+        rule.onNodeWithText("Nombre de la rutina").performTextInput("Mi rutina de prueba")
+        rule.onNodeWithText("Añadir ejercicio").performClick()
+        rule.onNodeWithText("Buscar ejercicio").performTextInput("biceps")
+        rule.waitForIdle()
+        capture("editor_selector")
+        rule.onNodeWithText("Curl de bíceps con mancuernas").performClick()
+        rule.onNodeWithText("Añadir ejercicio").performClick()
+        rule.onNodeWithText("Buscar ejercicio").performTextInput("plancha")
+        rule.onAllNodesWithText("Plancha")[0].performClick()
+        rule.waitForIdle()
+        capture("editor_con_ejercicios")
+        rule.onNodeWithText("Guardar rutina").performClick()
+        rule.waitForIdle()
+        val d = saved!!
+        assertEquals("Mi rutina de prueba", d.name)
+        assertEquals(listOf("curl_biceps_mancuernas", "plancha"), d.items.map { it.exerciseId })
+        assertTrue(d.errors().isEmpty())
     }
 }
