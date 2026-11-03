@@ -137,6 +137,7 @@ object BackupCodec {
         .put("lengthUnit", s.lengthUnit.name).put("beepVolume", s.beepVolume.toDouble()).put("voiceEnabled", s.voiceEnabled)
         .put("ttsRate", s.ttsRate.toDouble()).put("ttsVoice", s.ttsVoice ?: JSONObject.NULL)
         .put("defaultRestSeconds", s.defaultRestSeconds).put("defaultCountdownSeconds", s.defaultCountdownSeconds)
+        .put("reminderEnabled", s.reminderEnabled).put("reminderHour", s.reminderHour).put("reminderMinute", s.reminderMinute)
 
     /** Los ajustes ausentes o con valores desconocidos toman el valor por defecto. */
     private fun readSettings(o: JSONObject): AppSettings {
@@ -151,6 +152,9 @@ object BackupCodec {
             ttsVoice = o.stringOrNull("ttsVoice"),
             defaultRestSeconds = o.optInt("defaultRestSeconds", d.defaultRestSeconds),
             defaultCountdownSeconds = o.optInt("defaultCountdownSeconds", d.defaultCountdownSeconds),
+            reminderEnabled = o.optBoolean("reminderEnabled", d.reminderEnabled),
+            reminderHour = o.optInt("reminderHour", d.reminderHour).coerceIn(0, 23),
+            reminderMinute = o.optInt("reminderMinute", d.reminderMinute).coerceIn(0, 59),
         )
     }
 
