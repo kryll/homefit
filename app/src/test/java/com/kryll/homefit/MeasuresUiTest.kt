@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.hasScrollAction
 import com.kryll.homefit.data.BodyMeasurement
@@ -142,5 +143,22 @@ class MeasuresUiTest {
     @Test fun exportButtonHiddenWithoutData() {
         rule.setContent { HomeFitTheme { MeasuresContent(emptyList(), 1, {}, onExport = {}) } }
         rule.onNodeWithText("Exportar CSV").assertDoesNotExist()
+    }
+    @Test fun changesMeasurementDateAndRejectsImpossibleDate() {
+        val today = java.time.LocalDate.of(2026, 11, 3).toEpochDay()
+        val saved = mutableListOf<BodyMeasurement>()
+        rule.setContent { HomeFitTheme { MeasuresContent(emptyList(), today, { saved += it }) } }
+        rule.onNodeWithText("Fecha (dd/mm/aaaa)").performTextReplacement("31/02/2026")
+        rule.onNodeWithText("Peso (kg)").performTextInput("70")
+        scrollTo("Guardar medidas")
+        rule.onNodeWithText("Guardar medidas").performClick()
+        assertEquals(0, saved.size)
+        rule.onNodeWithText("Escribe una fecha válida, no posterior a hoy (dd/mm/aaaa).").assertIsDisplayed()
+        scrollTo("Fecha (dd/mm/aaaa)")
+        rule.onNodeWithText("Fecha (dd/mm/aaaa)").performTextReplacement("01/11/2026")
+        capture("medidas_fecha")
+        scrollTo("Guardar medidas")
+        rule.onNodeWithText("Guardar medidas").performClick()
+        assertEquals(today - 2, saved.single().epochDay)
     }
 }
