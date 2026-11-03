@@ -7,7 +7,11 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import com.kryll.homefit.domain.ProgressStats
 import com.kryll.homefit.domain.SessionRow
 import com.kryll.homefit.domain.SetRow
@@ -54,6 +58,7 @@ class ProgressUiTest {
         rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(sessions, now, zone), sessions, zone) } }
         rule.onNodeWithText("Tu progreso").assertIsDisplayed()
         rule.onNodeWithText("Racha (días)").assertIsDisplayed()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Entreno libre"))
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
         rule.onNodeWithText("Entreno libre").assertIsDisplayed()
         rule.onNodeWithText("Incompleto").assertIsDisplayed()
@@ -64,7 +69,9 @@ class ProgressUiTest {
 
     @Test fun expandingASessionListsItsSets() {
         rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(sessions, now, zone), sessions, zone) } }
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Fuerza en casa"))
         rule.onNodeWithText("Fuerza en casa").performClick()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("Plancha · serie 1 · 30 s · RPE 9"))
         rule.onNodeWithText("Sentadilla · serie 1 · 12 rep · RPE 7").assertIsDisplayed()
         rule.onNodeWithText("Plancha · serie 1 · 30 s · RPE 9").assertIsDisplayed()
         capture("progreso_detalle")
@@ -75,5 +82,27 @@ class ProgressUiTest {
         rule.onNodeWithText("Sin datos").assertIsDisplayed()
         rule.onNodeWithText("Aún no has entrenado. Cuando termines tu primer entreno aparecerá aquí.").assertIsDisplayed()
         capture("progreso_vacio")
+    }
+
+    private val trained = listOf(
+        SessionRow(9, ms(4, 8), 1500, "Fuerza", false, listOf(SetRow("Sentadilla", 1, 15, null, 7), SetRow("Plancha", 1, null, 45, 8))),
+        SessionRow(8, ms(2, 8), 1500, "Fuerza", false, listOf(SetRow("Sentadilla", 1, 12, null, 7), SetRow("Sentadilla", 2, 10, null, 8), SetRow("Plancha", 1, null, 40, 8))),
+        SessionRow(7, ms(1, 8), 1500, "Fuerza", false, listOf(SetRow("Sentadilla", 1, 10, null, 7))),
+    )
+
+    @Test fun chartsShowRealWeeklyCountsAndExerciseProgress() {
+        rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(trained, now, zone), trained, zone) } }
+        rule.onNodeWithText("Entrenos por semana").assertIsDisplayed()
+        rule.onNodeWithText("Mejor serie por ejercicio").assertIsDisplayed()
+        rule.onNodeWithText("Mejor serie: de 10 a 15 rep en 3 días").assertIsDisplayed()
+        capture("progreso_graficas")
+        rule.onNodeWithText("Plancha").performClick()
+        rule.onNodeWithText("Mejor serie: de 40 a 45 s en 2 días").assertIsDisplayed()
+    }
+
+    @Test fun chartsHaveEmptyStatesWithoutSessions() {
+        rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(emptyList(), now, zone), emptyList(), zone) } }
+        rule.onNodeWithText("Aún no hay entrenos registrados.").assertIsDisplayed()
+        rule.onNodeWithText("Cuando registres series aparecerá aquí tu evolución.").assertIsDisplayed()
     }
 }

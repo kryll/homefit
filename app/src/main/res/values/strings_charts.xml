@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="charts_weekly_title">Entrenos por semana</string>
+    <string name="charts_weekly_empty">Aún no hay entrenos registrados.</string>
+    <string name="charts_weekly_desc">Semana del %1$s: %2$d</string>
+    <string name="charts_exercise_title">Mejor serie por ejercicio</string>
+    <string name="charts_exercise_empty">Cuando registres series aparecerá aquí tu evolución.</string>
+    <string name="charts_exercise_need_two">Con un solo día registrado no hay evolución que dibujar: mejor serie %1$d %2$s.</string>
+    <string name="charts_unit_reps">rep</string>
+    <string name="charts_unit_seconds">s</string>
+    <string name="charts_exercise_range">Mejor serie: de %1$d a %2$d %3$s en %4$d días</string>
+</resources>

@@ -1,6 +1,13 @@
 package com.kryll.homefit.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.kryll.homefit.domain.ProgressCharts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,6 +68,8 @@ fun ProgressContent(
                 }
             }
         }
+        item { WeeklyChart(sessions, zone) }
+        item { ExerciseChart(sessions, zone) }
         item { Text(stringResource(R.string.progress_history), style = MaterialTheme.typography.titleMedium) }
         if (sessions.isEmpty()) {
             item { Text(stringResource(R.string.progress_empty), style = MaterialTheme.typography.bodyMedium) }
@@ -105,4 +114,76 @@ private fun setText(r: SetRow): String {
     val base = if (r.seconds != null) stringResource(R.string.progress_set_seconds, r.exerciseName, r.setIndex, r.seconds)
     else stringResource(R.string.progress_set_reps, r.exerciseName, r.setIndex, r.reps ?: 0)
     return base + (r.rpe?.let { " · " + stringResource(R.string.progress_set_rpe, it) } ?: "")
+}
+
+@Composable
+private fun WeeklyChart(sessions: List<SessionRow>, zone: ZoneId) {
+    val weeks = ProgressCharts.weeklySessions(sessions, java.time.LocalDate.now(zone), zone)
+    val fmt = DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES"))
+    val desc = weeks.joinToString("; ") { stringResource(R.string.charts_weekly_desc, fmt.format(it.first), it.second) }
+    val bar = MaterialTheme.colorScheme.primary
+    val axis = MaterialTheme.colorScheme.outline
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(stringResource(R.string.charts_weekly_title), style = MaterialTheme.typography.titleMedium)
+            if (sessions.isEmpty()) Text(stringResource(R.string.charts_weekly_empty), style = MaterialTheme.typography.bodyMedium)
+            else {
+                val max = weeks.maxOf { it.second }.coerceAtLeast(1)
+                androidx.compose.foundation.Canvas(
+                    Modifier.fillMaxWidth().height(120.dp).semantics { contentDescription = desc },
+                ) {
+                    val base = size.height - 4.dp.toPx()
+                    val slot = size.width / weeks.size
+                    val w = slot * 0.6f
+                    drawLine(axis, androidx.compose.ui.geometry.Offset(0f, base), androidx.compose.ui.geometry.Offset(size.width, base), strokeWidth = 1.dp.toPx())
+                    weeks.forEachIndexed { i, (_, n) ->
+                        val h = (base - 8.dp.toPx()) * n / max
+                        drawRect(bar, androidx.compose.ui.geometry.Offset(i * slot + (slot - w) / 2, base - h), androidx.compose.ui.geometry.Size(w, h))
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(fmt.format(weeks.first().first), style = MaterialTheme.typography.bodySmall)
+                    Text("máx. $max", style = MaterialTheme.typography.bodySmall)
+                    Text(fmt.format(weeks.last().first), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExerciseChart(sessions: List<SessionRow>, zone: ZoneId) {
+    val names = remember(sessions) { ProgressCharts.exercisesWithData(sessions) }
+    var picked by rememberSaveable { mutableStateOf<String?>(null) }
+    val name = picked?.takeIf { it in names } ?: names.firstOrNull()
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(stringResource(R.string.charts_exercise_title), style = MaterialTheme.typography.titleMedium)
+            if (name == null) {
+                Text(stringResource(R.string.charts_exercise_empty), style = MaterialTheme.typography.bodyMedium)
+                return@Column
+            }
+            Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                names.forEach { n -> FilterChip(selected = n == name, onClick = { picked = n }, label = { Text(n) }) }
+            }
+            val series = ProgressCharts.exerciseSeries(sessions, name, zone) ?: return@Column
+            val unit = stringResource(if (series.seconds) R.string.charts_unit_seconds else R.string.charts_unit_reps)
+            if (series.points.size < 2) {
+                Text(stringResource(R.string.charts_exercise_need_two, series.points.first().best, unit), style = MaterialTheme.typography.bodyMedium)
+            } else {
+                val pts = series.points.map { it.epochDay to it.best.toFloat() }
+                val fmt = DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES"))
+                val desc = series.points.joinToString("; ") { fmt.format(java.time.LocalDate.ofEpochDay(it.epochDay)) + ": " + it.best + " " + unit }
+                LineChart(pts, Modifier.fillMaxWidth().height(140.dp).semantics { contentDescription = desc })
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(fmt.format(java.time.LocalDate.ofEpochDay(pts.first().first)), style = MaterialTheme.typography.bodySmall)
+                    Text(fmt.format(java.time.LocalDate.ofEpochDay(pts.last().first)), style = MaterialTheme.typography.bodySmall)
+                }
+                Text(
+                    stringResource(R.string.charts_exercise_range, series.points.first().best, series.points.last().best, unit, series.points.size),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
 }
