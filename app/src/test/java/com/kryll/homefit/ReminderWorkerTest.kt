@@ -32,6 +32,7 @@ class ReminderWorkerTest {
     private val allDays = 0b1111111
 
     @Before fun setUp() {
+        runBlocking { app.startup?.join() }
         WorkManagerTestInitHelper.initializeTestWorkManager(app)
     }
 
