@@ -200,5 +200,10 @@ private fun ProgressTab() {
     val summary = remember(rows) {
         com.kryll.homefit.domain.ProgressStats.summary(rows, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
     }
-    ProgressContent(summary, rows)
+    val measurements by db.measurementDao().observeAll().collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+    ProgressWithMeasures(
+        summary, rows, measurements,
+        onSave = { m -> scope.launch { db.measurementDao().insert(m) } },
+    )
 }
