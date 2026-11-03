@@ -100,6 +100,8 @@ private fun MainTabs() {
                 composable(tab.route) {
                     if (tab == Tab.Routines) {
                         RoutinesTab()
+                    } else if (tab == Tab.Progress) {
+                        ProgressTab()
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -180,4 +182,23 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
             }
         },
     )
+}
+
+@Composable
+private fun ProgressTab() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val db = app.container.database
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    val sets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val exercises by db.exerciseDao().observeAll().collectAsState(initial = emptyList())
+    val rows = remember(workouts, sets, routines, exercises) {
+        com.kryll.homefit.domain.ProgressStats.rows(
+            workouts, sets, routines.associate { it.id to it.name }, exercises.associate { it.id to it.name },
+        )
+    }
+    val summary = remember(rows) {
+        com.kryll.homefit.domain.ProgressStats.summary(rows, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+    }
+    ProgressContent(summary, rows)
 }

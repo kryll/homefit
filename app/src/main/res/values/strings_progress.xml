@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="progress_title">Tu progreso</string>
+    <string name="progress_sessions">Entrenos</string>
+    <string name="progress_week">Esta semana</string>
+    <string name="progress_streak">Racha (días)</string>
+    <string name="progress_minutes">Minutos</string>
+    <string name="progress_sets">Series</string>
+    <string name="progress_rpe">RPE medio</string>
+    <string name="progress_rpe_none">Sin datos</string>
+    <string name="progress_history">Historial</string>
+    <string name="progress_empty">Aún no has entrenado. Cuando termines tu primer entreno aparecerá aquí.</string>
+    <string name="progress_free_workout">Entreno libre</string>
+    <string name="progress_incomplete">Incompleto</string>
+    <plurals name="progress_session_summary">
+        <item quantity="one">%1$d min · %2$d serie</item>
+        <item quantity="other">%1$d min · %2$d series</item>
+    </plurals>
+    <string name="progress_set_reps">%1$s · serie %2$d · %3$d rep</string>
+    <string name="progress_set_seconds">%1$s · serie %2$d · %3$d s</string>
+    <string name="progress_set_rpe">RPE %1$d</string>
+    <string name="progress_no_sets">Sin series registradas.</string>
+</resources>
