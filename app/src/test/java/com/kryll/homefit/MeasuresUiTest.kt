@@ -157,7 +157,11 @@ class MeasuresUiTest {
         rule.onNodeWithText("Escribe una fecha válida, no posterior a hoy (dd/mm/aaaa).").assertIsDisplayed()
         scrollTo("Fecha (dd/mm/aaaa)")
         rule.onNodeWithText("Fecha (dd/mm/aaaa)").performTextReplacement("01/11/2026")
-        capture("medidas_fecha")
+        rule.onNodeWithText("Fecha (dd/mm/aaaa)").assertTextContains("01/11/2026")
+        rule.waitForIdle()
+        rule.mainClock.advanceTimeByFrame()
+        rule.waitForIdle()
+        rule.runOnIdle { capture("medidas_fecha") }
         scrollTo("Guardar medidas")
         rule.onNodeWithText("Guardar medidas").performClick()
         assertEquals(today - 2, saved.single().epochDay)
