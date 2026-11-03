@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.kryll.homefit.ui
 
 import androidx.compose.foundation.Canvas
