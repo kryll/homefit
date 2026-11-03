@@ -138,4 +138,35 @@ class WorkoutEngineTest {
         e.done(); e.rate(7)
         assertEquals(Phase.FINISHED, e.state().phase)
     }
+    @Test fun repeatsExerciseWithoutDroppingOrInventingResults() {
+        val e = WorkoutEngine(listOf(squat, plank), getReadySeconds = 0)
+        e.done(); e.record(8, 10f); e.rate(7)
+        val first = e.setResults.single()
+        e.repeatExercise()
+        assertEquals(Phase.WORK, e.state().phase)
+        assertEquals(1, e.state().set)
+        assertEquals(listOf(first), e.setResults)
+        assertEquals(4, e.totalSets)
+        e.done(); e.record(9, 11f); e.rate(8); e.skip()
+        e.tick(); e.repeatExercise() // partial second set has no result
+        assertEquals(2, e.setResults.size)
+        assertEquals(5, e.totalSets)
+        assertEquals(listOf(1, 2), e.setResults.map { it.set })
+        e.done(); e.rate(null); e.skip(); e.done(); e.rate(null); e.skip()
+        e.ticks(20); e.rate(null)
+        assertEquals(Phase.FINISHED, e.state().phase)
+        assertEquals(5, e.completedSets)
+        assertEquals(5, e.totalSets)
+        e.repeatExercise(); assertEquals(Phase.FINISHED, e.state().phase)
+        assertEquals(first, e.setResults.first())
+    }
+
+    @Test fun cannotRepeatBeforeRecordingRpeAndPauseStaysPaused() {
+        val e = WorkoutEngine(listOf(squat), getReadySeconds = 0)
+        e.done(); e.repeatExercise(); assertEquals(Phase.RATE, e.state().phase)
+        e.record(7, null); e.rate(6); e.pause(); e.repeatExercise()
+        assertTrue(e.state().paused)
+        assertEquals(Phase.WORK, e.state().phase)
+        assertEquals(7, e.setResults.single().reps)
+    }
 }

@@ -60,12 +60,13 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
     private var remaining = getReadySeconds
     private var paused = false
     private var workElapsed = 0
+    private var extraPlannedSets = 0
     private val cues = mutableListOf<Cue>()
     private val results = mutableListOf<SetResult>()
 
     val setResults: List<SetResult> get() = results.toList()
     val current: WorkItem get() = items[minOf(index, items.lastIndex)]
-    val totalSets: Int get() = items.sumOf { it.sets }
+    val totalSets: Int get() = items.sumOf { it.sets } + extraPlannedSets
     val completedSets: Int get() = results.size
 
     init { enterGetReady() }
@@ -109,6 +110,16 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
     /** Cambia solo el descanso actual, sin alterar la rutina ni adelantar de fase. */
     fun adjustRest(delta: Int) {
         if (phase == Phase.REST) remaining = (remaining + delta).coerceIn(0, 600)
+    }
+
+    /** Reinicia el ejercicio, conservando resultados reales. La serie abierta no cuenta. */
+    fun repeatExercise() {
+        if (phase == Phase.FINISHED || phase == Phase.RATE) return
+        extraPlannedSets += if (phase == Phase.REST) set else set - 1
+        set = 1
+        workElapsed = 0
+        cues.clear()
+        enterGetReady()
     }
 
     /** El usuario termina la serie por repeticiones (o antes de tiempo). Solo en WORK. */
@@ -177,7 +188,7 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
     }
 
     private fun finishWork(skipped: Boolean) {
-        results += SetResult(index, set, null, skipped, workElapsed)
+        results += SetResult(index, results.count { it.itemIndex == index } + 1, null, skipped, workElapsed)
         cues += Cue.SetDone(current.name)
         phase = Phase.RATE
         remaining = 0
