@@ -23,6 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Servicio en primer plano que mantiene vivo el proceso mientras hay un entreno en marcha,
@@ -35,6 +36,8 @@ class WorkoutService : Service() {
     private var loop: Job? = null
     private var checkpoints: Job? = null
     private var player: CuePlayer? = null
+    /** Aparte de [scope] para que el guardado final no se cancele al parar el servicio. */
+    private val saveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -44,7 +47,7 @@ class WorkoutService : Service() {
             return START_NOT_STICKY
         }
         ensureChannel(this)
-        val notification = buildNotification(this, intent?.getStringExtra(EXTRA_TITLE))
+        val notification = buildNotification(this, intent?.getStringExtra(EXTRA_TITLE), WorkoutHost.runner?.snapshot?.value?.state?.paused == true)
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {
@@ -61,6 +64,10 @@ class WorkoutService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        when (intent?.action) {
+            ACTION_TOGGLE -> runner.togglePause()
+            ACTION_FINISH -> { finishFromNotification(runner); return START_NOT_STICKY }
+        }
         if (loop == null) {
             val p = CuePlayer(applicationContext).also { player = it }
             runner.cueListener = { p.play(it) }
@@ -71,6 +78,13 @@ class WorkoutService : Service() {
             checkpoints = scope.launch {
                 runner.snapshot.map { it.completedSets * 10 + it.state.phase.ordinal }.distinctUntilChanged().collect {
                     repo.checkpoint(routine, runner.items, start, System.currentTimeMillis(), runner.results) { runner.isClosed }
+                }
+            }
+            // Actualiza la notificación (Pausar/Reanudar) cuando cambia el estado de pausa.
+            scope.launch {
+                runner.snapshot.map { it.state.paused }.distinctUntilChanged().collect { paused ->
+                    val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    nm.notify(NOTIFICATION_ID, buildNotification(this@WorkoutService, null, paused))
                 }
             }
             loop = scope.launch {
@@ -88,6 +102,21 @@ class WorkoutService : Service() {
         return START_NOT_STICKY
     }
 
+    /** Termina desde la notificación: cierra la sesión una sola vez, la guarda y para el servicio. */
+    private fun finishFromNotification(runner: com.kryll.homefit.domain.WorkoutRunner) {
+        val repo = (application as com.kryll.homefit.HomeFitApp).container.workoutRepository
+        val start = WorkoutHost.startMillis
+        val routine = WorkoutHost.routineId
+        val r = runner.exit()
+        saveScope.launch {
+            if (r != null) {
+                repo.save(routine, runner.items, start, System.currentTimeMillis(), r.second, r.first)
+                WorkoutHost.clear()
+            }
+            withContext(Dispatchers.Main) { stopSelf() }
+        }
+    }
+
     override fun onDestroy() {
         scope.cancel()
         WorkoutHost.runner?.cueListener = null
@@ -102,6 +131,8 @@ class WorkoutService : Service() {
         const val CHANNEL_ID = "workout"
         const val NOTIFICATION_ID = 1001
         const val ACTION_STOP = "com.kryll.homefit.action.STOP_WORKOUT"
+        const val ACTION_TOGGLE = "com.kryll.homefit.action.TOGGLE_PAUSE"
+        const val ACTION_FINISH = "com.kryll.homefit.action.FINISH_WORKOUT"
         const val EXTRA_TITLE = "title"
         /** Tope de seguridad: 3 horas. */
         const val TICK_MS = 250L
@@ -118,7 +149,13 @@ class WorkoutService : Service() {
             }
         }
 
-        fun buildNotification(context: Context, title: String?): Notification {
+        private fun action(context: Context, code: Int, act: String): PendingIntent =
+            PendingIntent.getService(
+                context, code, Intent(context, WorkoutService::class.java).setAction(act),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+
+        fun buildNotification(context: Context, title: String?, paused: Boolean = false): Notification {
             val open = PendingIntent.getActivity(
                 context, 0,
                 Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
@@ -127,7 +164,9 @@ class WorkoutService : Service() {
             return NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(context.applicationInfo.icon)
                 .setContentTitle(title ?: context.getString(R.string.workout_notification_title))
-                .setContentText(context.getString(R.string.workout_notification_text))
+                .setContentText(context.getString(if (paused) R.string.workout_notification_paused else R.string.workout_notification_text))
+                .addAction(0, context.getString(if (paused) R.string.workout_action_resume else R.string.workout_action_pause), action(context, 1, ACTION_TOGGLE))
+                .addAction(0, context.getString(R.string.workout_action_finish), action(context, 2, ACTION_FINISH))
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setCategory(NotificationCompat.CATEGORY_WORKOUT)

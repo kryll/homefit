@@ -161,6 +161,10 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
         if (android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
     }
     val snap by runner.snapshot.collectAsState()
+    // Cerrada desde la notificación (Terminar): el servicio ya la guardó, así que solo salimos de la pantalla.
+    androidx.compose.runtime.LaunchedEffect(snap.closed) {
+        if (snap.closed) onExit(emptyList(), false)
+    }
     WorkoutContent(
         state = snap.state, item = snap.item, items = plan, completedSets = snap.completedSets, totalSets = snap.totalSets,
         onDone = { runner.done() },

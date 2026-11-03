@@ -8,6 +8,7 @@ data class WorkoutSnapshot(
     val item: WorkItem,
     val completedSets: Int,
     val totalSets: Int,
+    val closed: Boolean = false,
 )
 
 /**
@@ -32,7 +33,7 @@ class WorkoutRunner(
     val isClosed: Boolean @Synchronized get() = closed
     val isFinished: Boolean @Synchronized get() = engine.state().phase == Phase.FINISHED
 
-    private fun snap() = WorkoutSnapshot(engine.state(), engine.current, engine.completedSets, engine.totalSets)
+    private fun snap() = WorkoutSnapshot(engine.state(), engine.current, engine.completedSets, engine.totalSets, closed)
 
     private fun publish() {
         val cues = engine.drainCues()
@@ -72,6 +73,7 @@ class WorkoutRunner(
         advance()
         closed = true
         cueListener = null
+        flow.value = snap()
         return engine.setResults to (engine.state().phase == Phase.FINISHED)
     }
 

@@ -76,4 +76,11 @@ class WorkoutRunnerTest {
         t = 20000; r.sync(); r.done(); r.skip()
         assertEquals(0, got.size)
     }
+
+    @Test fun salirPublicaSnapshotCerrado() {
+        val r = runner()
+        assertFalse(r.snapshot.value.closed)
+        r.exit()
+        assertEquals(true, r.snapshot.value.closed)
+    }
 }

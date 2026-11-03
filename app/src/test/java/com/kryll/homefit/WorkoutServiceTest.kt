@@ -40,4 +40,28 @@ class WorkoutServiceTest {
         assertNotNull(shadow.lastForegroundNotification)
         controller.destroy()
     }
+
+    @Test
+    fun notificacionTieneAccionesPausarYTerminar() {
+        val n = WorkoutService.buildNotification(context, null, paused = false)
+        assertEquals(listOf("Pausar", "Terminar"), n.actions.map { it.title.toString() })
+        val p = WorkoutService.buildNotification(context, null, paused = true)
+        assertEquals(listOf("Reanudar", "Terminar"), p.actions.map { it.title.toString() })
+    }
+
+    @Test
+    fun accionPausarAlternaElRunner() {
+        val runner = com.kryll.homefit.audio.WorkoutHost.begin(
+            42L, listOf(com.kryll.homefit.domain.WorkItem("a", "A", 1, 10, null, 30)),
+        )
+        val toggle = Intent(context, WorkoutService::class.java).setAction(WorkoutService.ACTION_TOGGLE)
+        val controller = Robolectric.buildService(WorkoutService::class.java, toggle)
+        controller.create().startCommand(0, 1)
+        assertTrue(runner.snapshot.value.state.paused)
+        controller.startCommand(0, 2)
+        assertEquals(false, runner.snapshot.value.state.paused)
+        runner.exit()
+        com.kryll.homefit.audio.WorkoutHost.clear()
+        controller.destroy()
+    }
 }
