@@ -86,6 +86,7 @@ fun MeasuresContent(
     onExport: (() -> Unit)? = null,
     exportMessage: String? = null,
 ) {
+    var dateText by remember(today) { mutableStateOf(com.kryll.homefit.domain.MeasureDate.text(today)) }
     val texts = remember { mutableStateMapOf<MeasureField, String>() }
     var editing by remember { mutableStateOf<BodyMeasurement?>(null) }
     var prefill by remember { mutableStateOf<Map<MeasureField, String>>(emptyMap()) }
@@ -95,6 +96,7 @@ fun MeasuresContent(
     val ll = Units.lengthLabel(lengthUnit)
     var error by remember { mutableStateOf<String?>(null) }
     var saved by remember { mutableStateOf(false) }
+    val errDate = stringResource(R.string.measures_date_invalid)
     val errEmpty = stringResource(R.string.measures_err_empty)
     val errInvalidFmt = stringResource(R.string.measures_err_invalid)
     val labels = MeasureField.entries.associateWith { f ->
@@ -120,6 +122,15 @@ fun MeasuresContent(
         item { Text(stringResource(R.string.measures_title), style = MaterialTheme.typography.headlineSmall) }
         item { Text(stringResource(R.string.measures_hint, wl, ll), style = MaterialTheme.typography.bodySmall) }
         editing?.let { e -> item { Text(stringResource(R.string.measures_editing, dayText(e.epochDay)), style = MaterialTheme.typography.titleSmall) } }
+        item {
+            OutlinedTextField(
+                value = dateText,
+                onValueChange = { dateText = it; error = null; saved = false },
+                label = { Text(stringResource(R.string.measures_date)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         items(MeasureField.entries.toList(), key = { it.name }) { f ->
             OutlinedTextField(
                 value = texts[f].orEmpty(),
@@ -134,15 +145,21 @@ fun MeasuresContent(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Button(
                     onClick = {
-                        when (val r = MeasureInput.build(today, texts.toMap(), weightUnit, lengthUnit, editing, prefill)) {
-                            is MeasureResult.Ok -> { onSave(r.measurement); texts.clear(); editing = null; prefill = emptyMap(); error = null; saved = true }
+                        val selectedDay = com.kryll.homefit.domain.MeasureDate.parse(dateText, today)
+                        if (selectedDay == null) {
+                            error = errDate
+                            saved = false
+                            return@Button
+                        }
+                        when (val r = MeasureInput.build(today, texts.toMap(), weightUnit, lengthUnit, editing, prefill, selectedDay)) {
+                            is MeasureResult.Ok -> { onSave(r.measurement); dateText = com.kryll.homefit.domain.MeasureDate.text(today); texts.clear(); editing = null; prefill = emptyMap(); error = null; saved = true }
                             is MeasureResult.Invalid -> { error = errInvalidFmt.format(labels.getValue(r.field)); saved = false }
                             MeasureResult.Empty -> { error = errEmpty; saved = false }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(stringResource(if (editing != null) R.string.measures_save_edit else R.string.measures_save)) }
-                if (editing != null) androidx.compose.material3.TextButton(onClick = { editing = null; prefill = emptyMap(); texts.clear(); error = null }) {
+                if (editing != null) androidx.compose.material3.TextButton(onClick = { editing = null; dateText = com.kryll.homefit.domain.MeasureDate.text(today); prefill = emptyMap(); texts.clear(); error = null }) {
                     Text(stringResource(R.string.measures_edit_cancel))
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -190,6 +207,7 @@ fun MeasuresContent(
             items(items, key = { it.id }) { m ->
                 MeasureCard(m, onDelete, weightUnit, lengthUnit, onEdit = { e ->
                     editing = e
+                    dateText = com.kryll.homefit.domain.MeasureDate.text(e.epochDay)
                     prefill = MeasureInput.prefill(e, weightUnit, lengthUnit)
                     texts.clear(); texts.putAll(prefill)
                     saved = false; error = null

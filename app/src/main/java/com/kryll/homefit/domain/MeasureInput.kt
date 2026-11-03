@@ -39,12 +39,13 @@ object MeasureInput {
     /**
      * Texto vacío = sin dato. Acepta coma o punto decimal. Los límites se aplican al valor ya convertido a kg/cm.
      * Al editar ([base] con su [prefill]), un campo cuyo texto no ha cambiado conserva el valor guardado exacto
-     * (así convertir a lb/in y volver no desplaza el dato). Se conservan id y fecha de [base].
+     * (así convertir a lb/in y volver no desplaza el dato). Se conserva el id; la fecha de base se conserva salvo [selectedDay] explícito.
      */
     fun build(
         epochDay: Long, texts: Map<MeasureField, String>,
         wu: WeightUnit = WeightUnit.KG, lu: LengthUnit = LengthUnit.CM,
         base: BodyMeasurement? = null, prefill: Map<MeasureField, String> = emptyMap(),
+        selectedDay: Long? = null,
     ): MeasureResult {
         val values = mutableMapOf<MeasureField, Float?>()
         for (f in MeasureField.entries) {
@@ -65,7 +66,7 @@ object MeasureInput {
         return MeasureResult.Ok(
             BodyMeasurement(
                 id = base?.id ?: 0,
-                epochDay = base?.epochDay ?: epochDay,
+                epochDay = selectedDay ?: base?.epochDay ?: epochDay,
                 weightKg = values[MeasureField.WEIGHT], waistCm = values[MeasureField.WAIST],
                 chestCm = values[MeasureField.CHEST], armCm = values[MeasureField.ARM],
                 thighCm = values[MeasureField.THIGH], hipCm = values[MeasureField.HIP],

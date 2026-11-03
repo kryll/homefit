@@ -39,4 +39,6 @@
     <string name="measures_export">Exportar CSV</string>
     <string name="measures_exported">Medidas exportadas.</string>
     <string name="measures_export_failed">No se pudo exportar.</string>
+    <string name="measures_date">Fecha (dd/mm/aaaa)</string>
+    <string name="measures_date_invalid">Escribe una fecha válida, no posterior a hoy (dd/mm/aaaa).</string>
 </resources>
