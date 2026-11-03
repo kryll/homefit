@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HomeFit</string>
+    <string name="tab_today">Hoy</string>
+    <string name="tab_routines">Rutinas</string>
+    <string name="tab_progress">Progreso</string>
+    <string name="tab_settings">Ajustes</string>
+    <string name="placeholder_today">Tu próxima sesión aparecerá aquí.</string>
+    <string name="placeholder_routines">Rutinas y catálogo de ejercicios (próximo hito).</string>
+    <string name="placeholder_progress">Estadísticas y medidas (próximos hitos).</string>
+    <string name="placeholder_settings">Ajustes (próximos hitos).</string>
+    <string name="version_label">Versión %1$s</string>
+</resources>
