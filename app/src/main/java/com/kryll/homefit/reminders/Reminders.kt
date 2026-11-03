@@ -28,11 +28,12 @@ import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
 
-fun AppSettings.reminderPrefs() = ReminderPrefs(reminderEnabled, reminderHour, reminderMinute)
+fun AppSettings.reminderPrefs() = ReminderPrefs(reminderEnabled, reminderHour, reminderMinute, reminderLeadMinutes)
 
 object ReminderNotifier {
     const val CHANNEL_ID = "recordatorios"
     const val NOTIFICATION_ID = 2001
+    const val SNOOZE_MINUTES = 15L
 
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < 26) return
@@ -61,6 +62,13 @@ object ReminderNotifier {
             .setContentText(text)
             .setContentIntent(open)
             .setAutoCancel(true)
+            .addAction(
+                0, context.getString(R.string.reminder_snooze),
+                PendingIntent.getBroadcast(
+                    context, 1, Intent(context, SnoozeReceiver::class.java).setAction(SnoozeReceiver.ACTION),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                ),
+            )
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .build()
         @Suppress("MissingPermission") // areNotificationsEnabled() ya cubre POST_NOTIFICATIONS
@@ -71,6 +79,8 @@ object ReminderNotifier {
 
 object ReminderScheduler {
     private const val WORK_NAME = "recordatorio_diario"
+    private const val SNOOZE_WORK = "recordatorio_posponer"
+    const val KEY_SNOOZE = "snooze"
 
     /** Programa el próximo aviso (un trabajo único que se reprograma solo). Inexacto: WorkManager puede retrasarlo. */
     fun schedule(context: Context, prefs: ReminderPrefs, daysMask: Int, from: ZonedDateTime = ZonedDateTime.now()) {
@@ -84,7 +94,21 @@ object ReminderScheduler {
         )
     }
 
-    fun cancel(context: Context) { WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME) }
+    fun cancel(context: Context) {
+        val wm = WorkManager.getInstance(context)
+        wm.cancelUniqueWork(WORK_NAME)
+        wm.cancelUniqueWork(SNOOZE_WORK)
+    }
+
+    /** Vuelve a avisar dentro de [ReminderNotifier.SNOOZE_MINUTES] minutos, sin tocar el aviso diario. */
+    fun snooze(context: Context) {
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            SNOOZE_WORK, ExistingWorkPolicy.REPLACE,
+            OneTimeWorkRequestBuilder<ReminderWorker>()
+                .setInitialDelay(ReminderNotifier.SNOOZE_MINUTES, TimeUnit.MINUTES)
+                .setInputData(androidx.work.workDataOf(KEY_SNOOZE to true)).build(),
+        )
+    }
 
     /** Alinea el trabajo con los ajustes y el perfil guardados (al abrir la app y al cambiar el recordatorio). */
     suspend fun sync(app: HomeFitApp) {
@@ -111,6 +135,8 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             val name = routineId?.let { db.routineDao().byId(it)?.name }
             ReminderNotifier.show(applicationContext, name)
         }
+        // Un aviso pospuesto no reprograma el diario, que sigue su propio trabajo.
+        if (inputData.getBoolean(ReminderScheduler.KEY_SNOOZE, false)) return Result.success()
         // Siguiente aviso: desde un minuto después de ahora, para no repetir el de hoy si el sistema lo adelantara.
         ReminderScheduler.schedule(applicationContext, prefs, profile.daysMask, ZonedDateTime.now(zone).plusMinutes(1))
         return Result.success()

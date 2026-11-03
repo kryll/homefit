@@ -2,6 +2,7 @@
 <resources>
     <string name="reminder_channel_name">Recordatorios de entreno</string>
     <string name="reminder_channel_description">Aviso diario en los días que has elegido para entrenar.</string>
+    <string name="reminder_snooze">Posponer 15 min</string>
     <string name="reminder_title">Hoy toca entrenar</string>
     <string name="reminder_text">Abre HomeFit y elige tu rutina.</string>
     <string name="reminder_text_routine">Tienes planificada: %1$s.</string>
@@ -9,7 +10,11 @@
     <string name="plan_title">Tu semana</string>
     <string name="plan_reminder_title">Recordatorio diario</string>
     <string name="plan_reminder_switch">Avisarme los días de entreno</string>
-    <string name="plan_reminder_time">Hora del aviso: %1$02d:%2$02d</string>
+    <string name="plan_reminder_time">Hora de entrenar: %1$02d:%2$02d</string>
+    <string name="plan_reminder_lead_none">Aviso a esa hora</string>
+    <string name="plan_reminder_lead">Aviso %1$d min antes (a las %2$02d:%3$02d)</string>
+    <string name="plan_lead_less">Menos antelación</string>
+    <string name="plan_lead_more">Más antelación</string>
     <string name="plan_hour_minus">− hora</string>
     <string name="plan_hour_plus">+ hora</string>
     <string name="plan_min_minus">− 5 min</string>

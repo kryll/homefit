@@ -96,4 +96,12 @@ class BackupCodecTest {
         assertEquals(ThemeMode.SYSTEM, s.theme)
         assertEquals(1f, s.beepVolume, 0.0001f)
     }
+
+    @Test fun reminderLeadSurvivesRoundTripAndOldBackupsDefaultToZero() {
+        val json = BackupCodec.toJson(sample.copy(settings = com.kryll.homefit.data.AppSettings(reminderLeadMinutes = 30)))
+        assertEquals(30, BackupCodec.fromJson(json).settings.reminderLeadMinutes)
+        val old = org.json.JSONObject(json)
+        old.getJSONObject("settings").remove("reminderLeadMinutes")
+        assertEquals(0, BackupCodec.fromJson(old.toString()).settings.reminderLeadMinutes)
+    }
 }
