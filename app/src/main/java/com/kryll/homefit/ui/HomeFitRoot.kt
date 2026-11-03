@@ -120,6 +120,19 @@ private fun RoutinesTab() {
     val gear by db.exerciseDao().observeEquipment().collectAsState(initial = emptyList())
     val map = gear.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() }
     val allItems by db.routineDao().observeAllItems().collectAsState(initial = emptyList())
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    val loggedSets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
+    val sessionSets = remember(workouts, loggedSets) { com.kryll.homefit.domain.ProgressionData.sessionSets(workouts, loggedSets) }
+    val harder = remember(exercises) { exercises.associate { it.id to it.harderVariantId } }
+    val suggestions = remember(sessionSets, allItems, harder) {
+        buildMap {
+            allItems.groupBy { it.routineId }.forEach { (rid, its) ->
+                val presc = its.sortedBy { it.position }.map { com.kryll.homefit.domain.Prescribed(it.exerciseId, it.sets, it.reps, it.seconds) }
+                com.kryll.homefit.domain.Progression.forRoutine(rid, presc, sessionSets) { harder[it] }.forEach { (ex, sg) -> put(rid to ex, sg) }
+            }
+        }
+    }
+    val deload = remember(sessionSets) { com.kryll.homefit.domain.Deload.advice(sessionSets, System.currentTimeMillis(), java.time.ZoneId.systemDefault()) }
     val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -146,6 +159,8 @@ private fun RoutinesTab() {
         onSaveRoutine = { id, draft -> scope.launch { repo.save(id, draft) } },
         onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
         onStart = { workoutId = it; workoutStart = System.currentTimeMillis() },
+        suggestions = suggestions,
+        deload = deload,
     )
 }
 

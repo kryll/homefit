@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prog_add_reps">Sugerencia: sube de %1$d a %2$d repeticiones.</string>
+    <string name="prog_add_seconds">Sugerencia: sube de %1$d a %2$d segundos.</string>
+    <string name="prog_harder">Sugerencia: pasa a una variante más difícil: %1$s.</string>
+    <string name="prog_add_set">Sugerencia: añade una serie (de %1$d a %2$d).</string>
+    <string name="prog_reduce_reps">Sugerencia: baja de %1$d a %2$d repeticiones, fue muy duro.</string>
+    <string name="prog_reduce_seconds">Sugerencia: baja de %1$d a %2$d segundos, fue muy duro.</string>
+    <string name="prog_hold_incomplete">Mantén: la última vez no completaste todas las series.</string>
+    <string name="prog_hold_no_rpe">Mantén: anota el RPE al entrenar para recibir una sugerencia.</string>
+    <string name="prog_hold_right">Mantén: el esfuerzo fue el adecuado.</string>
+    <string name="prog_hold_ceiling">Mantén: ya estás en el máximo de este ejercicio.</string>
+    <string name="deload_title">Semana de descarga</string>
+    <string name="deload_long_block">Llevas varias semanas seguidas entrenando. Esta semana haz cerca del 60 % de las series para recuperar.</string>
+    <string name="deload_high_effort">La semana pasada fue muy dura (RPE medio alto). Esta semana haz cerca del 60 % de las series para recuperar.</string>
+</resources>
