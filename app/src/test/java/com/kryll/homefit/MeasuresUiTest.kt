@@ -76,6 +76,7 @@ class MeasuresUiTest {
         )
         rule.setContent { HomeFitTheme { MeasuresContent(items, 20400, {}) } }
         scrollTo("Peso a lo largo del tiempo")
+        scrollTo("70,5 – 72 kg")
         rule.onNodeWithText("70,5 – 72 kg").assertIsDisplayed()
         capture("medidas_grafica")
         scrollTo("Peso 70,5 kg · Cintura 80 cm")
