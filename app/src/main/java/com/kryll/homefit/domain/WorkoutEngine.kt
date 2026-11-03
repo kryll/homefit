@@ -106,6 +106,11 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
         }
     }
 
+    /** Cambia solo el descanso actual, sin alterar la rutina ni adelantar de fase. */
+    fun adjustRest(delta: Int) {
+        if (phase == Phase.REST) remaining = (remaining + delta).coerceIn(0, 600)
+    }
+
     /** El usuario termina la serie por repeticiones (o antes de tiempo). Solo en WORK. */
     fun done() { if (phase == Phase.WORK && !paused) finishWork(skipped = false) }
 
