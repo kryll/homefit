@@ -69,7 +69,7 @@ class PlanUiTest {
 
     @Test fun enabledReminderShowsTimeAndSteppers() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30), true) } }
-        rule.onNodeWithText("Hora del aviso: 18:30").assertIsDisplayed()
+        rule.onNodeWithText("Hora de entrenar: 18:30").assertIsDisplayed()
         rule.onNodeWithText("+ hora").assertIsDisplayed()
         capture("plan_recordatorio")
     }
@@ -101,5 +101,14 @@ class PlanUiTest {
         rule.onAllNodesWithText("Asignar")[0].performClick()
         rule.onNodeWithText("Cardio suave").performClick()
         assertEquals(today to 2L, got)
+    }
+
+    @Test fun leadShowsNotificationTimeAndEmitsSteps() {
+        var prefs = ReminderPrefs(true, 18, 30, leadMinutes = 15)
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), prefs, true, onPrefs = { prefs = it }) } }
+        rule.onNodeWithText("Aviso 15 min antes (a las 18:15)").assertIsDisplayed()
+        rule.onNodeWithText("Más antelación").performClick()
+        org.junit.Assert.assertEquals(30, prefs.leadMinutes)
+        capture("plan_antelacion")
     }
 }

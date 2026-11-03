@@ -40,4 +40,11 @@ class ReminderNotifierTest {
         assertFalse(ReminderNotifier.show(context, null))
         assertEquals(0, shadowOf(nm).allNotifications.size)
     }
+
+    @Test fun notificationOffersSnoozeAction() {
+        assertTrue(ReminderNotifier.show(context, null))
+        val n = shadowOf(nm).allNotifications.single()
+        assertEquals(1, n.actions.size)
+        assertEquals("Posponer 15 min", n.actions[0].title.toString())
+    }
 }

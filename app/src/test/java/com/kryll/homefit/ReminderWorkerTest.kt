@@ -43,7 +43,7 @@ class ReminderWorkerTest {
 
     private fun setup(mask: Int, prefs: ReminderPrefs) = runBlocking {
         app.container.database.profileDao().saveProfile(profile(mask))
-        app.container.settings.update { it.copy(reminderEnabled = prefs.enabled, reminderHour = prefs.hour, reminderMinute = prefs.minute) }
+        app.container.settings.update { it.copy(reminderEnabled = prefs.enabled, reminderHour = prefs.hour, reminderMinute = prefs.minute, reminderLeadMinutes = prefs.leadMinutes) }
     }
 
     private fun infos(): List<WorkInfo> =
@@ -137,5 +137,42 @@ class ReminderWorkerTest {
         shadowOf(nm).setNotificationsEnabled(false)
         runWorker()
         assertEquals(0, shadowOf(nm).allNotifications.size)
+    }
+
+    private fun runSnoozedWorker(): ListenableWorker.Result = runBlocking {
+        TestListenableWorkerBuilder<ReminderWorker>(app as Context)
+            .setInputData(androidx.work.workDataOf(ReminderScheduler.KEY_SNOOZE to true)).build().doWork()
+    }
+
+    private fun snoozeInfos(): List<WorkInfo> =
+        WorkManager.getInstance(app).getWorkInfosForUniqueWork("recordatorio_posponer").get()
+
+    @Test fun snoozeActionRemovesTheNotificationAndQueuesOneLaterWork() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        assertEquals(ListenableWorker.Result.success(), runWorker())
+        assertEquals(1, shadowOf(nm).allNotifications.size)
+        com.kryll.homefit.reminders.SnoozeReceiver().onReceive(app, android.content.Intent(com.kryll.homefit.reminders.SnoozeReceiver.ACTION))
+        assertEquals(0, shadowOf(nm).allNotifications.size)
+        val queued = snoozeInfos().filter { it.state == WorkInfo.State.ENQUEUED }
+        assertEquals(1, queued.size)
+        assertEquals(15 * 60_000L, queued.single().initialDelayMillis)
+    }
+
+    @Test fun snoozedWorkShowsAgainButDoesNotTouchTheDailyChain() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        runBlocking { ReminderScheduler.sync(app) }
+        val daily = enqueued().single()
+        assertEquals(ListenableWorker.Result.success(), runSnoozedWorker())
+        assertEquals(1, shadowOf(nm).allNotifications.size)
+        assertEquals(daily.id, enqueued().single().id)
+    }
+
+    @Test fun disablingTheReminderAlsoCancelsASnooze() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        ReminderScheduler.snooze(app)
+        assertEquals(1, snoozeInfos().count { it.state == WorkInfo.State.ENQUEUED })
+        setup(allDays, ReminderPrefs(false, 8, 0))
+        runBlocking { ReminderScheduler.sync(app) }
+        assertEquals(0, snoozeInfos().count { it.state == WorkInfo.State.ENQUEUED })
     }
 }

@@ -3,9 +3,11 @@ package com.kryll.homefit.domain
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-data class ReminderPrefs(val enabled: Boolean = false, val hour: Int = 18, val minute: Int = 0) {
+/** [hour]:[minute] es la hora de entrenar; el aviso sale [leadMinutes] antes (0 = a esa hora). */
+data class ReminderPrefs(val enabled: Boolean = false, val hour: Int = 18, val minute: Int = 0, val leadMinutes: Int = 0) {
     init {
         require(hour in 0..23 && minute in 0..59) { "Hora no válida" }
+        require(leadMinutes in 0..120) { "Antelación no válida" }
     }
 }
 
@@ -24,7 +26,8 @@ object Planning {
         for (i in 0..7) {
             val day = from.toLocalDate().plusDays(i.toLong())
             if (!isTrainingDay(daysMask, day)) continue
-            val at = day.atTime(prefs.hour, prefs.minute).atZone(from.zone)
+            // El aviso nunca pasa al día anterior: con antelación mayor que la hora, sale a las 00:00 de ese día.
+            val at = day.atTime(notifyTime(prefs)).atZone(from.zone)
             if (at.isAfter(from)) return at
         }
         return null
@@ -45,6 +48,18 @@ object Planning {
             val d = from.plusDays(i.toLong())
             if (isTrainingDay(daysMask, d)) PlannedDay(d, routineIds[k++ % routineIds.size]) else null
         }
+    }
+
+    /** Hora a la que sale el aviso: la de entrenar menos la antelación, sin pasar de las 00:00. */
+    fun notifyTime(p: ReminderPrefs): java.time.LocalTime =
+        java.time.LocalTime.ofSecondOfDay(((p.hour * 60 + p.minute - p.leadMinutes).coerceAtLeast(0) * 60).toLong())
+
+    val LEAD_OPTIONS = listOf(0, 5, 10, 15, 30, 60, 120)
+
+    /** Sube o baja entre las antelaciones permitidas; no pasa de los extremos. */
+    fun stepLead(p: ReminderPrefs, delta: Int): ReminderPrefs {
+        val i = LEAD_OPTIONS.indexOf(p.leadMinutes).let { if (it < 0) LEAD_OPTIONS.indexOfLast { o -> o <= p.leadMinutes }.coerceAtLeast(0) else it }
+        return p.copy(leadMinutes = LEAD_OPTIONS[(i + delta).coerceIn(0, LEAD_OPTIONS.lastIndex)])
     }
 
     fun stepHour(p: ReminderPrefs, delta: Int) = p.copy(hour = Math.floorMod(p.hour + delta, 24))
