@@ -11,7 +11,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.hasScrollAction
-import androidx.compose.ui.test.onNode
 import com.kryll.homefit.data.BodyMeasurement
 import com.kryll.homefit.ui.MeasuresContent
 import com.kryll.homefit.ui.theme.HomeFitTheme
