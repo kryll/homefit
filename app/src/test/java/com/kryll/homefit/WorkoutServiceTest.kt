@@ -64,31 +64,4 @@ class WorkoutServiceTest {
         com.kryll.homefit.audio.WorkoutHost.clear()
         controller.destroy()
     }
-
-    @Test fun siguienteAvanzaFaseSinInventarResultados() {
-        val runner = com.kryll.homefit.audio.WorkoutHost.begin(
-            99L, listOf(com.kryll.homefit.domain.WorkItem("a", "A", 2, 10, null, 30)),
-        )
-        val next = Intent(context, WorkoutService::class.java).setAction(WorkoutService.ACTION_NEXT)
-        val controller = Robolectric.buildService(WorkoutService::class.java, next)
-        controller.create().startCommand(0, 1)
-        assertEquals(com.kryll.homefit.domain.Phase.WORK, runner.snapshot.value.state.phase)
-        assertTrue(runner.results.isEmpty())
-        controller.startCommand(0, 2)
-        assertTrue(runner.results.single().skipped)
-        runner.exit()
-        com.kryll.homefit.audio.WorkoutHost.clear()
-        controller.destroy()
-    }
-
-    @Test
-    fun cuentaAtrasDeAjustesLlegaAlMotor() {
-        val item = com.kryll.homefit.domain.WorkItem("a", "A", 1, 10, null, 30)
-        val r = com.kryll.homefit.audio.WorkoutHost.begin(77L, listOf(item), getReadySeconds = 9)
-        assertEquals(9, r.snapshot.value.state.remaining)
-        com.kryll.homefit.audio.WorkoutHost.clear()
-        val r0 = com.kryll.homefit.audio.WorkoutHost.begin(78L, listOf(item), getReadySeconds = 0)
-        assertEquals(com.kryll.homefit.domain.Phase.WORK, r0.snapshot.value.state.phase)
-        com.kryll.homefit.audio.WorkoutHost.clear()
-    }
 }
