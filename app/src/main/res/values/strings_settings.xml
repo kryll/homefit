@@ -43,10 +43,4 @@
     <string name="backup_err_read">No se pudo leer el archivo.</string>
     <string name="settings_about">Acerca de</string>
     <string name="settings_units_note">Afectan a cómo ves y escribes las medidas corporales. Los datos se guardan siempre en kg y cm, así que puedes cambiar sin perder nada.</string>
-    <string name="updates_check">Buscar actualizaciones</string>
-    <string name="updates_checking">Comprobando…</string>
-    <string name="updates_latest">Tienes la última versión.</string>
-    <string name="updates_new">Nueva versión %1$s disponible</string>
-    <string name="updates_open">Abrir descarga</string>
-    <string name="updates_error">No se pudo comprobar. Inténtalo más tarde.</string>
 </resources>

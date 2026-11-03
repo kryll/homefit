@@ -9,10 +9,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performScrollTo
-
-import androidx.compose.ui.test.hasText
-
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.data.ThemeMode
@@ -118,34 +114,5 @@ class SettingsUiTest {
         assertEquals(com.kryll.homefit.data.WeightUnit.LB, s.weightUnit)
         rule.onNodeWithText("Medidas: in").performScrollTo().performClick()
         assertEquals(com.kryll.homefit.data.LengthUnit.IN, s.lengthUnit)
-    }
-
-    @Test fun updateStatesAreShown() {
-        var checked = 0
-        var opened = ""
-        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", null, "https://example.test/rel")
-        rule.setContent {
-            HomeFitTheme {
-                SettingsScreen(
-                    AppSettings(), "1.0.0", null, null,
-                    updateState = com.kryll.homefit.domain.UpdateState.Available(info),
-                    onCheckUpdates = { checked++ },
-                    onOpenUpdate = { opened = it },
-                )
-            }
-        }
-        rule.onNode(androidx.compose.ui.test.hasScrollToNodeAction()).performScrollToNode(hasText("Nueva versión 1.2.0 disponible"))
-        rule.onNodeWithText("Nueva versión 1.2.0 disponible").assertIsDisplayed()
-        rule.onNodeWithText("Abrir descarga").performClick()
-        assertEquals("https://example.test/rel", opened)
-        rule.onNodeWithText("Buscar actualizaciones").performClick()
-        assertEquals(1, checked)
-        capture("ajustes_actualizacion")
-    }
-
-    @Test fun updateErrorIsShown() {
-        rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", null, null, updateState = com.kryll.homefit.domain.UpdateState.Failed) } }
-        rule.onNode(androidx.compose.ui.test.hasScrollToNodeAction()).performScrollToNode(hasText("No se pudo comprobar. Inténtalo más tarde."))
-        rule.onNodeWithText("No se pudo comprobar. Inténtalo más tarde.").assertIsDisplayed()
     }
 }
