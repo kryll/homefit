@@ -115,6 +115,9 @@ interface SessionDao {
     @Query("DELETE FROM scheduled_session WHERE startMillis >= :from AND startMillis < :to")
     suspend fun deleteScheduledBetween(from: Long, to: Long)
 
+    @Query("UPDATE scheduled_session SET status = :status WHERE id = :id")
+    suspend fun setScheduledStatus(id: Long, status: String)
+
     @Query("SELECT * FROM workout_session WHERE startMillis >= :from AND startMillis < :to ORDER BY startMillis")
     suspend fun workoutsBetween(from: Long, to: Long): List<WorkoutSession>
 

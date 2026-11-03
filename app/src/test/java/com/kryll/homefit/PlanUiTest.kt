@@ -109,6 +109,38 @@ class PlanUiTest {
         assertEquals(com.kryll.homefit.domain.CalendarPeriod.weekStart(today) to 2L, got)
     }
 
+    @Test fun skippedAndMovedSessionsShowStatusWithoutActions() {
+        val s = listOf(
+            ScheduledSession(1, 1, ms(today), "SKIPPED"),
+            ScheduledSession(2, 2, ms(today.plusDays(2)), "MOVED"),
+        )
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList(), ReminderPrefs(), true) } }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Saltada"))
+        rule.onNodeWithText("Fuerza en casa · Saltada").assertIsDisplayed()
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Cardio suave · Movida"))
+        rule.onNodeWithText("Cardio suave · Movida").assertIsDisplayed()
+        assertEquals(0, rule.onAllNodesWithText("Saltar").fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithText("Mover").fetchSemanticsNodes().size)
+    }
+
+    @Test fun skipAndMoveEmitCallbacks() {
+        var skipped: ScheduledSession? = null
+        var moved: Pair<Long, LocalDate>? = null
+        rule.setContent {
+            HomeFitTheme {
+                PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(), true,
+                    onSkip = { skipped = it }, onMove = { e, d -> moved = e.id to d })
+            }
+        }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
+        capture("plan_estados")
+        rule.onAllNodesWithText("Saltar")[0].performClick()
+        assertEquals(1L, skipped?.id)
+        rule.onAllNodesWithText("Mover")[0].performClick()
+        rule.onNodeWithText("Jue 5 nov").performClick()
+        assertEquals(1L to today.plusDays(1), moved)
+    }
+
     @Test fun leadShowsNotificationTimeAndEmitsSteps() {
         var prefs = ReminderPrefs(true, 18, 30, leadMinutes = 15)
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), prefs, true, onPrefs = { prefs = it }) } }

@@ -60,8 +60,11 @@ fun PlanScreen(
     onClear: () -> Unit = {},
     onStart: (Long) -> Unit = {},
     onPrefs: (ReminderPrefs) -> Unit = {},
+    onSkip: (ScheduledSession) -> Unit = {},
+    onMove: (ScheduledSession, LocalDate) -> Unit = { _, _ -> },
 ) {
     var assigning by rememberSaveable { mutableStateOf<Long?>(null) } // epochDay del día que se está editando
+    var moving by rememberSaveable { mutableStateOf<Long?>(null) } // id de la sesión que se está moviendo
     val names = routines.associate { it.id to it.name }
     fun dateOf(ms: Long) = Instant.ofEpochMilli(ms).atZone(zone).toLocalDate()
     var monthly by rememberSaveable { mutableStateOf(false) }
@@ -144,15 +147,50 @@ fun PlanScreen(
                     if (entries.isEmpty()) Text(stringResource(R.string.plan_nothing))
                     entries.forEach { e ->
                         val name = e.routineId?.let { names[it] } ?: ""
-                        val done = workouts.any { w -> w.routineId == e.routineId && w.notes != WorkoutRepository.NOTE_INCOMPLETE && dateOf(w.startMillis) == d }
-                        Text(if (done) name + " · " + stringResource(R.string.plan_done) else name, style = MaterialTheme.typography.bodyLarge)
-                        if (d == today && !done && e.routineId != null) {
+                        val status = com.kryll.homefit.domain.sessionStatusOf(e.status)
+                        val done = status == com.kryll.homefit.domain.SessionStatus.COMPLETED ||
+                            workouts.any { w -> w.routineId == e.routineId && w.notes != WorkoutRepository.NOTE_INCOMPLETE && dateOf(w.startMillis) == d }
+                        val suffix = when {
+                            done -> " · " + stringResource(R.string.plan_done)
+                            status == com.kryll.homefit.domain.SessionStatus.SKIPPED -> " · " + stringResource(R.string.plan_skipped)
+                            status == com.kryll.homefit.domain.SessionStatus.MOVED -> " · " + stringResource(R.string.plan_moved)
+                            else -> ""
+                        }
+                        Text(name + suffix, style = MaterialTheme.typography.bodyLarge)
+                        val settled = done || status != com.kryll.homefit.domain.SessionStatus.SCHEDULED
+                        if (d == today && !settled && e.routineId != null) {
                             Button({ onStart(e.routineId) }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.plan_train)) }
+                        }
+                        if (!settled) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton({ onSkip(e) }) { Text(stringResource(R.string.plan_skip)) }
+                                TextButton({ moving = e.id }) { Text(stringResource(R.string.plan_move)) }
+                            }
                         }
                     }
                     TextButton({ assigning = d.toEpochDay() }) { Text(stringResource(R.string.plan_assign)) }
                 }
             }
+        }
+    }
+
+    moving?.let { id ->
+        val e = scheduled.firstOrNull { it.id == id }
+        if (e != null) {
+            val from = dateOf(e.startMillis)
+            AlertDialog(
+                onDismissRequest = { moving = null },
+                title = { Text(stringResource(R.string.plan_move_title, dayLabel(from))) },
+                text = {
+                    LazyColumn {
+                        items((0 until 14).map { today.plusDays(it.toLong()) }.filter { it != from }, key = { it.toEpochDay() }) { nd ->
+                            TextButton({ onMove(e, nd); moving = null }) { Text(dayLabel(nd)) }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = { TextButton({ moving = null }) { Text(stringResource(R.string.plan_cancel)) } },
+            )
         }
     }
 
