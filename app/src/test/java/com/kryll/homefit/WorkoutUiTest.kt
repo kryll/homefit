@@ -82,6 +82,31 @@ class WorkoutUiTest {
         assertEquals(null, rated)
     }
 
+    @Test fun rateScreenRecordsConfirmedRepsAndWeightWithTheRpe() {
+        var rec: Pair<Int?, Float?>? = null
+        var rated: Int? = -1
+        rule.setContent {
+            HomeFitTheme {
+                WorkoutContent(WorkoutState(Phase.RATE, 0, 1, 0, false), items[0], items, 1, 5, {}, {}, {}, { rated = it }, {}, onRecord = { r, w -> rec = r to w })
+            }
+        }
+        rule.onNodeWithText("Repeticiones hechas: ${items[0].reps}").assertIsDisplayed()
+        rule.onNodeWithText("− rep").performClick()
+        rule.onNodeWithText("Repeticiones hechas: ${items[0].reps!! - 1}").assertIsDisplayed()
+        rule.onNodeWithText("+ 0,5 kg").performClick()
+        rule.onNodeWithText("Peso: 0,5 kg").assertIsDisplayed()
+        capture("entreno_reps_reales")
+        rule.onNodeWithText("8").performClick()
+        assertEquals(items[0].reps!! - 1, rec?.first)
+        assertEquals(0.5f, rec?.second)
+        assertEquals(8, rated)
+    }
+
+    @Test fun timedSetRateScreenHasNoRepsInput() {
+        show(WorkoutState(Phase.RATE, 1, 1, 0, false), items[1], done = 1)
+        assertEquals(0, rule.onAllNodesWithTextCount("− rep"))
+    }
+
     @Test fun restShowsNextExercise() {
         show(WorkoutState(Phase.REST, 0, 3, 18, false), items[0], done = 3)
         rule.onNodeWithText("Siguiente: Plancha").assertIsDisplayed()

@@ -127,6 +127,19 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
     val gear by db.exerciseDao().observeEquipment().collectAsState(initial = emptyList())
     val map = gear.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() }
     val allItems by db.routineDao().observeAllItems().collectAsState(initial = emptyList())
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    val loggedSets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
+    val sessionSets = remember(workouts, loggedSets) { com.kryll.homefit.domain.ProgressionData.sessionSets(workouts, loggedSets) }
+    val deload = remember(sessionSets) { com.kryll.homefit.domain.Deload.advice(sessionSets, System.currentTimeMillis(), java.time.ZoneId.systemDefault()) }
+    val harder = remember(exercises) { exercises.associate { it.id to it.harderVariantId } }
+    val suggestions = remember(sessionSets, allItems, harder, deload) {
+        buildMap {
+            allItems.groupBy { it.routineId }.forEach { (rid, its) ->
+                val presc = its.sortedBy { it.position }.map { com.kryll.homefit.domain.Prescribed(it.exerciseId, it.sets, it.reps, it.seconds) }
+                com.kryll.homefit.domain.Progression.forRoutine(rid, presc, sessionSets, deload = deload != null) { harder[it] }.forEach { (ex, sg) -> put(rid to ex, sg) }
+            }
+        }
+    }
     val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -159,6 +172,8 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
         onSaveRoutine = { id, draft -> scope.launch { repo.save(id, draft) } },
         onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
         onStart = { workoutId = it; workoutStart = System.currentTimeMillis() },
+        suggestions = suggestions,
+        deload = deload,
     )
 }
 
@@ -184,6 +199,7 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
         onSkip = { runner.skip() },
         onPause = { runner.togglePause() },
         onRate = { runner.rate(it) },
+        onRecord = { r, w -> runner.record(r, w) },
         onExit = {
             val r = runner.exit()
             if (r != null) {

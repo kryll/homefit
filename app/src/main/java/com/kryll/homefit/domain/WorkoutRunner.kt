@@ -62,6 +62,7 @@ class WorkoutRunner(
     @Synchronized fun done() { if (closed) return; advance(); engine.done(); publish() }
     @Synchronized fun skip() { if (closed) return; advance(); engine.skip(); publish() }
     @Synchronized fun rate(rpe: Int?) { if (closed) return; advance(); engine.rate(rpe); publish() }
+    @Synchronized fun record(reps: Int?, weightKg: Float?) { if (closed) return; advance(); engine.record(reps, weightKg); publish() }
     @Synchronized fun pause() { if (closed) return; advance(); engine.pause(); publish() }
     @Synchronized fun resume() { if (closed) return; advance(); engine.resume(); publish() }
     @Synchronized fun togglePause() { if (engine.state().paused) resume() else pause() }

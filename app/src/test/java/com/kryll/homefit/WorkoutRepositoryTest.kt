@@ -38,7 +38,7 @@ class WorkoutRepositoryTest {
 
     @Test fun savesSessionAndDoneSetsWithRpe() = runBlocking {
         val results = listOf(
-            SetResult(0, 1, 7, false, 25),
+            SetResult(0, 1, 7, false, 25, reps = 8, weightKg = 12.5f),
             SetResult(0, 2, null, true, 3),
             SetResult(1, 1, 9, false, 30),
         )
@@ -48,8 +48,8 @@ class WorkoutRepositoryTest {
         val sets = db.sessionDao().setsOf(id)
         assertEquals(listOf("sentadilla", "plancha"), sets.map { it.exerciseId })
         assertEquals(listOf(1, 1), sets.map { it.setIndex })
-        assertEquals(10, sets[0].reps); assertNull(sets[0].seconds); assertEquals(7, sets[0].rpe)
-        assertNull(sets[1].reps); assertEquals(30, sets[1].seconds); assertEquals(9, sets[1].rpe)
+        assertEquals(8, sets[0].reps); assertEquals(12.5f, sets[0].weightKg); assertNull(sets[0].seconds); assertEquals(7, sets[0].rpe)
+        assertNull(sets[1].reps); assertNull(sets[1].weightKg); assertEquals(30, sets[1].seconds); assertEquals(9, sets[1].rpe)
     }
 
     @Test fun incompleteWorkoutIsMarked() = runBlocking {

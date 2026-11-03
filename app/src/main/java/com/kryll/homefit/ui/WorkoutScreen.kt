@@ -70,6 +70,7 @@ fun WorkoutScreen(
         onSkip = { engine.skip(); publish() },
         onPause = { if (state.paused) engine.resume() else engine.pause(); publish() },
         onRate = { engine.rate(it); publish() },
+        onRecord = { r, w -> engine.record(r, w); publish() },
         onExit = { onExit(engine.setResults, state.phase == Phase.FINISHED) },
     )
 }
@@ -87,7 +88,10 @@ fun WorkoutContent(
     onPause: () -> Unit,
     onRate: (Int?) -> Unit,
     onExit: () -> Unit,
+    onRecord: (Int?, Float?) -> Unit = { _, _ -> },
 ) {
+    var repsDone by remember(state.itemIndex, state.set) { mutableIntStateOf(item.reps ?: 0) }
+    var weight by remember(state.itemIndex) { mutableStateOf<Float?>(null) }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -128,11 +132,31 @@ fun WorkoutContent(
                 Text(stringResource(R.string.workout_reps_unit))
             }
             Phase.RATE -> {
+                if (!item.timed) {
+                    Text(stringResource(R.string.workout_reps_done_hint), style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+                    Text(stringResource(R.string.workout_reps_done, repsDone), style = MaterialTheme.typography.titleMedium)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton({ repsDone = WorkoutEngine.stepReps(repsDone, -1) }) { Text(stringResource(R.string.workout_reps_minus)) }
+                        OutlinedButton({ repsDone = WorkoutEngine.stepReps(repsDone, 1) }) { Text(stringResource(R.string.workout_reps_plus)) }
+                    }
+                    val w = weight
+                    Text(
+                        if (w == null) stringResource(R.string.workout_weight_none)
+                        else stringResource(R.string.workout_weight, java.lang.String.format(java.util.Locale("es", "ES"), "%.1f", w)),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton({ weight = WorkoutEngine.stepWeight(weight, -1) }) { Text(stringResource(R.string.workout_weight_minus)) }
+                        OutlinedButton({ weight = WorkoutEngine.stepWeight(weight, 1) }) { Text(stringResource(R.string.workout_weight_plus)) }
+                    }
+                }
                 Text(stringResource(R.string.workout_rate_hint), textAlign = TextAlign.Center)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    (1..10).forEach { n -> FilterChip(false, { onRate(n) }, { Text("$n") }) }
+                    (1..10).forEach { n ->
+                        FilterChip(false, { if (!item.timed) onRecord(repsDone, weight); onRate(n) }, { Text("$n") })
+                    }
                 }
-                OutlinedButton({ onRate(null) }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.workout_no_rpe)) }
+                OutlinedButton({ if (!item.timed) onRecord(repsDone, weight); onRate(null) }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.workout_no_rpe)) }
             }
             else -> Unit
         }
