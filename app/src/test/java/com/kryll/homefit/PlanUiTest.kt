@@ -137,7 +137,8 @@ class PlanUiTest {
         rule.onAllNodesWithText("Saltar")[0].performClick()
         assertEquals(1L, skipped?.id)
         rule.onAllNodesWithText("Mover")[0].performClick()
-        rule.onNodeWithText("Jue 5 nov").performClick()
+        rule.onAllNodes(androidx.compose.ui.test.hasText("Jue 5 nov"))
+            .filterToOne(androidx.compose.ui.test.hasClickAction()).performClick()
         assertEquals(1L to today.plusDays(1), moved)
     }
 
