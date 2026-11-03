@@ -1638,7 +1638,11 @@
    "Lumbar pegada al suelo."
   ],
   "easierVariantId": null,
-  "harderVariantId": "elevacion_piernas"
+  "harderVariantId": "elevacion_piernas",
+  "images": [
+   "media/rodillas_pecho_0.jpg",
+   "media/rodillas_pecho_1.jpg"
+  ]
  },
  {
   "id": "dead_bug",
@@ -2101,7 +2105,11 @@
    "Codos entre las rodillas."
   ],
   "easierVariantId": "sentadilla",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/sentadilla_kettlebell_0.jpg",
+   "media/sentadilla_kettlebell_1.jpg"
+  ]
  },
  {
   "id": "face_pull_banda",

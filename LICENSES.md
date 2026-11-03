@@ -35,6 +35,8 @@ El proyecto no tiene todavía licencia propia elegida.
 | curl_concentrado | Concentration_Curls |
 | sentadilla | Bodyweight_Squat |
 | sentadilla_goblet | Goblet_Squat |
+| sentadilla_kettlebell | Goblet_Squat |
+| rodillas_pecho | Hug_Knees_To_Chest |
 | sentadilla_salto | Freehand_Jump_Squat |
 | zancada_andando | Bodyweight_Walking_Lunge |
 | peso_muerto_rumano | Stiff-Legged_Dumbbell_Deadlift |
