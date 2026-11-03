@@ -69,7 +69,8 @@ class ReminderWorkerTest {
         assertEquals(1, now.size)
         assertNotEquals(first.id, now.single().id)
         assertNotEquals(first.initialDelayMillis, now.single().initialDelayMillis)
-        assertEquals(WorkInfo.State.CANCELLED, infos().first { it.id == first.id }.state)
+        // REPLACE descarta el trabajo anterior: no queda ninguno vivo con el id viejo.
+        assertEquals(null, infos().firstOrNull { it.id == first.id && !it.state.isFinished })
     }
 
     @Test fun changingDaysReplacesTheWork() {
