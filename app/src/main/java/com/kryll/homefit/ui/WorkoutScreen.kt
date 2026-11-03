@@ -90,6 +90,12 @@ fun WorkoutContent(
     onExit: () -> Unit,
     onRecord: (Int?, Float?) -> Unit = { _, _ -> },
 ) {
+    val view = androidx.compose.ui.platform.LocalView.current
+    androidx.compose.runtime.DisposableEffect(view) {
+        val previous = view.keepScreenOn
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = previous }
+    }
     var repsDone by remember(state.itemIndex, state.set) { mutableIntStateOf(item.reps ?: 0) }
     var weight by remember(state.itemIndex) { mutableStateOf<Float?>(null) }
     Column(
