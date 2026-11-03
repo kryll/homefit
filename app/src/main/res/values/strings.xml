@@ -80,6 +80,14 @@
     <string name="workout_rest">Descanso</string>
     <string name="workout_rate_title">Esfuerzo percibido (RPE)</string>
     <string name="workout_rate_hint">¿Cuánto te ha costado la serie? 1 es muy fácil y 10 es el máximo.</string>
+    <string name="workout_reps_done_hint">Confirma lo que hiciste de verdad: se guarda al elegir el esfuerzo.</string>
+    <string name="workout_reps_done">Repeticiones hechas: %1$d</string>
+    <string name="workout_reps_minus">− rep</string>
+    <string name="workout_reps_plus">+ rep</string>
+    <string name="workout_weight">Peso: %1$s kg</string>
+    <string name="workout_weight_none">Peso: sin peso extra</string>
+    <string name="workout_weight_minus">− 0,5 kg</string>
+    <string name="workout_weight_plus">+ 0,5 kg</string>
     <string name="workout_no_rpe">Sin RPE</string>
     <string name="workout_set_of">Serie %1$d de %2$d</string>
     <string name="workout_seconds_unit">segundos</string>

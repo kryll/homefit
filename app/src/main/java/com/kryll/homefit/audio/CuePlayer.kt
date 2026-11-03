@@ -19,7 +19,9 @@ import java.util.Locale
  */
 class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEnabled: Boolean = true) {
     private val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    private val tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 80) }.getOrNull()
+    private var tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 80) }.getOrNull()
+    private var tonePercent = 80
+    private var speechRate = 1.0f
     private var tts: TextToSpeech? = null
     private var ttsReady = false
     private var pending = 0
@@ -39,6 +41,7 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
                 val r = engine.setLanguage(Locale("es", "ES"))
                 ttsReady = r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED
                 engine.setAudioAttributes(attrs)
+                engine.setSpeechRate(speechRate)
                 engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {}
                     override fun onDone(utteranceId: String?) = finished()
@@ -46,6 +49,19 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
                     override fun onError(utteranceId: String?) = finished()
                 })
             }
+        }
+    }
+
+    /** Aplica los ajustes del usuario (voz, volumen de pitidos y velocidad); se puede llamar con el entreno en marcha. */
+    fun apply(s: com.kryll.homefit.domain.CueSettings) {
+        speechEnabled = s.speech
+        beepEnabled = s.beep
+        speechRate = s.speechRate
+        if (ttsReady) tts?.setSpeechRate(speechRate)
+        if (s.beep && s.beepPercent != tonePercent) {
+            tone?.release()
+            tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, s.beepPercent) }.getOrNull()
+            tonePercent = s.beepPercent
         }
     }
 

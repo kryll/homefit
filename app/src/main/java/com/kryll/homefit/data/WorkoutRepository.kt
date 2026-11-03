@@ -60,7 +60,7 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
                     val item = plan[r.itemIndex]
                     SetLog(
                         sessionId = sid, exerciseId = item.exerciseId, setIndex = r.set,
-                        reps = item.reps, seconds = if (item.timed) r.workSeconds else null, rpe = r.rpe,
+                        reps = r.reps, weightKg = r.weightKg, seconds = if (item.timed) r.workSeconds else null, rpe = r.rpe,
                     )
                 },
             )

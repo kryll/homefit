@@ -77,6 +77,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation("org.json:json:20240303")
     testImplementation(libs.robolectric)
+    testImplementation("androidx.work:work-testing:2.9.1")
     testImplementation(libs.androidx.test.junit)
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
