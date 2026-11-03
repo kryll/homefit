@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.kryll.homefit.R
@@ -50,8 +52,16 @@ private fun label(f: MeasureField): Int = when (f) {
 }
 
 /** Pesos en orden cronológico (un valor por registro con peso). */
-fun weightSeries(items: List<BodyMeasurement>): List<Float> =
-    items.sortedWith(compareBy({ it.epochDay }, { it.id })).mapNotNull { it.weightKg }
+fun weightSeries(items: List<BodyMeasurement>): List<Float> = weightPoints(items).map { it.second }
+
+/** (epochDay, kg) en orden cronológico. */
+fun weightPoints(items: List<BodyMeasurement>): List<Pair<Long, Float>> =
+    items.sortedWith(compareBy({ it.epochDay }, { it.id })).mapNotNull { m -> m.weightKg?.let { m.epochDay to it } }
+
+/** Posición horizontal 0..1 según la fecha real; un solo día queda en el centro. */
+fun chartX(day: Long, first: Long, last: Long): Float = if (last == first) 0.5f else (day - first).toFloat() / (last - first).toFloat()
+
+private fun dayText(day: Long): String = DateTimeFormatter.ofPattern("d MMM yyyy", es).format(LocalDate.ofEpochDay(day))
 
 @Composable
 fun MeasuresContent(
@@ -66,6 +76,7 @@ fun MeasuresContent(
     val errInvalidFmt = stringResource(R.string.measures_err_invalid)
     val labels = MeasureField.entries.associateWith { stringResource(label(it)) }
     val series = weightSeries(items)
+    val points = weightPoints(items)
 
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -104,12 +115,20 @@ fun MeasuresContent(
         item {
             if (series.size < 2) Text(stringResource(R.string.measures_chart_need_two), style = MaterialTheme.typography.bodyMedium)
             else {
+                val first = points.first().first
+                val last = points.last().first
+                val desc = points.joinToString("; ") { dayText(it.first) + ": " + num(it.second) + " kg" }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    LineChart(series, Modifier.fillMaxWidth().height(160.dp))
+                    LineChart(points, Modifier.fillMaxWidth().height(160.dp).semantics { contentDescription = desc })
+                    androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(dayText(first), style = MaterialTheme.typography.bodySmall)
+                        Text(dayText(last), style = MaterialTheme.typography.bodySmall)
+                    }
                     Text(
-                        num(series.min()) + " – " + num(series.max()) + " kg",
+                        stringResource(R.string.measures_chart_range, num(series.min()), num(series.max()), (last - first).toInt()),
                         style = MaterialTheme.typography.bodySmall,
                     )
+                    points.forEach { Text(dayText(it.first) + ": " + num(it.second) + " kg", style = MaterialTheme.typography.bodySmall) }
                 }
             }
         }
@@ -143,20 +162,24 @@ private fun MeasureCard(m: BodyMeasurement) {
 }
 
 @Composable
-fun LineChart(values: List<Float>, modifier: Modifier = Modifier) {
+fun LineChart(points: List<Pair<Long, Float>>, modifier: Modifier = Modifier) {
     val line = MaterialTheme.colorScheme.primary
     val axis = MaterialTheme.colorScheme.outline
     Canvas(modifier) {
         val pad = 12.dp.toPx()
         val w = size.width - 2 * pad
         val h = size.height - 2 * pad
+        val values = points.map { it.second }
         val lo = values.min()
         val hi = values.max()
         val span = if (hi - lo < 0.01f) 1f else hi - lo
+        val first = points.first().first
+        val last = points.last().first
         drawLine(axis, Offset(pad, size.height - pad), Offset(size.width - pad, size.height - pad), strokeWidth = 1.dp.toPx())
-        val pts = values.mapIndexed { i, v ->
-            Offset(pad + w * i / (values.size - 1), pad + h * (1f - (v - lo) / span))
+        val pts = points.map { (d, v) ->
+            Offset(pad + w * chartX(d, first, last), pad + h * (1f - (v - lo) / span))
         }
+        pts.forEach { drawLine(axis, Offset(it.x, size.height - pad), Offset(it.x, size.height - pad + 5.dp.toPx()), strokeWidth = 1.dp.toPx()) }
         pts.zipWithNext().forEach { (a, b) -> drawLine(line, a, b, strokeWidth = 3.dp.toPx()) }
         pts.forEach { drawCircle(line, radius = 4.dp.toPx(), center = it) }
     }

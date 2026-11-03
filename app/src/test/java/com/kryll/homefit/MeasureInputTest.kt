@@ -4,6 +4,8 @@ import com.kryll.homefit.data.BodyMeasurement
 import com.kryll.homefit.domain.MeasureField
 import com.kryll.homefit.domain.MeasureInput
 import com.kryll.homefit.domain.MeasureResult
+import com.kryll.homefit.ui.chartX
+import com.kryll.homefit.ui.weightPoints
 import com.kryll.homefit.ui.weightSeries
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -35,5 +37,16 @@ class MeasureInputTest {
         )
         assertEquals(listOf(72f, 70f), weightSeries(items))
         assertTrue(weightSeries(emptyList()).isEmpty())
+    }
+
+    @Test fun chartPositionsFollowRealDates() {
+        val items = listOf(
+            BodyMeasurement(id = 1, epochDay = 100, weightKg = 72f),
+            BodyMeasurement(id = 2, epochDay = 101, weightKg = 71f),
+            BodyMeasurement(id = 3, epochDay = 110, weightKg = 70f),
+        )
+        val pts = weightPoints(items)
+        assertEquals(listOf(0f, 0.1f, 1f), pts.map { chartX(it.first, 100, 110) })
+        assertEquals(0.5f, chartX(5, 5, 5), 0f)
     }
 }

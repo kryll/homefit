@@ -26,4 +26,5 @@
     <string name="measures_item_thigh">Muslo %1$s cm</string>
     <string name="measures_item_hip">Cadera %1$s cm</string>
     <string name="measures_item_fat">Grasa %1$s %%</string>
+    <string name="measures_chart_range">Mín %1$s kg · Máx %2$s kg · %3$d días entre la primera y la última</string>
 </resources>

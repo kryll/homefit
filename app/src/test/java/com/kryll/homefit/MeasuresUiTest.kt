@@ -76,11 +76,12 @@ class MeasuresUiTest {
         )
         rule.setContent { HomeFitTheme { MeasuresContent(items, 20400, {}) } }
         scrollTo("Peso a lo largo del tiempo")
-        scrollTo("70,5 – 72 kg")
-        rule.onNodeWithText("70,5 – 72 kg").assertIsDisplayed()
+        scrollTo("Mín 70,5 kg · Máx 72 kg · 14 días entre la primera y la última")
+        rule.onNodeWithText("Mín 70,5 kg · Máx 72 kg · 14 días entre la primera y la última").assertIsDisplayed()
         capture("medidas_grafica")
         scrollTo("Peso 70,5 kg · Cintura 80 cm")
         rule.onNodeWithText("Peso 70,5 kg · Cintura 80 cm").assertIsDisplayed()
+        rule.onNodeWithText("25 oct 2025: 72 kg").assertExists()
         capture("medidas_historial")
     }
 
