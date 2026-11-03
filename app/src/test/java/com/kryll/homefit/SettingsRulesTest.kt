@@ -51,4 +51,14 @@ class SettingsRulesTest {
         assertEquals(0, SettingsRules.stepCountdown(0, -1))
         assertEquals(15, SettingsRules.stepCountdown(15, 1))
     }
+    @Test fun savedVoiceIsKeptOnlyWhenAvailable() {
+        assertEquals("es-es-x-a", SettingsRules.resolveVoice(listOf("es-es-x-a"), "es-es-x-a"))
+        assertEquals(null, SettingsRules.resolveVoice(listOf("es-es-x-a"), "es-es-x-b"))
+        assertEquals(null, SettingsRules.resolveVoice(emptyList(), null))
+    }
+
+    @Test fun cueSettingsCarryVoiceName() {
+        assertEquals("es-es-x-a", com.kryll.homefit.domain.CueSettings.from(com.kryll.homefit.data.AppSettings(ttsVoice = "es-es-x-a")).voiceName)
+        assertEquals(null, com.kryll.homefit.domain.CueSettings.from(com.kryll.homefit.data.AppSettings()).voiceName)
+    }
 }

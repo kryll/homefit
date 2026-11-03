@@ -7,6 +7,9 @@
     <string name="theme_dark">Oscuro</string>
     <string name="settings_audio">Avisos del entreno</string>
     <string name="settings_voice">Voz en español</string>
+    <string name="settings_voice_select">Voz de los avisos</string>
+    <string name="settings_voice_default">Predeterminada del sistema</string>
+    <string name="settings_voice_dialog">Elige la voz de los avisos</string>
     <string name="settings_voice_rate">Velocidad de la voz: %1$s×</string>
     <string name="settings_beep_volume">Volumen de los pitidos: %1$d %%</string>
     <string name="settings_beep_off">Pitidos desactivados</string>

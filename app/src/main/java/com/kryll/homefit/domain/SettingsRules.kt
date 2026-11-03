@@ -3,7 +3,7 @@ package com.kryll.homefit.domain
 import com.kryll.homefit.data.AppSettings
 
 /** Lo que el reproductor de avisos necesita de los ajustes. */
-data class CueSettings(val speech: Boolean, val beepPercent: Int, val speechRate: Float) {
+data class CueSettings(val speech: Boolean, val beepPercent: Int, val speechRate: Float, val voiceName: String? = null) {
     val beep: Boolean get() = beepPercent > 0
 
     companion object {
@@ -11,6 +11,7 @@ data class CueSettings(val speech: Boolean, val beepPercent: Int, val speechRate
             speech = s.voiceEnabled,
             beepPercent = Math.round(s.beepVolume.coerceIn(0f, 1f) * 100),
             speechRate = s.ttsRate.coerceIn(SettingsRules.RATE_MIN, SettingsRules.RATE_MAX),
+            voiceName = s.ttsVoice,
         )
     }
 }
@@ -34,4 +35,7 @@ object SettingsRules {
 
     /** Velocidad de voz en pasos de 0,25. */
     fun stepRate(r: Float, delta: Int): Float = ((Math.round(r * 4) + delta) / 4f).coerceIn(RATE_MIN, RATE_MAX)
+
+    /** La voz guardada solo se usa si sigue instalada; si no, suena la predeterminada del sistema. */
+    fun resolveVoice(available: List<String>, saved: String?): String? = saved?.takeIf { it in available }
 }
