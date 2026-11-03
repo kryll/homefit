@@ -3,6 +3,8 @@ package com.kryll.homefit.data
 import androidx.room.withTransaction
 import com.kryll.homefit.domain.SetResult
 import com.kryll.homefit.domain.WorkItem
+import java.time.Instant
+import java.time.ZoneId
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -26,7 +28,10 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         }
     }
 
-    /** Cierra la sesión. Devuelve su id, o null si no hubo ninguna serie hecha. */
+    /**
+     * Cierra la sesión. Devuelve su id, o null si no hubo ninguna serie hecha.
+     * Al terminar (finished) marca COMPLETED las sesiones planificadas ese día con la misma rutina.
+     */
     suspend fun save(
         routineId: Long?,
         plan: List<WorkItem>,
@@ -36,6 +41,15 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         results: List<SetResult>,
     ): Long? = lock.withLock {
         val id = write(routineId, plan, startMillis, endMillis, finished, results)
+        if (finished && routineId != null && id != null) {
+            val zone = ZoneId.systemDefault()
+            val day = Instant.ofEpochMilli(startMillis).atZone(zone).toLocalDate()
+            val from = day.atStartOfDay(zone).toInstant().toEpochMilli()
+            val to = day.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+            db.sessionDao().scheduledBetween(from, to)
+                .filter { it.routineId == routineId && it.status == "SCHEDULED" }
+                .forEach { db.sessionDao().setScheduledStatus(it.id, "COMPLETED") }
+        }
         openSessionId = null
         id
     }

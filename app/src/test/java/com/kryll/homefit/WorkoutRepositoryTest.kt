@@ -86,6 +86,29 @@ class WorkoutRepositoryTest {
         assertEquals(0, db.sessionDao().observeWorkouts().first().size)
     }
 
+    @Test fun finishingWorkoutMarksPlannedSessionCompleted() = runBlocking {
+        val zone = java.time.ZoneId.systemDefault()
+        val day = java.time.LocalDate.now(zone)
+        fun ms(d: java.time.LocalDate, h: Int) = d.atTime(h, 0).atZone(zone).toInstant().toEpochMilli()
+        val dao = db.sessionDao()
+        dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = 1, startMillis = ms(day, 18), status = "SCHEDULED"))
+        dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = 2, startMillis = ms(day, 19), status = "SCHEDULED"))
+        dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = 1, startMillis = ms(day.plusDays(1), 18), status = "SCHEDULED"))
+        repo.save(1L, plan, ms(day, 18), ms(day, 18) + 600_000L, true, listOf(SetResult(0, 1, 8, false, 25)))
+        val all = dao.observeAllScheduled().first().sortedBy { it.id }
+        assertEquals(listOf("COMPLETED", "SCHEDULED", "SCHEDULED"), all.map { it.status })
+    }
+
+    @Test fun unfinishedWorkoutKeepsPlannedSessionScheduled() = runBlocking {
+        val zone = java.time.ZoneId.systemDefault()
+        val day = java.time.LocalDate.now(zone)
+        fun ms(d: java.time.LocalDate, h: Int) = d.atTime(h, 0).atZone(zone).toInstant().toEpochMilli()
+        val dao = db.sessionDao()
+        dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = 1, startMillis = ms(day, 18), status = "SCHEDULED"))
+        repo.save(1L, plan, ms(day, 18), ms(day, 18) + 60_000L, false, listOf(SetResult(0, 1, 8, false, 25)))
+        assertEquals("SCHEDULED", dao.observeAllScheduled().first().single().status)
+    }
+
     @Test fun nextSessionAfterSaveIsANewRow() = runBlocking {
         val r = listOf(SetResult(0, 1, null, false, 9))
         repo.checkpoint(1L, plan, 0L, 5000L, r) { false }

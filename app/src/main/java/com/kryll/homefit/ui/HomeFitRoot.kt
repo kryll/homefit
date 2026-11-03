@@ -263,6 +263,14 @@ private fun PlanTab(onStart: (Long) -> Unit) {
             }
         },
         onClear = { scope.launch { db.sessionDao().deleteScheduledBetween(startOf(today), startOf(today.plusDays(7))) } },
+        onSkip = { e -> scope.launch { db.sessionDao().setScheduledStatus(e.id, "SKIPPED") } },
+        onMove = { e, nd ->
+            scope.launch {
+                val dao = db.sessionDao()
+                dao.setScheduledStatus(e.id, "MOVED")
+                dao.insertScheduled(e.copy(id = 0, startMillis = com.kryll.homefit.domain.movedStartMillis(e.startMillis, zone, nd), status = "SCHEDULED"))
+            }
+        },
         onStart = onStart,
         onPrefs = { n ->
             if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)

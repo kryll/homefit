@@ -130,8 +130,9 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val from = today.atStartOfDay(zone).toInstant().toEpochMilli()
         val to = today.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
         val trained = db.sessionDao().workoutsBetween(from, to).any { it.notes != WorkoutRepository.NOTE_INCOMPLETE }
-        if (Planning.decide(prefs, profile.daysMask, today, trained) == ReminderDecision.SHOW) {
-            val routineId = db.sessionDao().scheduledBetween(from, to).firstOrNull()?.routineId
+        val todays = db.sessionDao().scheduledBetween(from, to)
+        if (Planning.decide(prefs, profile.daysMask, today, trained, todays.map { it.status }) == ReminderDecision.SHOW) {
+            val routineId = todays.firstOrNull { it.status == "SCHEDULED" }?.routineId
             val name = routineId?.let { db.routineDao().byId(it)?.name }
             ReminderNotifier.show(applicationContext, name)
         }
