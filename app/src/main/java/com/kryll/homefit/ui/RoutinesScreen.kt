@@ -65,6 +65,7 @@ fun RoutinesScreen(
     /** Clave: id de rutina y de ejercicio. */
     suggestions: Map<Pair<Long, String>, com.kryll.homefit.domain.Suggestion> = emptyMap(),
     deload: com.kryll.homefit.domain.DeloadReason? = null,
+    defaultRest: Int = 45,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
     var editing by rememberSaveable { mutableStateOf<EditorTarget?>(null) }
@@ -75,6 +76,7 @@ fun RoutinesScreen(
             exercises = exercises,
             onSave = { onSaveRoutine(target.id, it); editing = null },
             onCancel = { editing = null },
+            defaultRest = defaultRest,
         )
         return
     }

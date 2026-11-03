@@ -38,4 +38,17 @@ class SettingsRulesTest {
         assertEquals(100, c.beepPercent)
         assertEquals(2.0f, c.speechRate, 0.0001f)
     }
+
+    @Test fun restStepsByFiveAndStaysInEditorRange() {
+        assertEquals(50, SettingsRules.stepRest(45, 1))
+        assertEquals(40, SettingsRules.stepRest(45, -1))
+        assertEquals(0, SettingsRules.stepRest(0, -1))
+        assertEquals(com.kryll.homefit.domain.RoutineDraft.MAX_REST, SettingsRules.stepRest(com.kryll.homefit.domain.RoutineDraft.MAX_REST, 1))
+    }
+
+    @Test fun countdownStepsByOneBetweenZeroAndFifteen() {
+        assertEquals(6, SettingsRules.stepCountdown(5, 1))
+        assertEquals(0, SettingsRules.stepCountdown(0, -1))
+        assertEquals(15, SettingsRules.stepCountdown(15, 1))
+    }
 }

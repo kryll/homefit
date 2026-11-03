@@ -145,6 +145,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
             }
         }
     }
+    val appSettings by app.container.settings.settings.collectAsState(initial = com.kryll.homefit.data.AppSettings())
     val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -163,7 +164,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
             WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds)
         }
         if (plan.isEmpty()) { workoutId = null } else {
-            WorkoutWithCues(plan, workoutStart, active, onExit = { results, finished ->
+            WorkoutWithCues(plan, workoutStart, active, appSettings.defaultCountdownSeconds, onExit = { results, finished ->
                 val end = System.currentTimeMillis()
                 scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
                 workoutId = null
@@ -179,13 +180,14 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
         onStart = { workoutId = it; workoutStart = System.currentTimeMillis() },
         suggestions = suggestions,
         deload = deload,
+        defaultRest = appSettings.defaultRestSeconds,
     )
 }
 
 @Composable
-private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: Long?, onExit: (List<SetResult>, Boolean) -> Unit) {
+private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: Long?, getReadySeconds: Int, onExit: (List<SetResult>, Boolean) -> Unit) {
     val context = LocalContext.current.applicationContext
-    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan, routineId) }
+    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan, routineId, getReadySeconds) }
     androidx.compose.runtime.LaunchedEffect(runner) { com.kryll.homefit.audio.WorkoutService.start(context, null) }
     val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()

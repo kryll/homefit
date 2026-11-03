@@ -27,9 +27,9 @@ data class DraftItem(
         )
 
         /** Modo y valor iniciales según la prescripción del ejercicio. */
-        fun forExercise(id: String): DraftItem {
+        fun forExercise(id: String, defaultRest: Int = 45): DraftItem {
             val secs = TIMED_DEFAULTS[id]
-            return if (secs != null) DraftItem(id, reps = null, seconds = secs) else DraftItem(id)
+            return if (secs != null) DraftItem(id, reps = null, seconds = secs, restSeconds = defaultRest) else DraftItem(id, restSeconds = defaultRest)
         }
     }
 }
@@ -57,7 +57,7 @@ data class RoutineDraft(
         return e
     }
 
-    fun add(exerciseId: String) = copy(items = items + DraftItem.forExercise(exerciseId))
+    fun add(exerciseId: String, defaultRest: Int = 45) = copy(items = items + DraftItem.forExercise(exerciseId, defaultRest))
     fun remove(index: Int) = copy(items = items.filterIndexed { i, _ -> i != index })
     fun update(index: Int, item: DraftItem) = copy(items = items.mapIndexed { i, old -> if (i == index) item else old })
 
