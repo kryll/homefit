@@ -61,6 +61,43 @@ class WorkoutEngineTest {
         assertTrue(e.drainCues().any { it is Cue.Halfway })
     }
 
+    @Test fun sideExerciseAnnouncesSwitchAtHalfway() {
+        val side = WorkItem("plancha_lado", "Plancha lateral", sets = 1, reps = null, seconds = 30, restSeconds = 0, alternateSides = true)
+        val e = WorkoutEngine(listOf(side), getReadySeconds = 0)
+        e.drainCues(); e.ticks(15)
+        val cues = e.drainCues()
+        assertTrue(cues.any { it is Cue.SwitchSides })
+        assertFalse(cues.any { it is Cue.Halfway })
+    }
+
+    @Test fun tenSecondsLeftCueInLongWorkAndRest() {
+        val longPlank = WorkItem("plancha", "Plancha", sets = 1, reps = null, seconds = 40, restSeconds = 30)
+        val e = WorkoutEngine(listOf(longPlank, squat), getReadySeconds = 0)
+        e.drainCues(); e.ticks(30)
+        assertTrue(e.drainCues().any { it is Cue.TenSecondsLeft })
+        e.done(); e.rate(null)
+        e.drainCues(); e.ticks(20)
+        assertTrue(e.drainCues().any { it is Cue.TenSecondsLeft })
+    }
+
+    @Test fun restCueCarriesNextExerciseScheme() {
+        val a = WorkItem("a", "A", sets = 1, reps = 8, seconds = null, restSeconds = 20)
+        val b = WorkItem("b", "B", sets = 3, reps = 12, seconds = null, restSeconds = 30)
+        val e = WorkoutEngine(listOf(a, b), getReadySeconds = 0)
+        e.done(); e.rate(null)
+        val rest = e.drainCues().filterIsInstance<Cue.Rest>().single()
+        assertEquals("B", rest.nextName)
+        assertEquals(3, rest.nextSets)
+        assertEquals(12, rest.nextReps)
+    }
+
+    @Test fun getReadyCueCarriesScheme() {
+        val e = WorkoutEngine(listOf(squat), getReadySeconds = 3)
+        val ready = e.drainCues().filterIsInstance<Cue.GetReady>().single()
+        assertEquals(2, ready.sets)
+        assertEquals(10, ready.reps)
+    }
+
     @Test fun pauseStopsTheClock() {
         val e = WorkoutEngine(listOf(plank), getReadySeconds = 0)
         e.ticks(5); e.pause(); e.ticks(100)
