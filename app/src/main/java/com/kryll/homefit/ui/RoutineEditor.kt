@@ -39,7 +39,7 @@ import java.text.Normalizer
 private val GOALS = listOf("perder_grasa", "tonificar", "ganar_fuerza", "resistencia")
 private val LEVELS = listOf("principiante", "intermedio", "avanzado")
 
-private fun plain(s: String) = Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").lowercase()
+internal fun plain(s: String) = Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").lowercase()
 
 private fun digits(s: String): Int? = s.filter { it.isDigit() }.take(4).toIntOrNull()
 
@@ -131,11 +131,16 @@ private fun NumberField(label: String, value: Int?, modifier: Modifier, onChange
     )
 }
 
+/** Búsqueda por nombre sin distinguir mayúsculas ni tildes. */
+internal fun searchExercises(exercises: List<Exercise>, query: String, limit: Int = 8): List<Exercise> {
+    val q = plain(query.trim())
+    return exercises.filter { plain(it.name).contains(q) }.take(limit)
+}
+
 @Composable
 private fun ExercisePicker(exercises: List<Exercise>, onPick: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val q = plain(query.trim())
-    val shown = remember(exercises, q) { exercises.filter { plain(it.name).contains(q) }.take(8) }
+    val shown = remember(exercises, q) { searchExercises(exercises, query) }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             OutlinedTextField(query, { query = it }, label = { Text(stringResource(R.string.editor_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth())

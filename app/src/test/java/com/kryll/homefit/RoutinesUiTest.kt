@@ -92,21 +92,21 @@ class RoutinesUiTest {
         rule.onNodeWithText("Añade al menos un ejercicio.").assertIsDisplayed()
         capture("editor_errores")
         rule.onNodeWithText("Nombre de la rutina").performTextInput("Mi rutina de prueba")
+        val first = catalog.exercises[0]
+        val second = catalog.exercises[1]
         rule.onNodeWithText("Añadir ejercicio").performClick()
-        rule.onNodeWithText("Buscar ejercicio").performTextInput("biceps")
         rule.waitForIdle()
         capture("editor_selector")
-        rule.onNodeWithText("Curl de bíceps con mancuernas").performClick()
+        rule.onNodeWithText(first.name).performClick()
         rule.onNodeWithText("Añadir ejercicio").performClick()
-        rule.onNodeWithText("Buscar ejercicio").performTextInput("plancha")
-        rule.onAllNodesWithText("Plancha")[0].performClick()
+        rule.onNodeWithText(second.name).performClick()
         rule.waitForIdle()
         capture("editor_con_ejercicios")
         rule.onNodeWithText("Guardar rutina").performClick()
         rule.waitForIdle()
         val d = saved!!
         assertEquals("Mi rutina de prueba", d.name)
-        assertEquals(listOf("curl_biceps_mancuernas", "plancha"), d.items.map { it.exerciseId })
+        assertEquals(listOf(first.id, second.id), d.items.map { it.exerciseId })
         assertTrue(d.errors().isEmpty())
     }
 }

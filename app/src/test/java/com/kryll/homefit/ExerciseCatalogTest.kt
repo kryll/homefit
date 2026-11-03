@@ -44,4 +44,11 @@ class ExerciseCatalogTest {
             assertTrue("sin crédito: ${e.id}", licenses.contains("| ${e.id} |"))
         }
     }
+
+    @Test fun searchIgnoresCaseAndAccents() {
+        val a = com.kryll.homefit.ui.searchExercises(catalog.exercises, "BICEPS", limit = 100)
+        assertTrue(a.isNotEmpty() && a.any { it.id == "curl_biceps_mancuernas" })
+        assertEquals(a, com.kryll.homefit.ui.searchExercises(catalog.exercises, "bíceps", limit = 100))
+        assertEquals(3, com.kryll.homefit.ui.searchExercises(catalog.exercises, "", limit = 3).size)
+    }
 }
