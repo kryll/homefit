@@ -65,19 +65,6 @@ class CuePlayer(context: Context, var speechEnabled: Boolean = true, var beepEna
         }
     }
 
-    /** Aplica los ajustes del usuario (voz, volumen de pitidos y velocidad); se puede llamar con el entreno en marcha. */
-    fun apply(s: com.kryll.homefit.domain.CueSettings) {
-        speechEnabled = s.speech
-        beepEnabled = s.beep
-        speechRate = s.speechRate
-        if (ttsReady) tts?.setSpeechRate(speechRate)
-        if (s.beep && s.beepPercent != tonePercent) {
-            tone?.release()
-            tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, s.beepPercent) }.getOrNull()
-            tonePercent = s.beepPercent
-        }
-    }
-
     private fun finished() {
         pending = (pending - 1).coerceAtLeast(0)
         if (pending == 0) audio.abandonAudioFocusRequest(focus)
