@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
@@ -116,6 +117,7 @@ private fun ExerciseCatalogList(all: List<Exercise>, equipment: Map<String, Set<
                     Text(e.name, style = MaterialTheme.typography.titleMedium)
                     Text("${label(e.primaryMuscle)} · ${e.difficulty}", style = MaterialTheme.typography.bodySmall)
                     if (openId == e.id) {
+                        ExerciseImages(e.images, e.name)
                         Text(stringResource(R.string.steps), style = MaterialTheme.typography.labelLarge)
                         e.steps.lines().forEachIndexed { i, s -> Text("${i + 1}. $s") }
                         if (e.commonMistakes.isNotBlank()) {
@@ -138,4 +140,26 @@ private fun ExerciseCatalogList(all: List<Exercise>, equipment: Map<String, Set<
 /** Versión serializable por rememberSaveable del filtro. */
 private data class ExerciseFilterState(val muscle: String? = null, val difficulty: String? = null, val equipment: String? = null) : java.io.Serializable {
     fun toFilter() = ExerciseFilter(muscle, difficulty, equipment)
+}
+
+@Composable
+private fun ExerciseImages(images: String, name: String) {
+    val paths = images.lines().filter { it.isNotBlank() }
+    if (paths.isEmpty()) return
+    val context = androidx.compose.ui.platform.LocalContext.current
+    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        paths.forEachIndexed { i, path ->
+            val bmp = androidx.compose.runtime.remember(path) {
+                runCatching { context.assets.open(path).use { android.graphics.BitmapFactory.decodeStream(it) } }.getOrNull()
+            }
+            if (bmp != null) {
+                androidx.compose.foundation.Image(
+                    bitmap = bmp.asImageBitmap(),
+                    contentDescription = stringResource(if (i == 0) R.string.media_start else R.string.media_end, name),
+                    modifier = Modifier.weight(1f),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                )
+            }
+        }
+    }
 }

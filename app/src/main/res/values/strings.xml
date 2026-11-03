@@ -41,4 +41,6 @@
     <string name="filters_show">Filtros (%1$d)</string>
     <string name="filters_hide">Ocultar filtros (%1$d)</string>
     <string name="filters_clear">Limpiar</string>
+    <string name="media_start">%1$s: posición inicial</string>
+    <string name="media_end">%1$s: posición final</string>
 </resources>

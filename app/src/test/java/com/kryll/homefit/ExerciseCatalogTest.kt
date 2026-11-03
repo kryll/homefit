@@ -32,4 +32,16 @@ class ExerciseCatalogTest {
         val ok = setOf("principiante", "intermedio", "avanzado")
         catalog.exercises.forEach { assertTrue(it.id, it.difficulty in ok) }
     }
+
+    @Test fun mediaFilesExistAndAreCredited() {
+        val licenses = File("../LICENSES.md").readText()
+        val withMedia = catalog.exercises.filter { it.images.isNotBlank() }
+        assertTrue(withMedia.size >= 40)
+        withMedia.forEach { e ->
+            val paths = e.images.lines()
+            assertEquals(e.id, 2, paths.size)
+            paths.forEach { assertTrue("${e.id}: $it", File("src/main/assets/$it").length() > 1000) }
+            assertTrue("sin crédito: ${e.id}", licenses.contains("| ${e.id} |"))
+        }
+    }
 }

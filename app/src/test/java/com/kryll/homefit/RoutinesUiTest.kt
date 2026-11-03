@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.domain.ExerciseCatalog
@@ -72,6 +73,7 @@ class RoutinesUiTest {
         rule.onNodeWithText("Flexiones").performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Pasos").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Flexiones: posición inicial").assertIsDisplayed()
         capture("ejercicio_detalle")
     }
 }

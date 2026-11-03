@@ -24,7 +24,11 @@
    "Aprieta abdomen y glúteos todo el rato."
   ],
   "easierVariantId": "flexiones_rodillas",
-  "harderVariantId": "flexiones_diamante"
+  "harderVariantId": "flexiones_diamante",
+  "images": [
+   "media/flexiones_0.jpg",
+   "media/flexiones_1.jpg"
+  ]
  },
  {
   "id": "flexiones_rodillas",
@@ -76,7 +80,11 @@
    "Si molestan las muñecas, usa flexiones normales."
   ],
   "easierVariantId": "flexiones",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/flexiones_diamante_0.jpg",
+   "media/flexiones_diamante_1.jpg"
+  ]
  },
  {
   "id": "flexiones_inclinadas",
@@ -102,7 +110,11 @@
    "Cuanto más alto el apoyo, más fácil."
   ],
   "easierVariantId": null,
-  "harderVariantId": "flexiones"
+  "harderVariantId": "flexiones",
+  "images": [
+   "media/flexiones_inclinadas_0.jpg",
+   "media/flexiones_inclinadas_1.jpg"
+  ]
  },
  {
   "id": "flexiones_declinadas",
@@ -128,7 +140,11 @@
    "Controla la bajada en 2 s."
   ],
   "easierVariantId": "flexiones",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/flexiones_declinadas_0.jpg",
+   "media/flexiones_declinadas_1.jpg"
+  ]
  },
  {
   "id": "press_banca_mancuernas",
@@ -156,7 +172,11 @@
    "Escápulas juntas y pegadas al banco."
   ],
   "easierVariantId": "flexiones",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/press_banca_mancuernas_0.jpg",
+   "media/press_banca_mancuernas_1.jpg"
+  ]
  },
  {
   "id": "press_suelo_mancuernas",
@@ -207,7 +227,11 @@
    "Mantén el codo ligeramente flexionado siempre."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/aperturas_mancuernas_0.jpg",
+   "media/aperturas_mancuernas_1.jpg"
+  ]
  },
  {
   "id": "fondos_banco",
@@ -233,7 +257,11 @@
    "Mantén la espalda pegada al banco."
   ],
   "easierVariantId": "fondos_banco_rodillas",
-  "harderVariantId": "fondos_paralelas"
+  "harderVariantId": "fondos_paralelas",
+  "images": [
+   "media/fondos_banco_0.jpg",
+   "media/fondos_banco_1.jpg"
+  ]
  },
  {
   "id": "fondos_banco_rodillas",
@@ -284,7 +312,11 @@
    "Torso algo inclinado trabaja más el pecho."
   ],
   "easierVariantId": "fondos_banco",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/fondos_paralelas_0.jpg",
+   "media/fondos_paralelas_1.jpg"
+  ]
  },
  {
   "id": "extension_triceps_mancuerna",
@@ -307,7 +339,11 @@
    "Codos cerca de las orejas."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/extension_triceps_mancuerna_0.jpg",
+   "media/extension_triceps_mancuerna_1.jpg"
+  ]
  },
  {
   "id": "patada_triceps",
@@ -330,7 +366,11 @@
    "Peso ligero y control."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/patada_triceps_0.jpg",
+   "media/patada_triceps_1.jpg"
+  ]
  },
  {
   "id": "press_militar_mancuernas",
@@ -355,7 +395,11 @@
    "Abdomen firme."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/press_militar_mancuernas_0.jpg",
+   "media/press_militar_mancuernas_1.jpg"
+  ]
  },
  {
   "id": "elevaciones_laterales",
@@ -379,7 +423,11 @@
    "Imagina verter una jarra con el meñique arriba."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/elevaciones_laterales_0.jpg",
+   "media/elevaciones_laterales_1.jpg"
+  ]
  },
  {
   "id": "elevaciones_frontales",
@@ -402,7 +450,11 @@
    "Sin balanceo."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/elevaciones_frontales_0.jpg",
+   "media/elevaciones_frontales_1.jpg"
+  ]
  },
  {
   "id": "pajaros",
@@ -427,7 +479,11 @@
    "Piensa en juntar las escápulas."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/pajaros_0.jpg",
+   "media/pajaros_1.jpg"
+  ]
  },
  {
   "id": "pike_push_up",
@@ -478,7 +534,11 @@
    "Lidera con el codo."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/remo_mancuerna_0.jpg",
+   "media/remo_mancuerna_1.jpg"
+  ]
  },
  {
   "id": "remo_inclinado_mancuernas",
@@ -503,7 +563,11 @@
    "Espalda neutra todo el tiempo."
   ],
   "easierVariantId": "remo_mancuerna",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/remo_inclinado_mancuernas_0.jpg",
+   "media/remo_inclinado_mancuernas_1.jpg"
+  ]
  },
  {
   "id": "remo_banda",
@@ -553,7 +617,11 @@
    "Flexionar rodillas lo hace más fácil."
   ],
   "easierVariantId": "remo_banda",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/remo_invertido_0.jpg",
+   "media/remo_invertido_1.jpg"
+  ]
  },
  {
   "id": "dominadas",
@@ -579,7 +647,11 @@
    "Lidera con el pecho."
   ],
   "easierVariantId": "dominadas_banda",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/dominadas_0.jpg",
+   "media/dominadas_1.jpg"
+  ]
  },
  {
   "id": "dominadas_banda",
@@ -605,7 +677,11 @@
    "Reduce la ayuda poco a poco."
   ],
   "easierVariantId": "remo_invertido",
-  "harderVariantId": "dominadas"
+  "harderVariantId": "dominadas",
+  "images": [
+   "media/dominadas_banda_0.jpg",
+   "media/dominadas_banda_1.jpg"
+  ]
  },
  {
   "id": "jalon_banda",
@@ -655,7 +731,11 @@
    "Mirada al suelo."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/superman_0.jpg",
+   "media/superman_1.jpg"
+  ]
  },
  {
   "id": "curl_biceps_mancuernas",
@@ -680,7 +760,11 @@
    "Codos pegados al torso."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/curl_biceps_mancuernas_0.jpg",
+   "media/curl_biceps_mancuernas_1.jpg"
+  ]
  },
  {
   "id": "curl_martillo",
@@ -705,7 +789,11 @@
    "Muñeca neutra."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/curl_martillo_0.jpg",
+   "media/curl_martillo_1.jpg"
+  ]
  },
  {
   "id": "curl_concentrado",
@@ -729,7 +817,11 @@
    "Aprieta arriba 1 s."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/curl_concentrado_0.jpg",
+   "media/curl_concentrado_1.jpg"
+  ]
  },
  {
   "id": "curl_banda",
@@ -779,7 +871,11 @@
    "Rodillas siguen la dirección de los pies."
   ],
   "easierVariantId": "sentadilla_silla",
-  "harderVariantId": "sentadilla_pistol"
+  "harderVariantId": "sentadilla_pistol",
+  "images": [
+   "media/sentadilla_0.jpg",
+   "media/sentadilla_1.jpg"
+  ]
  },
  {
   "id": "sentadilla_silla",
@@ -831,7 +927,11 @@
    "Codos entre las rodillas abajo."
   ],
   "easierVariantId": "sentadilla",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/sentadilla_goblet_0.jpg",
+   "media/sentadilla_goblet_1.jpg"
+  ]
  },
  {
   "id": "sentadilla_sumo",
@@ -883,7 +983,11 @@
    "Amortigua con cadera y rodillas."
   ],
   "easierVariantId": "sentadilla",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/sentadilla_salto_0.jpg",
+   "media/sentadilla_salto_1.jpg"
+  ]
  },
  {
   "id": "sentadilla_pistol",
@@ -986,7 +1090,11 @@
    "Mantén el tronco recto."
   ],
   "easierVariantId": "zancada",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/zancada_andando_0.jpg",
+   "media/zancada_andando_1.jpg"
+  ]
  },
  {
   "id": "sentadilla_bulgara",
@@ -1062,7 +1170,11 @@
    "Las mancuernas rozan las piernas."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/peso_muerto_rumano_0.jpg",
+   "media/peso_muerto_rumano_1.jpg"
+  ]
  },
  {
   "id": "buenos_dias",
@@ -1138,7 +1250,11 @@
    "Pausa de 1 s arriba."
   ],
   "easierVariantId": null,
-  "harderVariantId": "puente_una_pierna"
+  "harderVariantId": "puente_una_pierna",
+  "images": [
+   "media/puente_gluteos_0.jpg",
+   "media/puente_gluteos_1.jpg"
+  ]
  },
  {
   "id": "puente_una_pierna",
@@ -1163,7 +1279,11 @@
    "Pelvis nivelada."
   ],
   "easierVariantId": "puente_gluteos",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/puente_una_pierna_0.jpg",
+   "media/puente_una_pierna_1.jpg"
+  ]
  },
  {
   "id": "hip_thrust",
@@ -1212,7 +1332,11 @@
    "Cadera cuadrada."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/patada_gluteo_0.jpg",
+   "media/patada_gluteo_1.jpg"
+  ]
  },
  {
   "id": "abduccion_cadera_lateral",
@@ -1237,7 +1361,11 @@
    "Pie en neutro."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/abduccion_cadera_lateral_0.jpg",
+   "media/abduccion_cadera_lateral_1.jpg"
+  ]
  },
  {
   "id": "almeja",
@@ -1331,7 +1459,11 @@
    "Respira con calma."
   ],
   "easierVariantId": "plancha_rodillas",
-  "harderVariantId": "plancha_lateral"
+  "harderVariantId": "plancha_lateral",
+  "images": [
+   "media/plancha_0.jpg",
+   "media/plancha_1.jpg"
+  ]
  },
  {
   "id": "plancha_rodillas",
@@ -1379,7 +1511,11 @@
    "Pies apilados o uno delante."
   ],
   "easierVariantId": "plancha",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/plancha_lateral_0.jpg",
+   "media/plancha_lateral_1.jpg"
+  ]
  },
  {
   "id": "plancha_toque_hombro",
@@ -1427,7 +1563,11 @@
    "Mirada al techo."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/crunch_0.jpg",
+   "media/crunch_1.jpg"
+  ]
  },
  {
   "id": "crunch_bicicleta",
@@ -1521,7 +1661,11 @@
    "Movimientos lentos."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/dead_bug_0.jpg",
+   "media/dead_bug_1.jpg"
+  ]
  },
  {
   "id": "bird_dog",
@@ -1573,7 +1717,11 @@
    "Ritmo constante."
   ],
   "easierVariantId": "plancha",
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/mountain_climbers_0.jpg",
+   "media/mountain_climbers_1.jpg"
+  ]
  },
  {
   "id": "russian_twist",
@@ -1596,7 +1744,11 @@
    "Pies en el suelo lo hace más fácil."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/russian_twist_0.jpg",
+   "media/russian_twist_1.jpg"
+  ]
  },
  {
   "id": "hollow_hold",
@@ -1769,7 +1921,11 @@
    "Muñecas, no brazos."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/saltar_cuerda_0.jpg",
+   "media/saltar_cuerda_1.jpg"
+  ]
  },
  {
   "id": "patinador",
@@ -2043,7 +2199,11 @@
    "Pasos controlados."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/paseo_monstruo_0.jpg",
+   "media/paseo_monstruo_1.jpg"
+  ]
  },
  {
   "id": "pallof_press",
@@ -2089,7 +2249,11 @@
    "Úsalo de calentamiento."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/movilidad_cuello_hombros_0.jpg",
+   "media/movilidad_cuello_hombros_1.jpg"
+  ]
  },
  {
   "id": "gato_camello",
@@ -2114,7 +2278,11 @@
    "Ritmo lento."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/gato_camello_0.jpg",
+   "media/gato_camello_1.jpg"
+  ]
  },
  {
   "id": "postura_nino",
@@ -2139,7 +2307,11 @@
    "Mantén 30 s."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/postura_nino_0.jpg",
+   "media/postura_nino_1.jpg"
+  ]
  },
  {
   "id": "estiramiento_isquios",
@@ -2162,7 +2334,11 @@
    "Sin dolor."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/estiramiento_isquios_0.jpg",
+   "media/estiramiento_isquios_1.jpg"
+  ]
  },
  {
   "id": "estiramiento_cuadriceps",
@@ -2235,6 +2411,10 @@
    "Aprieta el glúteo trasero."
   ],
   "easierVariantId": null,
-  "harderVariantId": null
+  "harderVariantId": null,
+  "images": [
+   "media/estiramiento_cadera_0.jpg",
+   "media/estiramiento_cadera_1.jpg"
+  ]
  }
 ]

@@ -14,6 +14,7 @@ data class Catalog(
 
 object ExerciseCatalog {
     const val SOURCE = "HomeFit (texto original, CC0)"
+    const val MEDIA_SOURCE = "HomeFit (texto original, CC0). Imágenes: free-exercise-db (Unlicense)"
 
     fun parse(json: String): Catalog {
         val arr = JSONArray(json)
@@ -27,6 +28,7 @@ object ExerciseCatalog {
                 val a = o.getJSONArray(key)
                 return (0 until a.length()).joinToString("\n") { a.getString(it) }
             }
+            val imgs = o.optJSONArray("images")?.let { a -> (0 until a.length()).joinToString("\n") { a.getString(it) } } ?: ""
             ex += Exercise(
                 id = id,
                 name = o.getString("name"),
@@ -37,7 +39,8 @@ object ExerciseCatalog {
                 safetyTips = lines("safetyTips"),
                 easierVariantId = o.optString("easierVariantId").takeIf { it.isNotEmpty() && !o.isNull("easierVariantId") },
                 harderVariantId = o.optString("harderVariantId").takeIf { it.isNotEmpty() && !o.isNull("harderVariantId") },
-                source = SOURCE,
+                images = imgs,
+                source = if (imgs.isEmpty()) SOURCE else MEDIA_SOURCE,
             )
             mu += ExerciseMuscle(id, o.getString("primaryMuscle"), true)
             val sec = o.getJSONArray("secondaryMuscles")
