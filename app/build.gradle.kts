@@ -8,6 +8,9 @@ plugins {
 // Version y firma vienen del entorno (CI al crear un tag vX.Y.Z). En local: 0.0.0-dev, sin firma de release.
 val keystorePath: String? = System.getenv("HOMEFIT_KEYSTORE_PATH")
 
+val robolectricDeps34 = configurations.create("robolectricDeps34")
+val robolectricDeps35 = configurations.create("robolectricDeps35")
+
 android {
     namespace = "com.kryll.homefit"
     compileSdk = 35
@@ -48,7 +51,7 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
-    testOptions { unitTests.isReturnDefaultValues = true }
+    testOptions { unitTests { isReturnDefaultValues = true; isIncludeAndroidResources = true } }
 }
 
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
@@ -73,5 +76,25 @@ dependencies {
     implementation(libs.coroutines.core)
     testImplementation(libs.junit)
     testImplementation("org.json:json:20240303")
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.junit)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
+    "robolectricDeps34"("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7")
+    "robolectricDeps35"("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
     testImplementation(libs.coroutines.test)
+}
+
+// Robolectric descarga su android-all en tiempo de test con su propio cliente HTTP, que falla a veces en CI.
+// Lo resolvemos con Gradle (cacheado) y ejecutamos Robolectric sin conexión.
+tasks.withType<Test>().configureEach {
+    val depsDir = File(layout.buildDirectory.get().asFile, "robolectric-deps")
+    doFirst {
+        depsDir.mkdirs()
+        (robolectricDeps34.files + robolectricDeps35.files).forEach { it.copyTo(File(depsDir, it.name), overwrite = true) }
+    }
+    systemProperty("robolectric.offline", "true")
+    systemProperty("robolectric.dependency.dir", depsDir.absolutePath)
+    maxHeapSize = "768m"
 }

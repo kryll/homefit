@@ -31,6 +31,7 @@ val EQUIPMENT = listOf("mancuernas", "banda_elastica", "banco", "barra_dominadas
 private val GOALS = listOf("salud", "perder_peso", "hipertrofia", "fuerza")
 private val LEVELS = listOf("principiante", "intermedio", "avanzado")
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
@@ -76,7 +77,7 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
         Text(stringResource(R.string.onb_level))
         chips(LEVELS, setOf(level)) { level = it }
         Text(stringResource(R.string.onb_days))
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("L", "M", "X", "J", "V", "S", "D").forEachIndexed { i, d ->
                 FilterChip(selected = days and (1 shl i) != 0, onClick = { days = days xor (1 shl i) }, label = { Text(d) })
             }
