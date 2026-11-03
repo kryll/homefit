@@ -108,6 +108,8 @@ private fun MainTabs() {
                             startRequest = id
                             nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
                         })
+                    } else if (tab == Tab.Progress) {
+                        ProgressTab()
                     } else if (tab == Tab.Settings) {
                         SettingsTab()
                     } else {
@@ -348,5 +350,30 @@ private fun SettingsTab() {
                 }.getOrElse { if (it is com.kryll.homefit.data.BackupException) errorText(it) else context.getString(R.string.backup_err_failed) }
             }
         },
+    )
+}
+
+@Composable
+private fun ProgressTab() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val db = app.container.database
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    val sets by db.sessionDao().observeAllSets().collectAsState(initial = emptyList())
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val exercises by db.exerciseDao().observeAll().collectAsState(initial = emptyList())
+    val rows = remember(workouts, sets, routines, exercises) {
+        com.kryll.homefit.domain.ProgressStats.rows(
+            workouts, sets, routines.associate { it.id to it.name }, exercises.associate { it.id to it.name },
+        )
+    }
+    val summary = remember(rows) {
+        com.kryll.homefit.domain.ProgressStats.summary(rows, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+    }
+    val measurements by db.measurementDao().observeAll().collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+    ProgressWithMeasures(
+        summary, rows, measurements,
+        onSave = { m -> scope.launch { db.measurementDao().insert(m) } },
+        onDelete = { id -> scope.launch { db.measurementDao().deleteById(id) } },
     )
 }
