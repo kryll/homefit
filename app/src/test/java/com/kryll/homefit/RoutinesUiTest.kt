@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.domain.ExerciseCatalog
@@ -29,7 +30,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = Application::class, qualifiers = "w360dp-h900dp-port-xxhdpi")
+@Config(sdk = [34], application = Application::class, qualifiers = "w360dp-h1300dp-port-xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RoutinesUiTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
@@ -102,9 +103,10 @@ class RoutinesUiTest {
         rule.onNodeWithText(second.name).performClick()
         rule.waitForIdle()
         capture("editor_con_ejercicios")
-        rule.onNodeWithText("Guardar rutina").performClick()
+        rule.onNodeWithText("Guardar rutina").performScrollTo().performClick()
         rule.waitForIdle()
         val d = saved!!
+        d.items.forEach { assertEquals(it.exerciseId in com.kryll.homefit.domain.DraftItem.TIMED_DEFAULTS, it.timed) }
         assertEquals("Mi rutina de prueba", d.name)
         assertEquals(listOf(first.id, second.id), d.items.map { it.exerciseId })
         assertTrue(d.errors().isEmpty())
