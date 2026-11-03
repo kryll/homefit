@@ -104,5 +104,5 @@ private fun SessionCard(s: SessionRow, zone: ZoneId) {
 private fun setText(r: SetRow): String {
     val base = if (r.seconds != null) stringResource(R.string.progress_set_seconds, r.exerciseName, r.setIndex, r.seconds)
     else stringResource(R.string.progress_set_reps, r.exerciseName, r.setIndex, r.reps ?: 0)
-    return base + (r.rpe?.let { stringResource(R.string.progress_set_rpe_suffix, it) } ?: "")
+    return base + (r.rpe?.let { " · " + stringResource(R.string.progress_set_rpe, it) } ?: "")
 }

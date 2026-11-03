@@ -15,6 +15,6 @@
     <string name="progress_session_summary">%1$d min · %2$d series</string>
     <string name="progress_set_reps">%1$s · serie %2$d · %3$d rep</string>
     <string name="progress_set_seconds">%1$s · serie %2$d · %3$d s</string>
-    <string name="progress_set_rpe_suffix"> · RPE %1$d</string>
+    <string name="progress_set_rpe">RPE %1$d</string>
     <string name="progress_no_sets">Sin series registradas.</string>
 </resources>

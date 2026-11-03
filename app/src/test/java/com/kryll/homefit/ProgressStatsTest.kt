@@ -57,7 +57,10 @@ class ProgressStatsTest {
             WorkoutSession(1, 5L, 1000, 2000, 60, ""),
             WorkoutSession(2, null, 5000, 6000, 30, "incompleto"),
         )
-        val sets = listOf(SetLog(1, 1, "x", 1, 10, null, null, 7), SetLog(2, 1, "gone", 1, null, null, 20, null))
+        val sets = listOf(
+            SetLog(sessionId = 1, exerciseId = "x", setIndex = 1, reps = 10, rpe = 7),
+            SetLog(sessionId = 2, exerciseId = "gone", setIndex = 1, seconds = 20),
+        )
         val rows = ProgressStats.rows(sessions, sets, mapOf(5L to "Fuerza"), mapOf("x" to "Sentadilla"))
         assertEquals(listOf(2L, 1L), rows.map { it.id })
         assertEquals(true, rows[0].incomplete); assertNull(rows[0].routineName)
