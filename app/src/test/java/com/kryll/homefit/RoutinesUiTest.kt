@@ -30,7 +30,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = Application::class, qualifiers = "w360dp-h1300dp-port-xxhdpi")
+@Config(sdk = [34], application = Application::class, qualifiers = "w360dp-h780dp-port-xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RoutinesUiTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
@@ -103,7 +103,11 @@ class RoutinesUiTest {
         rule.onNodeWithText(second.name).performClick()
         rule.waitForIdle()
         capture("editor_con_ejercicios")
-        rule.onNodeWithText("Guardar rutina").performScrollTo().performClick()
+        rule.onNodeWithText("Guardar rutina").performScrollTo()
+        rule.waitForIdle()
+        rule.onNodeWithText("Guardar rutina").assertIsDisplayed()
+        capture("editor_guardar_tras_scroll")
+        rule.onNodeWithText("Guardar rutina").performClick()
         rule.waitForIdle()
         val d = saved!!
         d.items.forEach { assertEquals(it.exerciseId in com.kryll.homefit.domain.DraftItem.TIMED_DEFAULTS, it.timed) }
