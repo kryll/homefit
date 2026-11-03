@@ -9,6 +9,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.onNodeWithText as node
+import org.junit.Assert.assertEquals
 import com.kryll.homefit.ui.OnboardingScreen
 import com.kryll.homefit.ui.theme.HomeFitTheme
 import java.io.File
@@ -48,5 +51,31 @@ class OnboardingUiTest {
         rule.waitForIdle()
         capture("onboarding_errores")
         assertFalse(done)
+    }
+
+    @Test fun fullFormSavesSexGoalBirthAndEquipment() {
+        var profile: com.kryll.homefit.data.UserProfile? = null
+        var equipment: Set<String> = emptySet()
+        rule.setContent { HomeFitTheme { OnboardingScreen { p, e -> profile = p; equipment = e } } }
+        rule.onNodeWithText("Nombre").performTextInput("Ana")
+        rule.onNodeWithText("mujer").performScrollTo().performClick()
+        rule.onNodeWithText("Día").performScrollTo().performTextInput("23")
+        rule.onNodeWithText("Mes").performScrollTo().performTextInput("12")
+        rule.onNodeWithText("Año").performScrollTo().performTextInput("1994")
+        rule.onNodeWithText("Altura (cm)").performScrollTo().performTextInput("175")
+        rule.onNodeWithText("Peso (kg)").performScrollTo().performTextInput("70")
+        rule.onNodeWithText("tonificar").performScrollTo().performClick()
+        rule.onNodeWithText("mancuernas").performScrollTo().performClick()
+        rule.onNodeWithText("silla / banco").performScrollTo().performClick()
+        rule.onNodeWithText("Empezar").performScrollTo()
+        rule.waitForIdle()
+        capture("onboarding_completo_inferior")
+        rule.onNodeWithText("Empezar").performClick()
+        rule.waitForIdle()
+        val p = profile!!
+        assertEquals("mujer", p.sex)
+        assertEquals("tonificar", p.goal)
+        assertEquals(java.time.LocalDate.of(1994, 12, 23).toEpochDay(), p.birthEpochDay)
+        assertEquals(setOf("mancuernas", "silla", "banco"), equipment)
     }
 }

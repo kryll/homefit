@@ -1,7 +1,7 @@
 [
  {
   "name": "Cuerpo completo sin material",
-  "goal": "salud",
+  "goal": "tonificar",
   "level": "principiante",
   "type": "fuerza",
   "notes": "Tres días por semana. Sin equipo.",
@@ -45,7 +45,7 @@
  },
  {
   "name": "Fuerza en casa intermedio",
-  "goal": "fuerza",
+  "goal": "ganar_fuerza",
   "level": "intermedio",
   "type": "fuerza",
   "notes": "Requiere mancuernas y banco.",
@@ -96,7 +96,7 @@
  },
  {
   "name": "HIIT 20 minutos",
-  "goal": "perder_peso",
+  "goal": "perder_grasa",
   "level": "intermedio",
   "type": "cardio",
   "notes": "Intervalos de 40 s de trabajo.",
@@ -140,7 +140,7 @@
  },
  {
   "name": "Core y abdomen",
-  "goal": "salud",
+  "goal": "tonificar",
   "level": "principiante",
   "type": "core",
   "notes": "Fortalece la zona media.",
@@ -184,7 +184,7 @@
  },
  {
   "name": "Tren inferior",
-  "goal": "hipertrofia",
+  "goal": "tonificar",
   "level": "principiante",
   "type": "fuerza",
   "notes": "Piernas y glúteos sin material.",
@@ -228,7 +228,7 @@
  },
  {
   "name": "Tren superior con banda",
-  "goal": "hipertrofia",
+  "goal": "tonificar",
   "level": "principiante",
   "type": "fuerza",
   "notes": "Solo banda elástica.",
@@ -265,7 +265,7 @@
  },
  {
   "name": "Movilidad y estiramientos",
-  "goal": "salud",
+  "goal": "tonificar",
   "level": "principiante",
   "type": "movilidad",
   "notes": "Para días de descanso o calentar.",
@@ -304,6 +304,50 @@
     "reps": null,
     "seconds": 45,
     "restSeconds": 0
+   }
+  ]
+ },
+ {
+  "name": "Resistencia cardio",
+  "goal": "resistencia",
+  "level": "principiante",
+  "type": "cardio",
+  "notes": "Intervalos suaves para ganar fondo.",
+  "items": [
+   {
+    "exerciseId": "jumping_jacks",
+    "sets": 3,
+    "reps": null,
+    "seconds": 45,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "rodillas_altas",
+    "sets": 3,
+    "reps": null,
+    "seconds": 45,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "skipping_lateral",
+    "sets": 3,
+    "reps": null,
+    "seconds": 45,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "shadow_boxing",
+    "sets": 3,
+    "reps": null,
+    "seconds": 45,
+    "restSeconds": 30
+   },
+   {
+    "exerciseId": "patinador",
+    "sets": 3,
+    "reps": null,
+    "seconds": 45,
+    "restSeconds": 30
    }
   ]
  }

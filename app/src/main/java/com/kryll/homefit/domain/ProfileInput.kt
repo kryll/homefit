@@ -6,7 +6,10 @@ import java.time.temporal.ChronoUnit
 
 /** Validación del formulario de perfil. Devuelve los campos con error (vacío = válido). */
 object ProfileInput {
-    enum class Field { NAME, HEIGHT, WEIGHT, BIRTH, DAYS, MINUTES }
+    val SEXES = listOf("hombre", "mujer", "otro", "prefiero_no_decir")
+    val GOALS = listOf("perder_grasa", "tonificar", "ganar_fuerza", "resistencia")
+
+    enum class Field { NAME, SEX, HEIGHT, WEIGHT, BIRTH, DAYS, MINUTES }
 
     /** Convierte día/mes/año a epochDay; null si la fecha no existe. */
     fun birthEpochDay(day: Int?, month: Int?, year: Int?): Long? {
@@ -19,10 +22,11 @@ object ProfileInput {
         ChronoUnit.YEARS.between(LocalDate.ofEpochDay(birthEpochDay), today).toInt()
 
     fun validate(
-        name: String, heightCm: Float?, weightKg: Float?, birthEpochDay: Long?, daysMask: Int, minutes: Int?,
+        name: String, sex: String, heightCm: Float?, weightKg: Float?, birthEpochDay: Long?, daysMask: Int, minutes: Int?,
         today: LocalDate = LocalDate.now(),
     ): Set<Field> = buildSet {
         if (name.isBlank()) add(Field.NAME)
+        if (sex !in SEXES) add(Field.SEX)
         if (heightCm == null || heightCm !in 100f..250f) add(Field.HEIGHT)
         if (weightKg == null || weightKg !in 30f..300f) add(Field.WEIGHT)
         if (birthEpochDay == null || ageYears(birthEpochDay, today) !in 14..100) add(Field.BIRTH)

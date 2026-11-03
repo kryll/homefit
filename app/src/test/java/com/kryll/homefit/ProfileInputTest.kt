@@ -13,11 +13,11 @@ class ProfileInputTest {
     private val birth = LocalDate.of(1994, 12, 23).toEpochDay()
 
     @Test fun validProfileHasNoErrors() =
-        assertTrue(ProfileInput.validate("Ana", 170f, 65f, birth, 0b101, 30, today).isEmpty())
+        assertTrue(ProfileInput.validate("Ana", "mujer", 170f, 65f, birth, 0b101, 30, today).isEmpty())
 
     @Test fun reportsEachInvalidField() {
-        val e = ProfileInput.validate(" ", 50f, null, null, 0, 5, today)
-        assertEquals(setOf(Field.NAME, Field.HEIGHT, Field.WEIGHT, Field.BIRTH, Field.DAYS, Field.MINUTES), e)
+        val e = ProfileInput.validate(" ", "", 50f, null, null, 0, 5, today)
+        assertEquals(setOf(Field.NAME, Field.SEX, Field.HEIGHT, Field.WEIGHT, Field.BIRTH, Field.DAYS, Field.MINUTES), e)
     }
 
     @Test fun birthDateMustExist() {
@@ -31,7 +31,7 @@ class ProfileInputTest {
     }
 
     @Test fun rejectsTooYoung() =
-        assertTrue(Field.BIRTH in ProfileInput.validate("Ana", 170f, 65f, LocalDate.of(2020, 1, 1).toEpochDay(), 1, 30, today))
+        assertTrue(Field.BIRTH in ProfileInput.validate("Ana", "mujer", 170f, 65f, LocalDate.of(2020, 1, 1).toEpochDay(), 1, 30, today))
 
     @Test fun bmiCategories() {
         assertEquals("bajo", ProfileInput.bmiCategory(17f))

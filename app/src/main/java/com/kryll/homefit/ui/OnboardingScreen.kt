@@ -27,8 +27,19 @@ import com.kryll.homefit.data.UserProfile
 import com.kryll.homefit.domain.Bmi
 import com.kryll.homefit.domain.ProfileInput
 
-val EQUIPMENT = listOf("mancuernas", "banda_elastica", "banco", "barra_dominadas", "kettlebell", "silla", "comba", "barra_paralelas")
-private val GOALS = listOf("salud", "perder_peso", "hipertrofia", "fuerza")
+/** Opciones de material del onboarding: id -> ids de equipo que activa en el catálogo. */
+val EQUIPMENT_OPTIONS = listOf(
+    "sin_material" to setOf("ninguno"),
+    "esterilla" to setOf("esterilla"),
+    "mancuernas" to setOf("mancuernas"),
+    "bandas_elasticas" to setOf("banda_elastica"),
+    "kettlebell" to setOf("kettlebell"),
+    "silla_banco" to setOf("silla", "banco"),
+    "barra_dominadas" to setOf("barra_dominadas"),
+    "comba" to setOf("comba"),
+)
+private val GOALS = ProfileInput.GOALS
+private val LABELS = mapOf("silla_banco" to "silla / banco", "bandas_elasticas" to "bandas elásticas", "prefiero_no_decir" to "prefiero no decir")
 private val LEVELS = listOf("principiante", "intermedio", "avanzado")
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -42,6 +53,7 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
     var bYear by rememberSaveable { mutableStateOf("") }
     var minutes by rememberSaveable { mutableStateOf("30") }
     var days by rememberSaveable { mutableStateOf(0b0010101) }
+    var sex by rememberSaveable { mutableStateOf("") }
     var goal by rememberSaveable { mutableStateOf(GOALS[0]) }
     var level by rememberSaveable { mutableStateOf(LEVELS[0]) }
     var equipment by rememberSaveable { mutableStateOf(setOf<String>()) }
@@ -50,7 +62,7 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
     val h = height.replace(',', '.').toFloatOrNull()
     val w = weight.replace(',', '.').toFloatOrNull()
     val birth = ProfileInput.birthEpochDay(bDay.toIntOrNull(), bMonth.toIntOrNull(), bYear.toIntOrNull())
-    val errors = ProfileInput.validate(name, h, w, birth, days, minutes.toIntOrNull())
+    val errors = ProfileInput.validate(name, sex, h, w, birth, days, minutes.toIntOrNull())
     val bmi = if (h != null && w != null) Bmi.compute(w, h) else null
 
     Column(
@@ -60,6 +72,8 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
         Text(stringResource(R.string.onb_title), style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
         field(R.string.onb_name, name, { name = it }, submitted && ProfileInput.Field.NAME in errors, KeyboardType.Text)
+        Text(stringResource(R.string.onb_sex) + if (submitted && ProfileInput.Field.SEX in errors) " *" else "")
+        chips(ProfileInput.SEXES, setOf(sex)) { sex = it }
         Text(stringResource(R.string.onb_birth))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             val e = submitted && ProfileInput.Field.BIRTH in errors
@@ -84,17 +98,17 @@ fun OnboardingScreen(onDone: (UserProfile, Set<String>) -> Unit) {
         }
         field(R.string.onb_minutes, minutes, { minutes = it }, submitted && ProfileInput.Field.MINUTES in errors, KeyboardType.Number)
         Text(stringResource(R.string.onb_equipment))
-        chips(EQUIPMENT, equipment) { e -> equipment = if (e in equipment) equipment - e else equipment + e }
+        chips(EQUIPMENT_OPTIONS.map { it.first }, equipment) { e -> equipment = if (e in equipment) equipment - e else equipment + e }
         Button(
             onClick = {
                 submitted = true
                 if (errors.isEmpty()) {
                     onDone(
                         UserProfile(
-                            name = name.trim(), sex = "", birthEpochDay = birth!!, heightCm = h!!, weightKg = w!!,
+                            name = name.trim(), sex = sex, birthEpochDay = birth!!, heightCm = h!!, weightKg = w!!,
                             goal = goal, level = level, daysMask = days, minutesPerSession = minutes.toInt(),
                         ),
-                        equipment,
+                        EQUIPMENT_OPTIONS.filter { it.first in equipment }.flatMap { it.second }.toSet(),
                     )
                 }
             },
@@ -115,6 +129,6 @@ private fun field(label: Int, value: String, onChange: (String) -> Unit, error: 
 @Composable
 private fun chips(options: List<String>, selected: Set<String>, onClick: (String) -> Unit) {
     androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        options.forEach { o -> FilterChip(selected = o in selected, onClick = { onClick(o) }, label = { Text(o.replace('_', ' ')) }) }
+        options.forEach { o -> FilterChip(selected = o in selected, onClick = { onClick(o) }, label = { Text(LABELS[o] ?: o.replace('_', ' ')) }) }
     }
 }
