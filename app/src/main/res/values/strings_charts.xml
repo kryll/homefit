@@ -13,4 +13,8 @@
     <string name="charts_exercise_point">%1$s: %2$d %3$s</string>
     <string name="charts_weekly_note">Número de entrenos de cada semana, con su lunes (día/mes).</string>
     <string name="charts_exercise_point_weight">%1$s: %2$d %3$s · %4$s kg</string>
+    <string name="charts_load_title">Carga máxima registrada (kg)</string>
+    <string name="charts_load_empty">Registra carga en al menos dos días para ver su evolución.</string>
+    <string name="charts_load_point">%1$s: %2$s kg</string>
+    <string name="charts_load_note">Máximo de cada día, siempre en kg. No compara repeticiones iguales ni estima tu fuerza máxima.</string>
 </resources>

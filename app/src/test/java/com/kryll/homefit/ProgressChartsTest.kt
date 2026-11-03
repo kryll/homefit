@@ -65,4 +65,13 @@ class ProgressChartsTest {
         assertNull(ProgressCharts.exerciseSeries(emptyList(), "X", zone))
         assertNull(ProgressCharts.exerciseSeries(listOf(s(1, 11, 1, SetRow("X", 1, null, null, 7))), "X", zone))
     }
+    @Test fun loadSeriesUsesDailyMaximumNotMostRepsAndIgnoresMissingWeights() {
+        val rows = listOf(
+            s(2, 11, 3, SetRow("Press", 1, 12, null, null, 15f), SetRow("Press", 2, 5, null, null, 20f)),
+            s(1, 11, 1, SetRow("Press", 1, 10, null, null, 17.5f)),
+            s(3, 11, 4, SetRow("Press", 1, 20, null, null)),
+        )
+        assertEquals(listOf(17.5f, 20f), ProgressCharts.weightSeries(rows, "Press", zone).map { it.second })
+        assertTrue(ProgressCharts.weightSeries(rows, "Other", zone).isEmpty())
+    }
 }

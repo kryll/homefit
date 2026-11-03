@@ -25,6 +25,15 @@ object ProgressCharts {
         sessions.flatMap { s -> s.sets.filter { it.reps != null || it.seconds != null }.map { it.exerciseName }.distinct() }
             .groupingBy { it }.eachCount().entries.sortedWith(compareByDescending<Map.Entry<String, Int>> { it.value }.thenBy { it.key }).map { it.key }
 
+    /** Carga máxima registrada por día. No estima 1RM ni infiere cargas ausentes. */
+    fun weightSeries(sessions: List<SessionRow>, name: String, zone: ZoneId): List<Pair<Long, Float>> =
+        sessions.flatMap { session ->
+            val day = Instant.ofEpochMilli(session.startMillis).atZone(zone).toLocalDate().toEpochDay()
+            session.sets.filter { it.exerciseName == name }.mapNotNull { set ->
+                set.weightKg?.takeIf { it.isFinite() && it > 0f }?.let { day to it }
+            }
+        }.groupBy({ it.first }, { it.second }).map { (day, loads) -> day to loads.max() }.sortedBy { it.first }
+
     /**
      * Mejor serie por día para [name]: repeticiones, o segundos si el ejercicio se mide en tiempo.
      * Null si no hay datos.
