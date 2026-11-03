@@ -1,6 +1,8 @@
 package com.kryll.homefit.domain
 
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /** [hour]:[minute] es la hora de entrenar; el aviso sale [leadMinutes] antes (0 = a esa hora). */
@@ -13,7 +15,22 @@ data class ReminderPrefs(val enabled: Boolean = false, val hour: Int = 18, val m
 
 data class PlannedDay(val date: LocalDate, val routineId: Long)
 
-enum class ReminderDecision { SHOW, SKIP_DISABLED, SKIP_REST_DAY, SKIP_ALREADY_TRAINED }
+/** Estado de una sesión planificada. Solo SCHEDULED admite cambios; el resto son finales. */
+enum class SessionStatus { SCHEDULED, COMPLETED, SKIPPED, MOVED }
+
+/** Valores desconocidos se tratan como SCHEDULED para no bloquear sesiones antiguas. */
+fun sessionStatusOf(raw: String): SessionStatus =
+    runCatching { SessionStatus.valueOf(raw) }.getOrDefault(SessionStatus.SCHEDULED)
+
+fun canChangeSessionStatus(raw: String): Boolean = sessionStatusOf(raw) == SessionStatus.SCHEDULED
+
+/** Mismo horario, otro día: conserva la hora local de [startMillis] al moverlo a [newDate]. */
+fun movedStartMillis(startMillis: Long, zone: ZoneId, newDate: LocalDate): Long {
+    val time = Instant.ofEpochMilli(startMillis).atZone(zone).toLocalTime()
+    return newDate.atTime(time).atZone(zone).toInstant().toEpochMilli()
+}
+
+enum class ReminderDecision { SHOW, SKIP_DISABLED, SKIP_REST_DAY, SKIP_ALREADY_TRAINED, SKIP_DAY_SETTLED }
 
 /** Lógica pura de planificación y recordatorios; la parte de Android solo la ejecuta. */
 object Planning {
@@ -33,10 +50,12 @@ object Planning {
         return null
     }
 
-    fun decide(prefs: ReminderPrefs, daysMask: Int, today: LocalDate, trainedToday: Boolean): ReminderDecision = when {
+    /** [todayStatuses]: estados de las sesiones planificadas hoy; si hay y ninguna sigue pendiente, no se avisa. */
+    fun decide(prefs: ReminderPrefs, daysMask: Int, today: LocalDate, trainedToday: Boolean, todayStatuses: List<String>? = null): ReminderDecision = when {
         !prefs.enabled -> ReminderDecision.SKIP_DISABLED
         !isTrainingDay(daysMask, today) -> ReminderDecision.SKIP_REST_DAY
         trainedToday -> ReminderDecision.SKIP_ALREADY_TRAINED
+        todayStatuses != null && todayStatuses.isNotEmpty() && todayStatuses.none { sessionStatusOf(it) == SessionStatus.SCHEDULED } -> ReminderDecision.SKIP_DAY_SETTLED
         else -> ReminderDecision.SHOW
     }
 

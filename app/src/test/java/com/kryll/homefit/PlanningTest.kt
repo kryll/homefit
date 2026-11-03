@@ -50,6 +50,29 @@ class PlanningTest {
         assertEquals(ReminderDecision.SHOW, Planning.decide(prefs, monWedFri, wed, false))
     }
 
+    @Test fun decideSkipsWhenNoSessionPendingToday() {
+        val prefs = ReminderPrefs(true, 18, 0)
+        assertEquals(ReminderDecision.SKIP_DAY_SETTLED, Planning.decide(prefs, monWedFri, wed, false, listOf("SKIPPED", "MOVED")))
+        assertEquals(ReminderDecision.SKIP_DAY_SETTLED, Planning.decide(prefs, monWedFri, wed, false, listOf("COMPLETED")))
+        assertEquals(ReminderDecision.SHOW, Planning.decide(prefs, monWedFri, wed, false, listOf("SKIPPED", "SCHEDULED")))
+        assertEquals(ReminderDecision.SHOW, Planning.decide(prefs, monWedFri, wed, false, emptyList()))
+        assertEquals(ReminderDecision.SKIP_ALREADY_TRAINED, Planning.decide(prefs, monWedFri, wed, true, listOf("SCHEDULED")))
+    }
+
+    @Test fun sessionStatusParsingAndChanges() {
+        assertEquals(com.kryll.homefit.domain.SessionStatus.SCHEDULED, com.kryll.homefit.domain.sessionStatusOf("desconocido"))
+        assertEquals(com.kryll.homefit.domain.SessionStatus.SKIPPED, com.kryll.homefit.domain.sessionStatusOf("SKIPPED"))
+        assertTrue(com.kryll.homefit.domain.canChangeSessionStatus("SCHEDULED"))
+        assertTrue(!com.kryll.homefit.domain.canChangeSessionStatus("SKIPPED"))
+        assertTrue(!com.kryll.homefit.domain.canChangeSessionStatus("MOVED"))
+    }
+
+    @Test fun moveKeepsLocalTime() {
+        val from = ZonedDateTime.of(2026, 11, 4, 18, 30, 0, 0, zone)
+        val moved = com.kryll.homefit.domain.movedStartMillis(from.toInstant().toEpochMilli(), zone, LocalDate.of(2026, 11, 9))
+        assertEquals(ZonedDateTime.of(2026, 11, 9, 18, 30, 0, 0, zone).toInstant().toEpochMilli(), moved)
+    }
+
     @Test fun autoPlanRotatesRoutinesOverTrainingDaysOnly() {
         val plan = Planning.autoPlan(monWedFri, listOf(10, 20), wed)
         assertEquals(
