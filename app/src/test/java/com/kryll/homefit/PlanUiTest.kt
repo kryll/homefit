@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onNode
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.data.ScheduledSession
 import com.kryll.homefit.data.WorkoutSession
