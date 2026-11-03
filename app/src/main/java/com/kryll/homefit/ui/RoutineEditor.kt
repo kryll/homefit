@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -101,7 +100,8 @@ fun RoutineEditorScreen(
             }
         }
         item {
-            OutlinedButton({ picking = true }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.editor_add_exercise)) }
+            OutlinedButton({ picking = !picking }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.editor_add_exercise)) }
+            if (picking) ExercisePicker(exercises, onPick = { draft = draft.add(it); picking = false })
             if (showErrors && errors.isNotEmpty()) {
                 errors.forEach { Text(stringResource(errorText(it)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
@@ -110,9 +110,6 @@ fun RoutineEditorScreen(
                 Button({ if (errors.isEmpty()) onSave(draft) else showErrors = true }, Modifier.weight(1f)) { Text(stringResource(R.string.editor_save)) }
             }
         }
-    }
-    if (picking) {
-        ExercisePicker(exercises, onPick = { draft = draft.add(it); picking = false }, onDismiss = { picking = false })
     }
 }
 
@@ -135,28 +132,21 @@ private fun NumberField(label: String, value: Int?, modifier: Modifier, onChange
 }
 
 @Composable
-private fun ExercisePicker(exercises: List<Exercise>, onPick: (String) -> Unit, onDismiss: () -> Unit) {
+private fun ExercisePicker(exercises: List<Exercise>, onPick: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val shown = remember(exercises, query) { exercises.filter { plain(it.name).contains(plain(query.trim())) }.take(60) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.editor_add_exercise)) },
-        text = {
-            Column {
-                OutlinedTextField(query, { query = it }, label = { Text(stringResource(R.string.editor_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                LazyColumn(Modifier.padding(top = 8.dp)) {
-                    items(shown, key = { it.id }) { e ->
-                        TextButton({ onPick(e.id) }, Modifier.fillMaxWidth()) {
-                            Column(Modifier.fillMaxWidth()) {
-                                Text(e.name)
-                                Text("${label(e.primaryMuscle)} · ${e.difficulty}", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
+    val q = plain(query.trim())
+    val shown = remember(exercises, q) { exercises.filter { plain(it.name).contains(q) }.take(8) }
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            OutlinedTextField(query, { query = it }, label = { Text(stringResource(R.string.editor_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            shown.forEach { e ->
+                TextButton({ onPick(e.id) }, Modifier.fillMaxWidth()) {
+                    Column(Modifier.fillMaxWidth()) {
+                        Text(e.name)
+                        Text("${label(e.primaryMuscle)} · ${e.difficulty}", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.editor_cancel)) } },
-    )
+        }
+    }
 }
