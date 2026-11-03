@@ -38,4 +38,12 @@ jobs:
           git config user.email "homefit-ci@users.noreply.github.com"
           git add -A
           git commit -q -m "shots ${{ github.event.pull_request.head.sha }}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-shots
+          # Distintos PR pueden publicar a la vez; reintentar solo el push de capturas.
+          for attempt in 1 2 3 4 5; do
+            if git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-shots; then
+              exit 0
+            fi
+            sleep "$attempt"
+          done
+          echo "No se pudieron publicar las capturas tras 5 intentos" >&2
+          exit 1
