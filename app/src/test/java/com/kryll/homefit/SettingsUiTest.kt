@@ -149,7 +149,7 @@ class SettingsUiTest {
         var installs = 0
         val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", "https://github.com/kryll/homefit/releases/download/v1.2.0/homefit.apk", "")
         rule.setContent { HomeFitTheme {
-            SettingsScreen(AppSettings(), "1.0.0", null, null,
+            com.kryll.homefit.ui.UpdateInstallContent("1.0.0",
                 updateState = com.kryll.homefit.domain.UpdateState.Available(info),
                 downloadState = com.kryll.homefit.update.DownloadUi(file = File("fixture.apk")),
                 onInstallUpdate = { installs++ })

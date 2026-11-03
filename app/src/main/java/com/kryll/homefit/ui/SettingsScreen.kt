@@ -136,31 +136,7 @@ fun SettingsScreen(
         }
 
         Section(R.string.settings_about) {
-            Text(stringResource(R.string.version_label, versionName))
-            OutlinedButton(onClick = onCheckUpdates, enabled = updateState !is com.kryll.homefit.domain.UpdateState.Checking) {
-                Text(stringResource(R.string.updates_check))
-            }
-            when (val u = updateState) {
-                com.kryll.homefit.domain.UpdateState.Checking -> Text(stringResource(R.string.updates_checking), style = MaterialTheme.typography.bodySmall)
-                com.kryll.homefit.domain.UpdateState.UpToDate -> Text(stringResource(R.string.updates_latest), style = MaterialTheme.typography.bodySmall)
-                com.kryll.homefit.domain.UpdateState.Failed -> Text(stringResource(R.string.updates_error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-                is com.kryll.homefit.domain.UpdateState.Available -> {
-                    Text(stringResource(R.string.updates_new, u.info.version), style = MaterialTheme.typography.bodyMedium)
-                    if (u.info.apkUrl == null) Text(stringResource(R.string.updates_no_apk))
-                    else when {
-                        downloadState.busy -> Text(stringResource(R.string.updates_downloading, downloadState.percent?.let { "$it%" } ?: "…"))
-                        downloadState.file != null -> {
-                            Text(stringResource(R.string.updates_install_help), style = MaterialTheme.typography.bodySmall)
-                            OutlinedButton(onClick = onInstallUpdate) { Text(stringResource(R.string.updates_install)) }
-                        }
-                        else -> {
-                            if (downloadState.failed) Text(stringResource(R.string.updates_download_failed), color = MaterialTheme.colorScheme.error)
-                            OutlinedButton(onClick = { onOpenUpdate(u.info.apkUrl) }) { Text(stringResource(R.string.updates_download)) }
-                        }
-                    }
-                }
-                com.kryll.homefit.domain.UpdateState.Idle -> {}
-            }
+            UpdateInstallContent(versionName, updateState, downloadState, onCheckUpdates, onOpenUpdate, onInstallUpdate)
             Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
         }
     }
@@ -202,5 +178,44 @@ private fun Stepper(onMinus: () -> Unit, onPlus: () -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onMinus) { Text(stringResource(R.string.settings_minus)) }
         OutlinedButton(onPlus) { Text(stringResource(R.string.settings_plus)) }
+    }
+}
+
+/** Panel aislado para revisar todo el flujo de actualización sin capturas recortadas. */
+@Composable
+fun UpdateInstallContent(
+    versionName: String,
+    updateState: com.kryll.homefit.domain.UpdateState,
+    downloadState: com.kryll.homefit.update.DownloadUi,
+    onCheckUpdates: () -> Unit = {},
+    onOpenUpdate: (String) -> Unit = {},
+    onInstallUpdate: () -> Unit = {},
+) {
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.version_label, versionName))
+            OutlinedButton(onClick = onCheckUpdates, enabled = updateState !is com.kryll.homefit.domain.UpdateState.Checking) {
+                Text(stringResource(R.string.updates_check))
+            }
+            when (val u = updateState) {
+                com.kryll.homefit.domain.UpdateState.Checking -> Text(stringResource(R.string.updates_checking), style = MaterialTheme.typography.bodySmall)
+                com.kryll.homefit.domain.UpdateState.UpToDate -> Text(stringResource(R.string.updates_latest), style = MaterialTheme.typography.bodySmall)
+                com.kryll.homefit.domain.UpdateState.Failed -> Text(stringResource(R.string.updates_error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                is com.kryll.homefit.domain.UpdateState.Available -> {
+                    Text(stringResource(R.string.updates_new, u.info.version), style = MaterialTheme.typography.bodyMedium)
+                    if (u.info.apkUrl == null) Text(stringResource(R.string.updates_no_apk))
+                    else when {
+                        downloadState.busy -> Text(stringResource(R.string.updates_downloading, downloadState.percent?.let { "$it%" } ?: "…"))
+                        downloadState.file != null -> {
+                            Text(stringResource(R.string.updates_install_help), style = MaterialTheme.typography.bodySmall)
+                            OutlinedButton(onClick = onInstallUpdate) { Text(stringResource(R.string.updates_install)) }
+                        }
+                        else -> {
+                            if (downloadState.failed) Text(stringResource(R.string.updates_download_failed), color = MaterialTheme.colorScheme.error)
+                            OutlinedButton(onClick = { onOpenUpdate(u.info.apkUrl) }) { Text(stringResource(R.string.updates_download)) }
+                        }
+                    }
+                }
+                com.kryll.homefit.domain.UpdateState.Idle -> {}
+            }
     }
 }
