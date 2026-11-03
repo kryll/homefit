@@ -25,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kryll.homefit.R
+import com.kryll.homefit.reminders.reminderPrefs
 import com.kryll.homefit.HomeFitApp
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -74,6 +75,7 @@ fun HomeFitRoot() {
 @Composable
 private fun MainTabs() {
     val nav = rememberNavController()
+    var startRequest by rememberSaveable { mutableStateOf<Long?>(null) }
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination?.route
     Scaffold(
@@ -99,7 +101,12 @@ private fun MainTabs() {
             Tab.entries.forEach { tab ->
                 composable(tab.route) {
                     if (tab == Tab.Routines) {
-                        RoutinesTab()
+                        RoutinesTab(startRequest) { startRequest = null }
+                    } else if (tab == Tab.Today) {
+                        PlanTab(onStart = { id ->
+                            startRequest = id
+                            nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
+                        })
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -112,7 +119,7 @@ private fun MainTabs() {
 }
 
 @Composable
-private fun RoutinesTab() {
+private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit = {}) {
     val app = LocalContext.current.applicationContext as HomeFitApp
     val db = app.container.database
     val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
@@ -125,6 +132,12 @@ private fun RoutinesTab() {
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
     var workoutStart by rememberSaveable { mutableStateOf(0L) }
     val workoutRepo = app.container.workoutRepository
+    androidx.compose.runtime.LaunchedEffect(startRequest) {
+        if (startRequest != null && workoutId == null) {
+            workoutId = startRequest; workoutStart = System.currentTimeMillis()
+        }
+        if (startRequest != null) onStartConsumed()
+    }
     val active = workoutId
     if (active != null) {
         val names = exercises.associate { it.id to it.name }
@@ -177,6 +190,67 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
                 com.kryll.homefit.audio.WorkoutService.stop(context)
                 com.kryll.homefit.audio.WorkoutHost.clear()
                 onExit(r.first, r.second)
+            }
+        },
+    )
+}
+
+@Composable
+private fun PlanTab(onStart: (Long) -> Unit) {
+    val context = LocalContext.current
+    val app = context.applicationContext as HomeFitApp
+    val db = app.container.database
+    val scope = rememberCoroutineScope()
+    val zone = remember { java.time.ZoneId.systemDefault() }
+    val today = remember { java.time.LocalDate.now(zone) }
+    val settings by app.container.settings.settings.collectAsState(initial = com.kryll.homefit.data.AppSettings())
+    val profile by db.profileDao().observeProfile().collectAsState(initial = null)
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val scheduled by db.sessionDao().observeAllScheduled().collectAsState(initial = emptyList())
+    val workouts by db.sessionDao().observeWorkouts().collectAsState(initial = emptyList())
+    var refresh by remember { mutableStateOf(0) }
+    val notificationsAllowed = remember(refresh, settings.reminderEnabled) {
+        androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
+    val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { refresh++ }
+    val prefs = settings.reminderPrefs()
+    val mask = profile?.daysMask ?: 0
+
+    fun startOf(d: java.time.LocalDate) = d.atStartOfDay(zone).toInstant().toEpochMilli()
+    fun at(d: java.time.LocalDate) = d.atTime(prefs.hour, prefs.minute).atZone(zone).toInstant().toEpochMilli()
+
+    PlanScreen(
+        today = today, zone = zone, daysMask = mask, routines = routines, scheduled = scheduled, workouts = workouts,
+        prefs = prefs, notificationsAllowed = notificationsAllowed,
+        onAssign = { d, rid ->
+            scope.launch {
+                val dao = db.sessionDao()
+                dao.deleteScheduledBetween(startOf(d), startOf(d.plusDays(1)))
+                if (rid != null) dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = rid, startMillis = at(d), status = "SCHEDULED"))
+            }
+        },
+        onAuto = {
+            val p = profile
+            val pool = routines.filter { p != null && it.goal == p.goal && it.level == p.level }
+                .ifEmpty { routines.filter { p != null && it.goal == p.goal } }
+                .ifEmpty { routines }
+            scope.launch {
+                val dao = db.sessionDao()
+                dao.deleteScheduledBetween(startOf(today), startOf(today.plusDays(7)))
+                com.kryll.homefit.domain.Planning.autoPlan(mask, pool.map { it.id }, today).forEach {
+                    dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId, startMillis = at(it.date), status = "SCHEDULED"))
+                }
+            }
+        },
+        onClear = { scope.launch { db.sessionDao().deleteScheduledBetween(startOf(today), startOf(today.plusDays(7))) } },
+        onStart = onStart,
+        onPrefs = { n ->
+            if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            scope.launch {
+                app.container.settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute) }
+                com.kryll.homefit.reminders.ReminderScheduler.sync(app)
             }
         },
     )

@@ -29,6 +29,9 @@ data class AppSettings(
     val defaultRestSeconds: Int = 45,
     val defaultCountdownSeconds: Int = 5,
     val onboardingDone: Boolean = false,
+    val reminderEnabled: Boolean = false,
+    val reminderHour: Int = 18,
+    val reminderMinute: Int = 0,
 )
 
 class SettingsStore(private val context: Context) {
@@ -43,6 +46,9 @@ class SettingsStore(private val context: Context) {
         val defaultRest = intPreferencesKey("default_rest")
         val defaultCountdown = intPreferencesKey("default_countdown")
         val onboardingDone = booleanPreferencesKey("onboarding_done")
+        val reminderEnabled = booleanPreferencesKey("reminder_enabled")
+        val reminderHour = intPreferencesKey("reminder_hour")
+        val reminderMinute = intPreferencesKey("reminder_minute")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { p ->
@@ -58,6 +64,9 @@ class SettingsStore(private val context: Context) {
             defaultRestSeconds = p[Keys.defaultRest] ?: d.defaultRestSeconds,
             defaultCountdownSeconds = p[Keys.defaultCountdown] ?: d.defaultCountdownSeconds,
             onboardingDone = p[Keys.onboardingDone] ?: d.onboardingDone,
+            reminderEnabled = p[Keys.reminderEnabled] ?: d.reminderEnabled,
+            reminderHour = p[Keys.reminderHour] ?: d.reminderHour,
+            reminderMinute = p[Keys.reminderMinute] ?: d.reminderMinute,
         )
     }
 
@@ -74,6 +83,9 @@ class SettingsStore(private val context: Context) {
                 defaultRestSeconds = p[Keys.defaultRest] ?: 45,
                 defaultCountdownSeconds = p[Keys.defaultCountdown] ?: 5,
                 onboardingDone = p[Keys.onboardingDone] ?: false,
+                reminderEnabled = p[Keys.reminderEnabled] ?: false,
+                reminderHour = p[Keys.reminderHour] ?: 18,
+                reminderMinute = p[Keys.reminderMinute] ?: 0,
             )
             val n = transform(cur)
             p[Keys.theme] = n.theme.name
@@ -86,6 +98,9 @@ class SettingsStore(private val context: Context) {
             p[Keys.defaultRest] = n.defaultRestSeconds
             p[Keys.defaultCountdown] = n.defaultCountdownSeconds
             p[Keys.onboardingDone] = n.onboardingDone
+            p[Keys.reminderEnabled] = n.reminderEnabled
+            p[Keys.reminderHour] = n.reminderHour
+            p[Keys.reminderMinute] = n.reminderMinute
         }
     }
 }
