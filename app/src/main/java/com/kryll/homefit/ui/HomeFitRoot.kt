@@ -172,7 +172,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
     if (active != null) {
         val names = exercises.associate { it.id to it.name }
         val plan = (allItems.filter { it.routineId == active }.sortedBy { it.position }).map {
-            WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds)
+            WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds, it.alternateSides)
         }
         if (plan.isEmpty()) { workoutId = null } else {
             WorkoutWithCues(plan, workoutStart, active, appSettings.defaultCountdownSeconds, onExit = { results, finished ->
