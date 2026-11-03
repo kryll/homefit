@@ -270,7 +270,7 @@ private fun PlanTab(onStart: (Long) -> Unit) {
         onPrefs = { n ->
             if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             scope.launch {
-                app.container.settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute) }
+                app.container.settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute, reminderLeadMinutes = n.leadMinutes) }
                 com.kryll.homefit.reminders.ReminderScheduler.sync(app)
             }
         },

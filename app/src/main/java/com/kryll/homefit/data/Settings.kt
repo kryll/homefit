@@ -32,6 +32,7 @@ data class AppSettings(
     val reminderEnabled: Boolean = false,
     val reminderHour: Int = 18,
     val reminderMinute: Int = 0,
+    val reminderLeadMinutes: Int = 0,
 )
 
 class SettingsStore(private val context: Context) {
@@ -49,6 +50,7 @@ class SettingsStore(private val context: Context) {
         val reminderEnabled = booleanPreferencesKey("reminder_enabled")
         val reminderHour = intPreferencesKey("reminder_hour")
         val reminderMinute = intPreferencesKey("reminder_minute")
+        val reminderLead = intPreferencesKey("reminder_lead")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { p ->
@@ -67,6 +69,7 @@ class SettingsStore(private val context: Context) {
             reminderEnabled = p[Keys.reminderEnabled] ?: d.reminderEnabled,
             reminderHour = p[Keys.reminderHour] ?: d.reminderHour,
             reminderMinute = p[Keys.reminderMinute] ?: d.reminderMinute,
+            reminderLeadMinutes = p[Keys.reminderLead] ?: d.reminderLeadMinutes,
         )
     }
 
@@ -86,6 +89,7 @@ class SettingsStore(private val context: Context) {
                 reminderEnabled = p[Keys.reminderEnabled] ?: false,
                 reminderHour = p[Keys.reminderHour] ?: 18,
                 reminderMinute = p[Keys.reminderMinute] ?: 0,
+                reminderLeadMinutes = p[Keys.reminderLead] ?: 0,
             )
             val n = transform(cur)
             p[Keys.theme] = n.theme.name
@@ -101,6 +105,7 @@ class SettingsStore(private val context: Context) {
             p[Keys.reminderEnabled] = n.reminderEnabled
             p[Keys.reminderHour] = n.reminderHour
             p[Keys.reminderMinute] = n.reminderMinute
+            p[Keys.reminderLead] = n.reminderLeadMinutes
         }
     }
 }

@@ -66,4 +66,33 @@ class PlanningTest {
         assertEquals(0, Planning.stepMinute(ReminderPrefs(true, 8, 55), 5).minute)
         assertEquals(55, Planning.stepMinute(ReminderPrefs(true, 8, 0), -5).minute)
     }
+
+    @Test fun leadMovesTheNotificationEarlier() {
+        val p = ReminderPrefs(true, 18, 30, leadMinutes = 15)
+        assertEquals(at(4, 18, 15), Planning.nextReminder(at(4, 9), monWedFri, p))
+        // si ya pasó el aviso de hoy (aunque no la hora de entrenar), toca el siguiente día
+        assertEquals(at(6, 18, 15), Planning.nextReminder(at(4, 18, 20), monWedFri, p))
+    }
+
+    @Test fun leadNeverCrossesIntoThePreviousDay() {
+        val p = ReminderPrefs(true, 0, 20, leadMinutes = 60)
+        assertEquals(java.time.LocalTime.MIDNIGHT, Planning.notifyTime(p))
+        assertEquals(at(4, 0, 0), Planning.nextReminder(at(3, 23), monWedFri, p))
+    }
+
+    @Test fun leadStepsThroughAllowedOptionsAndStopsAtTheEnds() {
+        var p = ReminderPrefs(true)
+        assertEquals(0, p.leadMinutes)
+        p = Planning.stepLead(p, -1); assertEquals(0, p.leadMinutes)
+        p = Planning.stepLead(p, 1); assertEquals(5, p.leadMinutes)
+        p = Planning.stepLead(p, 1); p = Planning.stepLead(p, 1); assertEquals(15, p.leadMinutes)
+        repeat(10) { p = Planning.stepLead(p, 1) }
+        assertEquals(120, p.leadMinutes)
+        assertEquals(java.time.LocalTime.of(16, 30), Planning.notifyTime(ReminderPrefs(true, 18, 30, 120)))
+    }
+
+    @Test fun invalidLeadIsRejected() {
+        assertTrue(runCatching { ReminderPrefs(true, 18, 0, 121) }.isFailure)
+        assertTrue(runCatching { ReminderPrefs(true, 18, 0, -1) }.isFailure)
+    }
 }

@@ -86,6 +86,16 @@ fun PlanScreen(
                             OutlinedButton({ onPrefs(Planning.stepMinute(prefs, -5)) }) { Text(stringResource(R.string.plan_min_minus)) }
                             OutlinedButton({ onPrefs(Planning.stepMinute(prefs, 5)) }) { Text(stringResource(R.string.plan_min_plus)) }
                         }
+                        val lead = prefs.leadMinutes
+                        val notifyAt = Planning.notifyTime(prefs)
+                        Text(
+                            if (lead == 0) stringResource(R.string.plan_reminder_lead_none)
+                            else stringResource(R.string.plan_reminder_lead, lead, notifyAt.hour, notifyAt.minute),
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton({ onPrefs(Planning.stepLead(prefs, -1)) }) { Text(stringResource(R.string.plan_lead_less)) }
+                            OutlinedButton({ onPrefs(Planning.stepLead(prefs, 1)) }) { Text(stringResource(R.string.plan_lead_more)) }
+                        }
                         if (!notificationsAllowed) {
                             Text(stringResource(R.string.plan_notifications_off), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                         }
