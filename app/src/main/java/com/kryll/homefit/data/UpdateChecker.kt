@@ -17,7 +17,7 @@ object UpdateChecker {
             c.setRequestProperty("Accept", "application/vnd.github+json")
             try {
                 if (c.responseCode != 200) return@runCatching null
-                UpdateCheck.parseRelease(c.inputStream.bufferedReader().readText())
+                UpdateCheck.newestRelease(c.inputStream.bufferedReader().readText())
             } finally {
                 c.disconnect()
             }

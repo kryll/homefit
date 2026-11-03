@@ -53,7 +53,7 @@ Guarda una copia del keystore y de sus contraseñas fuera de GitHub. Si se pierd
 
 ## Actualización desde la app
 
-En Ajustes, «Buscar actualizaciones» consulta la última release pública de GitHub y, si hay una versión más nueva, ofrece abrir su página en el navegador. La comprobación es manual: la app no sondea en segundo plano ni descarga nada por sí misma. Ojo: la API de «última release» de GitHub ignora las pre-releases, así que mientras solo existan versiones 0.x la app dirá que no hay novedades. El APK se instala a mano y solo actualiza si lleva la misma firma.
+En Ajustes, «Buscar actualizaciones» consulta hasta 100 releases públicas de GitHub y ofrece abrir el APK en el navegador (o la página de la release si no tiene APK). Elige la versión numérica X.Y.Z más alta, incluidas las 0.x marcadas como prerelease; excluye borradores y etiquetas con sufijos alfa/beta/rc. La comprobación es manual: no sondea en segundo plano ni descarga por sí misma. Si no hay releases válidas o falla la red, muestra que no pudo comprobar. El APK se instala a mano y solo actualiza si lleva la misma firma.
 
 ## Contribuir
 

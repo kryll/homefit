@@ -1,6 +1,7 @@
 package com.kryll.homefit.domain
 
 import org.json.JSONObject
+import org.json.JSONArray
 
 /** Una versión publicada de HomeFit. */
 data class ReleaseInfo(val tag: String, val version: String, val apkUrl: String?, val pageUrl: String)
@@ -16,7 +17,23 @@ sealed interface UpdateState {
 }
 
 object UpdateCheck {
-    const val RELEASES_URL = "https://api.github.com/repos/kryll/homefit/releases/latest"
+    const val RELEASES_URL = "https://api.github.com/repos/kryll/homefit/releases?per_page=100"
+
+    private val numericTag = Regex("v?(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)")
+
+    /** Incluye versiones numéricas 0.x marcadas como prerelease; nunca borradores ni alfas/betas. */
+    fun newestRelease(json: String): ReleaseInfo? {
+        val releases = runCatching { JSONArray(json) }.getOrNull() ?: return null
+        var newest: ReleaseInfo? = null
+        for (i in 0 until releases.length()) {
+            val item = releases.optJSONObject(i) ?: continue
+            if (item.optBoolean("draft", false)) continue
+            val release = parseRelease(item.toString()) ?: continue
+            if (!numericTag.matches(release.tag)) continue
+            if (newest == null || isNewer(release.version, newest.version)) newest = release
+        }
+        return newest
+    }
 
     /** JSON de la API de releases de GitHub; null si no trae tag. */
     fun parseRelease(json: String): ReleaseInfo? {
