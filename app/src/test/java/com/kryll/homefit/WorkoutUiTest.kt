@@ -151,4 +151,20 @@ class WorkoutUiTest {
         rule.waitForIdle(); rule.mainClock.advanceTimeByFrame(); rule.waitForIdle()
         rule.runOnIdle { capture("entreno_descanso_ajustable") }
     }
+    @Test fun repeatRequiresConfirmationAndPausesWhileReading() {
+        var repeated = 0
+        var toggled = 0
+        rule.setContent { HomeFitTheme {
+            WorkoutContent(WorkoutState(Phase.WORK, 0, 1, 0, false), items[0], items, 0, 5, {}, {}, { toggled++ }, {}, {}, onRepeat = { repeated++ })
+        } }
+        rule.onNodeWithText("Repetir ejercicio").performClick()
+        assertEquals(0, repeated); assertEquals(1, toggled)
+        rule.onNodeWithText("Cancelar").performClick()
+        assertEquals(0, repeated); assertEquals(2, toggled)
+        rule.onNodeWithText("Repetir ejercicio").performClick()
+        rule.waitForIdle(); rule.mainClock.advanceTimeByFrame(); rule.waitForIdle()
+        rule.runOnIdle { capture("entreno_repetir_confirmacion") }
+        rule.onNodeWithText("Reiniciar").performClick()
+        assertEquals(1, repeated); assertEquals(4, toggled)
+    }
 }
