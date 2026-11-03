@@ -21,6 +21,7 @@ abstract class HomeFitDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun routineDao(): RoutineDao
     abstract fun sessionDao(): SessionDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         fun build(context: Context): HomeFitDatabase =
