@@ -94,12 +94,14 @@ class ProgressUiTest {
         rule.setContent { HomeFitTheme { ProgressContent(ProgressStats.summary(trained, now, zone), trained, zone) } }
         rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrenos por semana"))
         rule.onNodeWithText("Entrenos por semana").assertIsDisplayed()
-        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Mejor serie: de 10 a 15 rep en 3 días"))
-        rule.onNodeWithText("Mejor serie por ejercicio").assertIsDisplayed()
-        rule.onNodeWithText("Mejor serie: de 10 a 15 rep en 3 días").assertIsDisplayed()
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Máximo registrado: de 10 a 15 rep en 3 días"))
+        rule.onNodeWithText("Máximo de repeticiones registradas").assertIsDisplayed()
+        rule.onNodeWithText("Máximo registrado: de 10 a 15 rep en 3 días").assertIsDisplayed()
+        rule.onNodeWithText("1 nov: 10 rep").assertIsDisplayed()
+        rule.onNodeWithText("4 nov: 15 rep").assertIsDisplayed()
         capture("progreso_graficas")
         rule.onNodeWithText("Plancha").performClick()
-        rule.onNodeWithText("Mejor serie: de 40 a 45 s en 2 días").assertIsDisplayed()
+        rule.onNodeWithText("Máximo registrado: de 40 a 45 s en 2 días").assertIsDisplayed()
     }
 
     @Test fun chartsHaveEmptyStatesWithoutSessions() {

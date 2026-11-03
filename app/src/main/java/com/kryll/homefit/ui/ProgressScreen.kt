@@ -142,11 +142,16 @@ private fun WeeklyChart(sessions: List<SessionRow>, zone: ZoneId) {
                         drawRect(bar, androidx.compose.ui.geometry.Offset(i * slot + (slot - w) / 2, base - h), androidx.compose.ui.geometry.Size(w, h))
                     }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(fmt.format(weeks.first().first), style = MaterialTheme.typography.bodySmall)
-                    Text("máx. $max", style = MaterialTheme.typography.bodySmall)
-                    Text(fmt.format(weeks.last().first), style = MaterialTheme.typography.bodySmall)
+                val short = DateTimeFormatter.ofPattern("d/M", Locale("es", "ES"))
+                Row(Modifier.fillMaxWidth()) {
+                    weeks.forEach { (d, n) ->
+                        Column(Modifier.weight(1f), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                            Text(n.toString(), style = MaterialTheme.typography.labelLarge)
+                            Text(short.format(d), style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
                 }
+                Text(stringResource(R.string.charts_weekly_note), style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -176,15 +181,18 @@ private fun ExerciseChart(sessions: List<SessionRow>, zone: ZoneId) {
                 val fmt = DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES"))
                 val desc = series.points.joinToString("; ") { fmt.format(java.time.LocalDate.ofEpochDay(it.epochDay)) + ": " + it.best + " " + unit }
                 LineChart(pts, Modifier.fillMaxWidth().height(140.dp).semantics { contentDescription = desc })
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(fmt.format(java.time.LocalDate.ofEpochDay(pts.first().first)), style = MaterialTheme.typography.bodySmall)
-                    Text(fmt.format(java.time.LocalDate.ofEpochDay(pts.last().first)), style = MaterialTheme.typography.bodySmall)
+                series.points.forEach {
+                    Text(
+                        stringResource(R.string.charts_exercise_point, fmt.format(java.time.LocalDate.ofEpochDay(it.epochDay)), it.best, unit),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
                 Text(
                     stringResource(R.string.charts_exercise_range, series.points.first().best, series.points.last().best, unit, series.points.size),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+            Text(stringResource(R.string.charts_exercise_note), style = MaterialTheme.typography.bodySmall)
         }
     }
 }
