@@ -120,7 +120,8 @@ private fun setText(r: SetRow): String {
 private fun WeeklyChart(sessions: List<SessionRow>, zone: ZoneId) {
     val weeks = ProgressCharts.weeklySessions(sessions, java.time.LocalDate.now(zone), zone)
     val fmt = DateTimeFormatter.ofPattern("d MMM", Locale("es", "ES"))
-    val desc = weeks.joinToString("; ") { stringResource(R.string.charts_weekly_desc, fmt.format(it.first), it.second) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val desc = weeks.joinToString("; ") { ctx.getString(R.string.charts_weekly_desc, fmt.format(it.first), it.second) }
     val bar = MaterialTheme.colorScheme.primary
     val axis = MaterialTheme.colorScheme.outline
     Card(Modifier.fillMaxWidth()) {
