@@ -100,6 +100,8 @@ private fun MainTabs() {
                 composable(tab.route) {
                     if (tab == Tab.Routines) {
                         RoutinesTab()
+                    } else if (tab == Tab.Settings) {
+                        SettingsTab()
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -177,6 +179,78 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
                 com.kryll.homefit.audio.WorkoutService.stop(context)
                 com.kryll.homefit.audio.WorkoutHost.clear()
                 onExit(r.first, r.second)
+            }
+        },
+    )
+}
+
+@Composable
+private fun SettingsTab() {
+    val context = LocalContext.current
+    val app = context.applicationContext as HomeFitApp
+    val scope = rememberCoroutineScope()
+    val settings by app.container.settings.settings.collectAsState(initial = com.kryll.homefit.data.AppSettings())
+    val repo = remember { com.kryll.homefit.data.BackupRepository(app.container.database) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var pending by remember { mutableStateOf<com.kryll.homefit.data.Backup?>(null) }
+    val versionName = remember {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
+    }
+    fun errorText(e: Throwable): String = if (e is com.kryll.homefit.data.BackupException) {
+        when (e.kind) {
+            com.kryll.homefit.data.BackupException.Kind.NOT_BACKUP -> context.getString(R.string.backup_err_not_backup)
+            com.kryll.homefit.data.BackupException.Kind.VERSION -> context.getString(R.string.backup_err_version, e.detail)
+            com.kryll.homefit.data.BackupException.Kind.CORRUPT -> context.getString(R.string.backup_err_corrupt)
+            com.kryll.homefit.data.BackupException.Kind.INVALID -> context.getString(R.string.backup_err_invalid, e.detail)
+            com.kryll.homefit.data.BackupException.Kind.UNKNOWN_EXERCISE -> context.getString(R.string.backup_err_unknown_exercise, e.detail)
+        }
+    } else context.getString(R.string.backup_err_read)
+
+    val export = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            message = runCatching {
+                val backup = repo.export(settings, System.currentTimeMillis())
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(com.kryll.homefit.data.BackupCodec.toJson(backup).toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.backup_exported)
+            }.getOrElse { context.getString(R.string.backup_export_failed) }
+        }
+    }
+    val pick = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) scope.launch {
+            message = null
+            runCatching {
+                val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)!!.use { String(it.readBytes(), Charsets.UTF_8) }
+                }
+                val backup = com.kryll.homefit.data.BackupCodec.fromJson(text)
+                repo.validate(backup)
+                backup
+            }.onSuccess { pending = it }.onFailure { message = errorText(it) }
+        }
+    }
+    val p = pending
+    SettingsScreen(
+        settings = settings, versionName = versionName, message = message,
+        pendingImport = p?.let { ImportSummary(it.routines.size, it.workouts.size, it.scheduled.size, it.measurements.size) },
+        onChange = { t -> scope.launch { app.container.settings.update(t) } },
+        onExport = { export.launch("homefit-copia-${java.time.LocalDate.now()}.json") },
+        onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+        onCancelImport = { pending = null },
+        onConfirmImport = {
+            val b = pending
+            pending = null
+            if (b != null) scope.launch {
+                message = runCatching {
+                    repo.restore(b)
+                    app.container.settings.update { cur -> b.settings.copy(onboardingDone = cur.onboardingDone || b.profile != null) }
+                    context.getString(R.string.backup_imported)
+                }.getOrElse { errorText(it) }
             }
         },
     )
