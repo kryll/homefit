@@ -184,7 +184,7 @@ fun PlanScreen(
                 text = {
                     LazyColumn {
                         items((0 until 14).map { today.plusDays(it.toLong()) }.filter { it != from }, key = { it.toEpochDay() }) { nd ->
-                            TextButton({ onMove(e, nd); moving = null }) { Text(dayLabel(nd)) }
+                            TextButton({ onMove(e, nd); moving = null }) { Text(stringResource(R.string.plan_move_to, dayLabel(nd))) }
                         }
                     }
                 },
