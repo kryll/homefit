@@ -104,4 +104,7 @@ interface SessionDao {
 
     @Query("SELECT * FROM workout_session ORDER BY startMillis DESC")
     fun observeWorkouts(): Flow<List<WorkoutSession>>
+
+    @Query("SELECT * FROM set_log WHERE sessionId = :sessionId ORDER BY id")
+    suspend fun setsOf(sessionId: Long): List<SetLog>
 }

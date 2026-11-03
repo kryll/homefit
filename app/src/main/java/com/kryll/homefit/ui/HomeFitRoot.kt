@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.kryll.homefit.domain.WorkItem
 import com.kryll.homefit.data.RoutineRepository
+import com.kryll.homefit.data.WorkoutRepository
 import com.kryll.homefit.data.UserEquipment
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -119,6 +120,8 @@ private fun RoutinesTab() {
     val repo = remember { RoutineRepository(db) }
     val scope = rememberCoroutineScope()
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var workoutStart by rememberSaveable { mutableStateOf(0L) }
+    val workoutRepo = remember { WorkoutRepository(db) }
     val active = workoutId
     if (active != null) {
         val names = exercises.associate { it.id to it.name }
@@ -126,7 +129,11 @@ private fun RoutinesTab() {
             WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds)
         }
         if (plan.isEmpty()) { workoutId = null } else {
-            WorkoutScreen(plan, onExit = { _, _ -> workoutId = null })
+            WorkoutScreen(plan, onExit = { results, finished ->
+                val end = System.currentTimeMillis()
+                scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
+                workoutId = null
+            })
             return
         }
     }
@@ -135,6 +142,6 @@ private fun RoutinesTab() {
         items = allItems.groupBy { it.routineId },
         onSaveRoutine = { id, draft -> scope.launch { repo.save(id, draft) } },
         onDeleteRoutine = { id -> scope.launch { repo.delete(id) } },
-        onStart = { workoutId = it },
+        onStart = { workoutId = it; workoutStart = System.currentTimeMillis() },
     )
 }
