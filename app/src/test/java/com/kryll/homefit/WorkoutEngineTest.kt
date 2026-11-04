@@ -206,4 +206,58 @@ class WorkoutEngineTest {
         assertEquals(Phase.WORK, e.state().phase)
         assertEquals(7, e.setResults.single().reps)
     }
+    @Test fun restoreContinuesMidExerciseWithKeptResults() {
+        val e = WorkoutEngine(listOf(squat, plank), getReadySeconds = 5)
+        val done = listOf(com.kryll.homefit.domain.SetResult(0, 1, 8, false, 40, reps = 10))
+        assertTrue(e.restore(done))
+        assertEquals(Phase.WORK, e.state().phase)
+        assertEquals(0, e.state().itemIndex)
+        assertEquals(2, e.state().set)
+        assertEquals(1, e.completedSets)
+        assertEquals(8, e.setResults[0].rpe)
+        assertTrue(e.drainCues().any { it is Cue.Go })
+    }
+
+    @Test fun restoreAtNewExerciseUsesGetReady() {
+        val e = WorkoutEngine(listOf(squat, plank), getReadySeconds = 5)
+        val done = listOf(
+            com.kryll.homefit.domain.SetResult(0, 1, 7, false, 30, reps = 10),
+            com.kryll.homefit.domain.SetResult(0, 2, 8, false, 35, reps = 10),
+        )
+        assertTrue(e.restore(done))
+        assertEquals(Phase.GET_READY, e.state().phase)
+        assertEquals(1, e.state().itemIndex)
+        assertEquals(1, e.state().set)
+        assertTrue(e.drainCues().any { it is Cue.GetReady })
+    }
+
+    @Test fun restoreSkipsExerciseWithoutLoggedSets() {
+        val plank2 = WorkItem("plancha", "Plancha", sets = 2, reps = null, seconds = 20, restSeconds = 0)
+        val e = WorkoutEngine(listOf(squat, plank2), getReadySeconds = 5)
+        val done = listOf(com.kryll.homefit.domain.SetResult(1, 1, 9, false, 20))
+        assertTrue(e.restore(done))
+        assertEquals(Phase.WORK, e.state().phase)
+        assertEquals(1, e.state().itemIndex)
+        assertEquals(2, e.state().set)
+        assertEquals(4, e.totalSets)
+    }
+
+    @Test fun restoreRejectsFinishedPlanAndMismatches() {
+        val e = WorkoutEngine(listOf(plank), getReadySeconds = 5)
+        assertFalse(e.restore(listOf(com.kryll.homefit.domain.SetResult(0, 1, 9, false, 20))))
+        val e2 = WorkoutEngine(listOf(squat), getReadySeconds = 5)
+        assertFalse(e2.restore(listOf(com.kryll.homefit.domain.SetResult(0, 2, 9, false, 20, reps = 10))))
+        val e3 = WorkoutEngine(listOf(squat), getReadySeconds = 5)
+        assertFalse(e3.restore(listOf(com.kryll.homefit.domain.SetResult(5, 1, 9, false, 20))))
+    }
+
+    @Test fun restoreRejectsExtraSetsFromRepeatedExercise() {
+        val e = WorkoutEngine(listOf(squat), getReadySeconds = 5)
+        val done = listOf(
+            com.kryll.homefit.domain.SetResult(0, 1, 7, false, 30, reps = 10),
+            com.kryll.homefit.domain.SetResult(0, 2, 8, false, 35, reps = 10),
+            com.kryll.homefit.domain.SetResult(0, 3, 8, false, 38, reps = 10),
+        )
+        assertFalse(e.restore(done))
+    }
 }
