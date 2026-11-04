@@ -21,10 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kryll.homefit.R
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.KeyboardType
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.data.LengthUnit
 import com.kryll.homefit.data.ThemeMode
 import com.kryll.homefit.data.WeightUnit
+import com.kryll.homefit.data.UserProfile
+import com.kryll.homefit.domain.Bmi
+import com.kryll.homefit.domain.ProfileInput
 import com.kryll.homefit.domain.SettingsRules
 import java.util.Locale
 
@@ -48,13 +54,31 @@ fun SettingsScreen(
     onOpenUpdate: (String) -> Unit = {},
     downloadState: com.kryll.homefit.update.DownloadUi = com.kryll.homefit.update.DownloadUi(),
     onInstallUpdate: () -> Unit = {},
+    profile: UserProfile? = null,
+    equipment: Set<String> = emptySet(),
+    latestWeightKg: Float? = null,
+    onSaveProfile: (UserProfile, Set<String>) -> Unit = { _, _ -> },
 ) {
     val choosingVoice = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val editingProfile = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineSmall)
+        Section(R.string.settings_profile) {
+            val prof = profile
+            if (prof == null) {
+                Text(stringResource(R.string.settings_profile_empty), style = MaterialTheme.typography.bodySmall)
+            } else {
+                val weightNow = latestWeightKg ?: prof.weightKg
+                Text(stringResource(R.string.settings_profile_summary, prof.name, prof.heightCm, weightNow))
+                Bmi.compute(weightNow, prof.heightCm)?.let { bmi ->
+                    Text(stringResource(R.string.settings_profile_bmi, bmi, ProfileInput.bmiCategory(bmi)), style = MaterialTheme.typography.bodySmall)
+                }
+                OutlinedButton(onClick = { editingProfile.value = true }) { Text(stringResource(R.string.settings_profile_edit)) }
+            }
+        }
 
         Section(R.string.settings_theme) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -147,6 +171,16 @@ fun SettingsScreen(
             UpdateInstallContent(versionName, updateState, downloadState, onCheckUpdates, onOpenUpdate, onInstallUpdate)
             Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
         }
+    }
+
+    val profForEdit = profile
+    if (editingProfile.value && profForEdit != null) {
+        ProfileEditDialog(
+            profile = profForEdit,
+            storedEquipment = equipment,
+            onDismiss = { editingProfile.value = false },
+            onSave = { edited, equip -> editingProfile.value = false; onSaveProfile(edited, equip) },
+        )
     }
 
     if (choosingVoice.value) {
@@ -248,4 +282,101 @@ fun UpdateInstallContent(
                 com.kryll.homefit.domain.UpdateState.Idle -> {}
             }
     }
+}
+private val PROFILE_LABELS = mapOf("silla_banco" to "silla / banco", "bandas_elasticas" to "bandas elásticas", "prefiero_no_decir" to "prefiero no decir")
+
+/** Diálogo de edición del perfil guardado. Misma validación que el onboarding ([ProfileInput.validate]). */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun ProfileEditDialog(
+    profile: UserProfile,
+    storedEquipment: Set<String>,
+    onDismiss: () -> Unit,
+    onSave: (UserProfile, Set<String>) -> Unit,
+) {
+    fun trimNum(f: Float) = if (f == f.toInt().toFloat()) f.toInt().toString() else f.toString()
+    val birthDate = java.time.LocalDate.ofEpochDay(profile.birthEpochDay)
+    var name by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(profile.name) }
+    var sex by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(profile.sex) }
+    var bDay by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(birthDate.dayOfMonth.toString()) }
+    var bMonth by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(birthDate.monthValue.toString()) }
+    var bYear by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(birthDate.year.toString()) }
+    var height by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(trimNum(profile.heightCm)) }
+    var weight by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(trimNum(profile.weightKg)) }
+    var goal by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(profile.goal) }
+    var level by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(profile.level) }
+    var days by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(profile.daysMask) }
+    var minutes by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(profile.minutesPerSession.toString()) }
+    var equipmentSel by androidx.compose.runtime.saveable.rememberSaveable {
+        androidx.compose.runtime.mutableStateOf(EQUIPMENT_OPTIONS.filter { o -> o.second.all { it in storedEquipment } }.map { it.first }.toSet())
+    }
+    var submitted by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+
+    val h = height.replace(',', '.').toFloatOrNull()
+    val w = weight.replace(',', '.').toFloatOrNull()
+    val birth = ProfileInput.birthEpochDay(bDay.toIntOrNull(), bMonth.toIntOrNull(), bYear.toIntOrNull())
+    val errors = ProfileInput.validate(name, sex, h, w, birth, days, minutes.toIntOrNull())
+    fun err(f: ProfileInput.Field) = submitted && f in errors
+
+    @Composable
+    fun editField(label: Int, value: String, onChange: (String) -> Unit, error: Boolean, type: KeyboardType) {
+        OutlinedTextField(
+            value = value, onValueChange = onChange, label = { Text(stringResource(label)) }, isError = error,
+            singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = type), modifier = Modifier.fillMaxWidth(),
+        )
+    }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.profile_dialog_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                editField(R.string.onb_name, name, { name = it }, err(ProfileInput.Field.NAME), KeyboardType.Text)
+                Text(stringResource(R.string.onb_sex))
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ProfileInput.SEXES.forEach { o -> FilterChip(selected = sex == o, onClick = { sex = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
+                }
+                Text(stringResource(R.string.onb_birth))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(value = bDay, onValueChange = { bDay = it }, label = { Text(stringResource(R.string.onb_day)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                    OutlinedTextField(value = bMonth, onValueChange = { bMonth = it }, label = { Text(stringResource(R.string.onb_month)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                    OutlinedTextField(value = bYear, onValueChange = { bYear = it }, label = { Text(stringResource(R.string.onb_year)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                }
+                editField(R.string.onb_height, height, { height = it }, err(ProfileInput.Field.HEIGHT), KeyboardType.Decimal)
+                editField(R.string.onb_weight, weight, { weight = it }, err(ProfileInput.Field.WEIGHT), KeyboardType.Decimal)
+                Text(stringResource(R.string.onb_goal))
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ProfileInput.GOALS.forEach { o -> FilterChip(selected = goal == o, onClick = { goal = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
+                }
+                Text(stringResource(R.string.onb_level))
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("principiante", "intermedio", "avanzado").forEach { o -> FilterChip(selected = level == o, onClick = { level = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
+                }
+                Text(stringResource(R.string.onb_days))
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("L", "M", "X", "J", "V", "S", "D").forEachIndexed { i, d ->
+                        FilterChip(selected = days and (1 shl i) != 0, onClick = { days = days xor (1 shl i) }, label = { Text(d) })
+                    }
+                }
+                if (err(ProfileInput.Field.DAYS)) Text(stringResource(R.string.onb_days), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                editField(R.string.onb_minutes, minutes, { minutes = it }, err(ProfileInput.Field.MINUTES), KeyboardType.Number)
+                Text(stringResource(R.string.onb_equipment))
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    EQUIPMENT_OPTIONS.map { it.first }.forEach { o ->
+                        FilterChip(selected = o in equipmentSel, onClick = { equipmentSel = if (o in equipmentSel) equipmentSel - o else equipmentSel + o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) })
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton({
+                submitted = true
+                if (errors.isEmpty()) {
+                    val expanded = EQUIPMENT_OPTIONS.filter { it.first in equipmentSel }.flatMap { it.second }.toSet()
+                    onSave(UserProfile(1, name.trim(), sex, birth!!, h!!, w!!, goal, level, days, minutes.toInt()), expanded)
+                }
+            }) { Text(stringResource(R.string.profile_save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.backup_cancel)) } },
+    )
 }

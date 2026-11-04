@@ -177,4 +177,16 @@ class SettingsUiTest {
         assertEquals(null, s.value.ttsVoice)
         capture("ajustes_voz")
     }
+
+    @Test fun showsProfileAndBmi() {
+        val prof = com.kryll.homefit.data.UserProfile(
+            name = "Ana", sex = "mujer", birthEpochDay = java.time.LocalDate.of(1990, 1, 1).toEpochDay(),
+            heightCm = 170f, weightKg = 60f, goal = "tonificar", level = "principiante",
+            daysMask = 21, minutesPerSession = 30,
+        )
+        rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", null, null, profile = prof, latestWeightKg = 62f) } }
+        rule.onNodeWithText("Ana", substring = true).assertExists()
+        rule.onNodeWithText("IMC orientativo", substring = true).assertExists()
+        rule.onNodeWithText("Editar perfil").assertExists()
+    }
 }
