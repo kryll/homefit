@@ -125,6 +125,7 @@ private fun RoutinesTab() {
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
     var workoutStart by rememberSaveable { mutableStateOf(0L) }
     var resumedSets by remember(workoutId) { mutableStateOf<List<com.kryll.homefit.domain.SetResult>?>(null) }
+    var resumePlan by remember(workoutId) { mutableStateOf<List<com.kryll.homefit.domain.WorkItem>?>(null) }
     val workoutRepo = app.container.workoutRepository
     val active = workoutId
     if (active != null) {
@@ -157,6 +158,7 @@ private fun RoutinesTab() {
                             workoutStart = keep.startMillis
                             resumable = null
                             resumedSets = keep.results
+                            resumePlan = keep.plan
                         }) { androidx.compose.material3.Text(stringResource(R.string.workout_resume_continue)) }
                     },
                     dismissButton = {
@@ -166,11 +168,12 @@ private fun RoutinesTab() {
             }
             val resume = resumedSets
             if (resume != null) {
-                WorkoutWithCues(plan, workoutStart, active, resume = resume, onExit = { results, finished ->
+                WorkoutWithCues(resumePlan ?: plan, workoutStart, active, resume = resume, onExit = { results, finished ->
                     val end = System.currentTimeMillis()
-                    scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
+                    scope.launch { workoutRepo.save(active, resumePlan ?: plan, workoutStart, end, finished, results) }
                     workoutId = null
                     resumedSets = null
+                    resumePlan = null
                 })
             }
             return

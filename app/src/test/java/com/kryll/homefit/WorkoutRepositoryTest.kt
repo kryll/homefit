@@ -149,4 +149,44 @@ class WorkoutRepositoryTest {
         repo.checkpoint(5L, plan, start, start + 60_000L, listOf(SetResult(0, 1, 7, false, 25, reps = 8))) { false }
         assertNull(repo.interruptedToday(5L, plan, now))
     }
+
+    @Test fun snapshotPlanSurvivesRoutineEdit() = runBlocking {
+        val start = 1_000L
+        repo.checkpoint(5L, plan, start, start + 60_000L, listOf(SetResult(0, 1, 7, false, 25, reps = 8))) { false }
+        // La rutina se edita entretanto (otras series y descansos)
+        val edited = listOf(
+            WorkItem("sentadilla", "Sentadilla", 3, 10, null, 45),
+            WorkItem("plancha", "Plancha", 2, null, 30, 15),
+        )
+        val r = repo.interruptedToday(5L, edited, start + 120_000L)!!
+        // La reanudación es contra el plan guardado con la sesión, no contra la rutina editada
+        assertEquals(2, r.plan.size)
+        assertEquals(2, r.plan[0].sets)
+        assertEquals(1, r.results.size)
+        assertEquals(0, r.results[0].itemIndex)
+    }
+
+    @Test fun repeatedExerciseResumesPositionally() = runBlocking {
+        val circuit = listOf(
+            WorkItem("sentadilla", "Sentadilla", 1, 10, null, 30),
+            WorkItem("plancha", "Plancha", 1, null, 30, 0),
+            WorkItem("sentadilla", "Sentadilla", 1, 10, null, 30),
+        )
+        val start = 1_000L
+        val results = listOf(SetResult(0, 1, 7, false, 25, reps = 8), SetResult(2, 1, 9, false, 25, reps = 10))
+        repo.checkpoint(5L, circuit, start, start + 60_000L, results) { false }
+        val r = repo.interruptedToday(5L, circuit, start + 120_000L)!!
+        assertEquals(2, r.results.size)
+        assertEquals(0, r.results[0].itemIndex); assertEquals(8, r.results[0].reps)
+        assertEquals(2, r.results[1].itemIndex); assertEquals(10, r.results[1].reps)
+    }
+
+    @Test fun legacyRowWithoutSnapshotMapsByExerciseId() = runBlocking {
+        val dao = db.sessionDao()
+        val sid = dao.insertWorkout(com.kryll.homefit.data.WorkoutSession(routineId = 5L, startMillis = 1_000L, endMillis = 2_000L, durationSeconds = 1, notes = "incompleto"))
+        dao.insertSets(listOf(com.kryll.homefit.data.SetLog(sessionId = sid, exerciseId = "sentadilla", setIndex = 1, reps = 8)))
+        val r = repo.interruptedToday(5L, plan, 120_000L)!!
+        assertEquals(1, r.results.size)
+        assertEquals(0, r.results[0].itemIndex)
+    }
 }
