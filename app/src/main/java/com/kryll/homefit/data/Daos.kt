@@ -119,6 +119,10 @@ interface SessionDao {
     suspend fun setsOf(sessionId: Long): List<SetLog>
 
     /** La sesión incompleta más reciente de esa rutina empezada hoy (candidata a reanudar). */
-    @Query("SELECT * FROM workout_session WHERE routineId = :routineId AND notes = 'incompleto' AND startMillis >= :from AND startMillis < :to ORDER BY startMillis DESC LIMIT 1")
-    suspend fun latestIncomplete(routineId: Long, from: Long, to: Long): WorkoutSession?
+    @Query("SELECT * FROM workout_session WHERE routineId = :routineId AND notes = 'incompleto' AND startMillis >= :from ORDER BY startMillis DESC LIMIT 1")
+    suspend fun latestIncomplete(routineId: Long, from: Long): WorkoutSession?
+
+    /** Marca una sesión interrumpida como descartada para que no se vuelva a ofrecer. */
+    @Query("UPDATE workout_session SET notes = 'descartado' WHERE id = :id")
+    suspend fun discardSession(id: Long)
 }
