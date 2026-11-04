@@ -39,6 +39,8 @@ class MigrationTest {
         }
         val setup = schema.getJSONArray("setupQueries")
         for (i in 0 until setup.length()) sqlite.execSQL(setup.getString(i))
+        // El JSON exportado no fija user_version: sin esto Room ve la BD en version 0 y no hay migracion 0->2.
+        sqlite.execSQL("PRAGMA user_version = 1")
         // Filas representativas con el esquema v1 (sin planJson ni itemIndex)
         sqlite.execSQL("INSERT INTO workout_session (routineId, startMillis, endMillis, durationSeconds, notes) VALUES (5, 1000, 2000, 1, 'incompleto')")
         sqlite.execSQL("INSERT INTO set_log (sessionId, exerciseId, setIndex, reps) VALUES (1, 'sentadilla', 1, 10)")
