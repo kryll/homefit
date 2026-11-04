@@ -53,6 +53,13 @@ El proyecto no tiene todavía licencia propia elegida.
 | press_suelo_mancuernas | Dumbbell_Floor_Press |
 | crunch_bicicleta | Air_Bike |
 | remo_kettlebell | One-Arm_Kettlebell_Row |
+| fondos_banco | Bench_Dips |
+| sentadilla_goblet | Goblet_Squat |
+| dead_bug | Dead_Bug |
+| v_ups | Jackknife_Sit-Up |
+| patinador | Lateral_Bound |
+| paseo_monstruo | Monster_Walk |
+| gato_camello | Cat_Stretch |
 
 ## Bibliotecas
 
