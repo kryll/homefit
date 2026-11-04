@@ -6,6 +6,7 @@ import json, math, pathlib
 from PIL import Image, ImageDraw
 
 INK = (26, 43, 74)       # figura
+FAR = (140, 160, 200)  # extremidad lejana/segunda
 GROUND = (120, 130, 145)
 EQUIP = (90, 105, 130)
 W = 480
@@ -28,14 +29,16 @@ def draw_fig(dr, j, lw=7):
     else:
         seg(j['neck'], j['hip'])
     seg(j['neck'], j['shoulder']) if False else None
-    # brazo (y segundo brazo opcional)
+    # brazo (y segundo brazo opcional, en tono claro)
     seg(j['shoulder'], j['elbow']); seg(j['elbow'], j['hand'])
     if 'elbow2' in j:
-        seg(j['shoulder'], j['elbow2']); seg(j['elbow2'], j['hand2'])
-    # pierna (y segunda pierna opcional)
+        dr.line([P(*j['shoulder']), P(*j['elbow2'])], fill=FAR, width=int(lw * SC), joint='curve')
+        dr.line([P(*j['elbow2']), P(*j['hand2'])], fill=FAR, width=int(lw * SC), joint='curve')
+    # pierna (y segunda pierna opcional, en tono claro)
     seg(j['hip'], j['knee']); seg(j['knee'], j['foot'])
     if 'knee2' in j:
-        seg(j['hip'], j['knee2']); seg(j['knee2'], j['foot2'])
+        dr.line([P(*j['hip']), P(*j['knee2'])], fill=FAR, width=int(lw * SC), joint='curve')
+        dr.line([P(*j['knee2']), P(*j['foot2'])], fill=FAR, width=int(lw * SC), joint='curve')
     # articulaciones
     for k in ('shoulder', 'elbow', 'hip', 'knee', 'elbow2', 'knee2'):
         if k in j: dot(j[k])
@@ -185,26 +188,28 @@ POSES = {
   ],
   # russian twist (sentado en V; 0 = manos a un lado; 1 = al otro)
   'russian_twist': [
-    dict(head=(44, 40), neck=(42, 48), shoulder=(42, 52), elbow=(34, 60), hand=(28, 66),
-         elbow2=(35, 63), hand2=(29, 69),
-         hip=(50, 80), knee=(64, 68), foot=(74, 78)),
-    dict(head=(44, 40), neck=(42, 48), shoulder=(42, 52), elbow=(52, 60), hand=(60, 66),
-         elbow2=(51, 63), hand2=(59, 69),
-         hip=(50, 80), knee=(64, 68), foot=(74, 78)),
+    dict(head=(40, 38), neck=(40, 46), shoulder=(41, 50), elbow=(32, 58), hand=(24, 64),
+         elbow2=(33, 61), hand2=(25, 67),
+         hip=(50, 80), knee=(64, 68), foot=(74, 76)),
+    dict(head=(40, 38), neck=(40, 46), shoulder=(41, 50), elbow=(52, 58), hand=(62, 62),
+         elbow2=(51, 61), hand2=(61, 65),
+         hip=(50, 80), knee=(64, 68), foot=(74, 76)),
   ],
   # dead bug (tumbado boca arriba; 0 = brazos arriba y piernas en mesa; 1 = brazo y pierna contrarios extendidos)
   'dead_bug': [
     dict(head=(20, 78), neck=(26, 80), shoulder=(30, 79), elbow=(30, 62), hand=(30, 50),
          hip=(54, 80), knee=(56, 62), foot=(70, 64)),
     dict(head=(20, 78), neck=(26, 80), shoulder=(30, 79), elbow=(18, 72), hand=(8, 78),
-         hip=(54, 80), knee=(68, 74), foot=(84, 82)),
+         elbow2=(32, 62), hand2=(32, 50),
+         hip=(54, 80), knee=(68, 74), foot=(84, 82), knee2=(56, 62), foot2=(70, 64)),
   ],
   # bird dog (cuadrupedia; 1 = brazo y pierna contrarios extendidos)
   'bird_dog': [
     dict(head=(24, 52), neck=(29, 54), shoulder=(36, 55), elbow=(37, 70), hand=(37, 86),
          hip=(64, 56), knee=(64, 86), foot=(76, 86), spineMid=(50, 56)),
     dict(head=(16, 46), neck=(23, 50), shoulder=(36, 54), elbow=(26, 46), hand=(12, 42),
-         hip=(64, 56), knee=(78, 56), foot=(90, 52), spineMid=(50, 55)),
+         elbow2=(37, 70), hand2=(37, 86),
+         hip=(64, 56), knee=(78, 56), foot=(90, 52), knee2=(64, 86), foot2=(76, 86), spineMid=(50, 55)),
   ],
   # pajaros con banda (0 = brazos al frente juntos; 1 = brazos abiertos, banda estirada)
   'pajaros': [
@@ -231,10 +236,10 @@ POSES = {
   ],
   # curl de biceps con banda (pisando la banda)
   'curl_banda': [
-    dict(head=(44, 18), neck=(44, 26), shoulder=(44, 30), elbow=(45, 44), hand=(46, 58),
-         hip=(44, 58), knee=(45, 72), foot=(44, 86)),
-    dict(head=(44, 18), neck=(44, 26), shoulder=(44, 30), elbow=(45, 46), hand=(40, 30),
-         hip=(44, 58), knee=(45, 72), foot=(44, 86)),
+    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(45, 44), hand=(46, 60),
+         hip=(44, 56), knee=(45, 70), foot=(44, 86)),
+    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(44, 48), hand=(38, 28),
+         hip=(44, 56), knee=(45, 70), foot=(44, 86)),
   ],
   # face pull con banda (anclaje a la altura de la cara)
   'face_pull_banda': [
@@ -313,10 +318,10 @@ POSES = {
   ],
   # hip thrust (espalda alta en el banco; 0 = cadera abajo; 1 = cadera arriba)
   'hip_thrust': [
-    dict(head=(22, 52), neck=(27, 55), shoulder=(32, 56), elbow=(36, 62), hand=(40, 64),
-         hip=(50, 72), knee=(62, 70), foot=(64, 86)),
-    dict(head=(22, 50), neck=(27, 52), shoulder=(32, 54), elbow=(36, 58), hand=(42, 60),
-         hip=(50, 56), knee=(62, 64), foot=(64, 86)),
+    dict(head=(22, 52), neck=(27, 55), shoulder=(32, 56), elbow=(36, 64), hand=(42, 68),
+         hip=(48, 78), knee=(62, 74), foot=(64, 86)),
+    dict(head=(22, 48), neck=(27, 51), shoulder=(32, 53), elbow=(38, 58), hand=(46, 58),
+         hip=(52, 54), knee=(64, 62), foot=(64, 86)),
   ],
   # abduccion de cadera tumbado de lado (0 = piernas juntas; 1 = pierna superior arriba)
   'abduccion_cadera_lateral': [
@@ -401,16 +406,16 @@ POSES = {
   'estiramiento_cuadriceps': [
     dict(head=(46, 16), neck=(46, 24), shoulder=(46, 28), elbow=(50, 42), hand=(53, 54),
          hip=(46, 56), knee=(47, 70), foot=(48, 86)),
-    dict(head=(46, 16), neck=(46, 24), shoulder=(46, 28), elbow=(42, 40), hand2=(44, 58),
-         elbow2=(41, 46), hand=(53, 54),
-         hip=(46, 56), knee=(47, 70), foot=(48, 86), knee2=(45, 74), foot2=(44, 58)),
+    dict(head=(46, 16), neck=(46, 24), shoulder=(46, 28), elbow=(52, 40), hand=(55, 52),
+         elbow2=(40, 42), hand2=(42, 54),
+         hip=(46, 56), knee=(47, 70), foot=(48, 86), knee2=(46, 72), foot2=(42, 55)),
   ],
   # estiramiento de pecho en la pared (0 = brazo apoyado; 1 = giro alejandose)
   'estiramiento_pecho': [
-    dict(head=(52, 20), neck=(52, 28), shoulder=(52, 32), elbow=(62, 34), hand=(74, 36),
-         hip=(52, 60), knee=(53, 72), foot=(55, 86)),
-    dict(head=(46, 20), neck=(46, 28), shoulder=(46, 32), elbow=(58, 34), hand=(74, 36),
-         hip=(48, 60), knee=(50, 72), foot=(52, 86)),
+    dict(head=(54, 20), neck=(54, 28), shoulder=(54, 32), elbow=(64, 34), hand=(76, 36),
+         hip=(54, 60), knee=(55, 72), foot=(57, 86)),
+    dict(head=(40, 22), neck=(42, 30), shoulder=(44, 34), elbow=(60, 34), hand=(76, 36),
+         hip=(44, 62), knee=(36, 74), foot=(30, 86), knee2=(50, 74), foot2=(54, 86)),
   ],
 }
 PROPS = {
@@ -432,12 +437,12 @@ PROPS = {
   'sentadilla_bulgara': [[('bench', 66, 60, 14, 6)], [('bench', 66, 60, 14, 6)]],
   'buenos_dias': [[], []],
   'curl_femoral_suelo': [[], []],
-  'hip_thrust': [[('bench', 16, 52, 12, 8), ('kb', 50, 66)], [('bench', 16, 52, 12, 8), ('kb', 50, 50)]],
+  'hip_thrust': [[('bench', 16, 52, 12, 8), ('kb', 48, 72)], [('bench', 16, 52, 12, 8), ('kb', 52, 48)]],
   'abduccion_cadera_lateral': [[], []],
   'pajaros': [[('band', (64, 32), (63, 36))], [('band', (70, 42), (20, 42))]],
   'remo_banda': [[('band', (61, 72), (72, 82))], [('band', (38, 74), (72, 82))]],
   'jalon_banda': [[('band', (56, 8), (64, 2))], [('band', (44, 44), (64, 2))]],
-  'curl_banda': [[('band', (46, 58), (50, 86))], [('band', (40, 30), (50, 86))]],
+  'curl_banda': [[('band', (46, 60), (52, 86))], [('band', (38, 28), (52, 86))]],
   'face_pull_banda': [[('wall', 82), ('band', (82, 30), (62, 32))], [('wall', 82), ('band', (82, 30), (42, 28))]],
   'press_pecho_banda': [[('band', (52, 40), (38, 34))], [('band', (72, 36), (38, 34))]],
   'aperturas_banda': [[('band', (68, 44), (22, 44))], [('band', (64, 36), (40, 30))]],
