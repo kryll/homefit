@@ -99,3 +99,22 @@ object ProgressStats {
         }
     }
 }
+
+/** Récords personales por ejercicio: máximos independientes de reps, carga y tiempo. */
+data class ExerciseRecord(val exerciseName: String, val maxReps: Int?, val maxWeightKg: Float?, val maxSeconds: Int?)
+
+/** Agrupa las series de todas las sesiones por ejercicio y saca el máximo de cada métrica con datos. */
+fun personalRecords(sessions: List<SessionRow>): List<ExerciseRecord> =
+    sessions.flatMap { it.sets }
+        .filter { it.exerciseName.isNotBlank() }
+        .groupBy { it.exerciseId.ifBlank { it.exerciseName } }
+        .map { (_, sets) ->
+            ExerciseRecord(
+                exerciseName = sets.first().exerciseName,
+                maxReps = sets.mapNotNull { it.reps }.maxOrNull(),
+                maxWeightKg = sets.mapNotNull { it.weightKg }.maxOrNull(),
+                maxSeconds = sets.mapNotNull { it.seconds }.maxOrNull(),
+            )
+        }
+        .filter { it.maxReps != null || it.maxWeightKg != null || it.maxSeconds != null }
+        .sortedBy { it.exerciseName.lowercase() }

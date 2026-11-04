@@ -7,6 +7,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import com.kryll.homefit.domain.personalRecords
 import com.kryll.homefit.domain.ProgressCharts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -81,6 +82,17 @@ fun ProgressContent(
                 }
             }
         }
+        val records = personalRecords(sessions)
+        if (records.isNotEmpty()) {
+            item { Text(stringResource(R.string.progress_records_title), style = MaterialTheme.typography.titleMedium) }
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        records.forEach { r -> Text(recordText(r), style = MaterialTheme.typography.bodyMedium) }
+                    }
+                }
+            }
+        }
         item { Text(stringResource(R.string.progress_history), style = MaterialTheme.typography.titleMedium) }
         if (sessions.isEmpty()) {
             item { Text(stringResource(R.string.progress_empty), style = MaterialTheme.typography.bodyMedium) }
@@ -126,6 +138,15 @@ private fun muscleText(v: com.kryll.homefit.domain.MuscleVolume): String {
     if (v.reps > 0) parts += stringResource(R.string.progress_volume_reps, v.reps)
     if (v.seconds > 0) parts += stringResource(R.string.progress_volume_seconds, v.seconds)
     return v.muscle.replaceFirstChar { it.uppercase() } + " · " + parts.joinToString(" · ")
+}
+
+@Composable
+private fun recordText(r: com.kryll.homefit.domain.ExerciseRecord): String {
+    val parts = mutableListOf<String>()
+    r.maxReps?.let { parts += stringResource(R.string.progress_record_reps, it) }
+    r.maxWeightKg?.let { parts += stringResource(R.string.progress_record_weight, java.lang.String.format(Locale("es", "ES"), "%.1f", it)) }
+    r.maxSeconds?.let { parts += stringResource(R.string.progress_record_seconds, it) }
+    return r.exerciseName + " · " + parts.joinToString(" · ")
 }
 
 @Composable
