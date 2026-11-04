@@ -169,6 +169,11 @@ object ReminderEngine {
      *  que dos reprogramaciones concurrentes se pisen (REPLACE desde un solo hilo a la vez). */
     private val cycleMutex = kotlinx.coroutines.sync.Mutex()
 
+    /** Punto de prueba: se invoca justo antes de emitir el aviso diario (no en snooze) para que un
+     *  test pueda contar las emisiones reales y demostrar la no-duplicación concurrente (el estado
+     *  final no basta: dos notify con el mismo ID colapsan en uno). null en producción. */
+    internal var emitObserver: (() -> Unit)? = null
+
     suspend fun runCycle(app: HomeFitApp, isSnooze: Boolean) = cycleMutex.withLock {
         val db = app.container.database
         val settings = app.container.settings.settings.first()
@@ -187,6 +192,7 @@ object ReminderEngine {
         // avisa siempre y no toca la marca.
         val alreadyFired = !isSnooze && settings.reminderFiredEpochDay == today.toEpochDay()
         if (decision == ReminderDecision.SHOW && !alreadyFired) {
+            if (!isSnooze) emitObserver?.invoke()
             val routineId = todays.firstOrNull { it.status == "SCHEDULED" }?.routineId
             val name = routineId?.let { db.routineDao().byId(it)?.name }
             if (ReminderNotifier.show(app, name) && !isSnooze) {
