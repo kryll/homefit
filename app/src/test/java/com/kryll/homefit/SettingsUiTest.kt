@@ -9,6 +9,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performScrollTo
+
+import androidx.compose.ui.test.hasText
+
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.data.ThemeMode
@@ -114,6 +117,49 @@ class SettingsUiTest {
         assertEquals(com.kryll.homefit.data.WeightUnit.LB, s.weightUnit)
         rule.onNodeWithText("Medidas: in").performScrollTo().performClick()
         assertEquals(com.kryll.homefit.data.LengthUnit.IN, s.lengthUnit)
+    }
+
+    @Test fun updateStatesAreShown() {
+        var checked = 0
+        var opened = ""
+        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", "https://github.com/kryll/homefit/releases/download/v1.2.0/homefit.apk", "https://example.test/rel")
+        rule.setContent {
+            HomeFitTheme {
+                SettingsScreen(
+                    AppSettings(), "1.0.0", null, null,
+                    updateState = com.kryll.homefit.domain.UpdateState.Available(info),
+                    onCheckUpdates = { checked++ },
+                    onOpenUpdate = { opened = it },
+                )
+            }
+        }
+        rule.onNodeWithText("Nueva versión 1.2.0 disponible").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Descargar APK").performScrollTo().performClick()
+        assertEquals(info.apkUrl, opened)
+        rule.onNodeWithText("Buscar actualizaciones").performScrollTo().performClick()
+        assertEquals(1, checked)
+        capture("ajustes_actualizacion")
+    }
+
+    @Test fun updateErrorIsShown() {
+        rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", null, null, updateState = com.kryll.homefit.domain.UpdateState.Failed) } }
+        rule.onNodeWithText("No se pudo comprobar. Inténtalo más tarde.").performScrollTo().assertIsDisplayed()
+    }
+    @Test fun verifiedApkOffersAndroidInstallerButDoesNotInstallItself() {
+        var installs = 0
+        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", "https://github.com/kryll/homefit/releases/download/v1.2.0/homefit.apk", "")
+        rule.setContent { HomeFitTheme {
+            com.kryll.homefit.ui.UpdateInstallContent("1.0.0",
+                updateState = com.kryll.homefit.domain.UpdateState.Available(info),
+                downloadState = com.kryll.homefit.update.DownloadUi(file = File("fixture.apk")),
+                onInstallUpdate = { installs++ })
+        } }
+        assertEquals(0, installs)
+        rule.onNodeWithText("Instalar actualización").assertIsDisplayed()
+        rule.waitForIdle(); rule.mainClock.advanceTimeByFrame(); rule.waitForIdle()
+        rule.runOnIdle { capture("ajustes_instalar_apk") }
+        rule.onNodeWithText("Instalar actualización").performClick()
+        assertEquals(1, installs)
     }
 
     @Test fun voiceSelectorListsAndEmits() {
