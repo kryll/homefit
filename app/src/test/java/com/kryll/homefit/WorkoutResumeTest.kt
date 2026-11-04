@@ -45,4 +45,25 @@ class WorkoutResumeTest {
         val logs = listOf(InterruptedSet("sentadilla", 2, 10, null, 7, null))
         assertNull(WorkoutResume.fromLogs(plan, logs))
     }
+
+    @Test fun positionalLogsMapOccurrences() {
+        val circuit = listOf(
+            WorkItem("sentadilla", "Sentadilla", 1, 10, null, 30),
+            WorkItem("plancha", "Plancha", 1, null, 20, 0),
+            WorkItem("sentadilla", "Sentadilla", 1, 10, null, 30),
+        )
+        val logs = listOf(
+            InterruptedSet("sentadilla", 1, 10, null, 7, null, itemIndex = 0),
+            InterruptedSet("sentadilla", 1, 12, null, 9, null, itemIndex = 2),
+        )
+        val r = WorkoutResume.fromLogsPositional(circuit, logs)!!
+        assertEquals(2, r.size)
+        assertEquals(0, r[0].itemIndex); assertEquals(2, r[1].itemIndex)
+    }
+
+    @Test fun positionalRejectsHolesMismatchAndOutOfRange() {
+        assertNull(WorkoutResume.fromLogsPositional(plan, listOf(InterruptedSet("sentadilla", 2, 10, null, 7, null, itemIndex = 0))))
+        assertNull(WorkoutResume.fromLogsPositional(plan, listOf(InterruptedSet("plancha", 1, null, 20, 7, null, itemIndex = 0))))
+        assertNull(WorkoutResume.fromLogsPositional(plan, listOf(InterruptedSet("sentadilla", 1, 10, null, 7, null, itemIndex = 5))))
+    }
 }

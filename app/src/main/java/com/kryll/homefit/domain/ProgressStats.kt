@@ -29,26 +29,30 @@ data class ProgressSummary(
     val totalSets: Int,
     /** Media del esfuerzo percibido de las series con RPE; null si no hay ninguna. */
     val avgRpe: Double?,
+    /** Sesiones parciales (interrumpidas/descartadas): se conservan en el historial pero no cuentan como completadas. */
+    val partialSessions: Int = 0,
 )
 
-/** Cálculos del historial sin Android. Las sesiones incompletas cuentan: son entreno hecho. */
+/** Cálculos del historial sin Android. Las sesiones parciales (interrumpidas/descartadas) se conservan pero no cuentan como completadas. */
 object ProgressStats {
     fun summary(sessions: List<SessionRow>, nowMillis: Long, zone: ZoneId): ProgressSummary {
+        val completed = sessions.filter { !it.incomplete }
         val today = Instant.ofEpochMilli(nowMillis).atZone(zone).toLocalDate()
-        val days = sessions.map { Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() }.toSet()
+        val days = completed.map { Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() }.toSet()
         val weekStart = today.with(DayOfWeek.MONDAY)
-        val week = sessions.count {
+        val week = completed.count {
             val d = Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate()
             !d.isBefore(weekStart) && !d.isAfter(today)
         }
-        val rpes = sessions.flatMap { s -> s.sets.mapNotNull { it.rpe } }
+        val rpes = completed.flatMap { s -> s.sets.mapNotNull { it.rpe } }
         return ProgressSummary(
-            totalSessions = sessions.size,
+            totalSessions = completed.size,
             weekSessions = week,
             streakDays = streak(days, today),
-            totalMinutes = sessions.sumOf { it.durationSeconds } / 60,
-            totalSets = sessions.sumOf { it.sets.size },
+            totalMinutes = completed.sumOf { it.durationSeconds } / 60,
+            totalSets = completed.sumOf { it.sets.size },
             avgRpe = if (rpes.isEmpty()) null else rpes.average(),
+            partialSessions = sessions.size - completed.size,
         )
     }
 
@@ -91,7 +95,8 @@ object ProgressStats {
             SessionRow(
                 id = s.id, startMillis = s.startMillis, durationSeconds = s.durationSeconds,
                 routineName = s.routineId?.let { routineNames[it] },
-                incomplete = s.notes == com.kryll.homefit.data.WorkoutRepository.NOTE_INCOMPLETE,
+                incomplete = s.notes == com.kryll.homefit.data.WorkoutRepository.NOTE_INCOMPLETE ||
+                    s.notes == com.kryll.homefit.data.WorkoutRepository.NOTE_DISCARDED,
                 sets = (bySession[s.id] ?: emptyList()).sortedBy { it.id }.map {
                     SetRow(exerciseNames[it.exerciseId] ?: it.exerciseId, it.setIndex, it.reps, it.seconds, it.rpe, it.weightKg, it.exerciseId)
                 },
