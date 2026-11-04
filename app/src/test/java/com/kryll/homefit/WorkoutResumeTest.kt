@@ -31,6 +31,16 @@ class WorkoutResumeTest {
         assertNull(WorkoutResume.fromLogs(plan, listOf(InterruptedSet("borrado", 1, 5, null, null, null))))
     }
 
+    @Test fun repeatedExerciseInPlanGivesNoResume() {
+        val circuit = listOf(
+            WorkItem("sentadilla", "Sentadilla", 1, 10, null, 30),
+            WorkItem("plancha", "Plancha", 1, null, 20, 0),
+            WorkItem("sentadilla", "Sentadilla", 1, 10, null, 30),
+        )
+        val logs = listOf(InterruptedSet("sentadilla", 1, 10, null, 7, null))
+        assertNull("con el ejercicio repetido no se sabe a qué ocurrencia pertenece", WorkoutResume.fromLogs(circuit, logs))
+    }
+
     @Test fun gapsInSetNumbersGiveNoResume() {
         val logs = listOf(InterruptedSet("sentadilla", 2, 10, null, 7, null))
         assertNull(WorkoutResume.fromLogs(plan, logs))
