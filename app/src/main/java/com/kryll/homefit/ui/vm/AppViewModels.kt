@@ -278,7 +278,7 @@ class SettingsViewModel(
     val pendingImport: StateFlow<Backup?> = _pendingImport
     fun setPendingImport(backup: Backup?) { _pendingImport.value = backup }
 
-    fun changeSettings(transform: (AppSettings) -> AppSettings) = viewModelScope.launch { settings.update(transform) }
+    fun changeSettings(transform: (AppSettings) -> AppSettings) = viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) { settings.update(transform) }
 
     fun saveProfile(profile: UserProfile, equipment: Set<String>) = viewModelScope.launch {
         val dao = db.profileDao()
