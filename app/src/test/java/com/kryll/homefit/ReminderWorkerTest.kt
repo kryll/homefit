@@ -13,6 +13,8 @@ import com.kryll.homefit.domain.ReminderPrefs
 import com.kryll.homefit.reminders.ReminderScheduler
 import com.kryll.homefit.reminders.ReminderWorker
 import java.time.LocalDate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -143,6 +145,20 @@ class ReminderWorkerTest {
         assertEquals(ListenableWorker.Result.success(), runWorker())
         assertEquals(0, shadowOf(nm).allNotifications.size)
         assertEquals(1, enqueued().size) // …pero el ciclo diario se reprograma igual
+    }
+
+    @Test fun concurrentCyclesNotifyOnlyOnce() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        // Alarma y respaldo liberados a la vez (p. ej. ambos atrasados hasta un arranque):
+        // el mutex del ciclo hace atómico el leer-marcar-reprogramar y el aviso sale una sola vez.
+        runBlocking {
+            val a = async(Dispatchers.IO) { com.kryll.homefit.reminders.ReminderEngine.runCycle(app, false) }
+            val b = async(Dispatchers.IO) { com.kryll.homefit.reminders.ReminderEngine.runCycle(app, false) }
+            a.await(); b.await()
+        }
+        assertEquals(1, shadowOf(nm).allNotifications.size)
+        assertEquals(LocalDate.now().toEpochDay(), runBlocking { app.container.settings.settings.first() }.reminderFiredEpochDay)
+        assertEquals(1, enqueued().size) // la reprogramación serializada deja un solo trabajo diario
     }
 
     @Test fun snoozeStillNotifiesWhenTheDailyReminderAlreadyFired() {

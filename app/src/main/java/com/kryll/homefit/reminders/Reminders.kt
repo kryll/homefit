@@ -33,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 
 fun AppSettings.reminderPrefs() = ReminderPrefs(reminderEnabled, reminderHour, reminderMinute, reminderLeadMinutes, reminderExact)
 
@@ -88,17 +89,19 @@ object ReminderScheduler {
     private const val SNOOZE_WORK = "recordatorio_posponer"
     const val KEY_SNOOZE = "snooze"
 
-    /** Retraso del respaldo de WorkManager cuando la alarma exacta está activa. Si Android borra la
-     *  alarma (p. ej. al revocar el permiso con la app cerrada), ese día avisa el respaldo con este
-     *  margen y el ciclo se reconstruye en WorkManager al disparar. */
+    /** Instante OBJETIVO del respaldo de WorkManager cuando la alarma exacta está activa: T + este
+     *  margen. No es una garantía de entrega: WorkManager es inexacto por diseño y Doze o las cuotas
+     *  del sistema pueden aplazarlo bastante más. Si Android borra la alarma (p. ej. al revocar el
+     *  permiso con la app cerrada), el respaldo intenta avisar ese día y reconstruye el ciclo. */
     const val BACKUP_OFFSET_MINUTES = 15L
 
     /**
      * Programa el próximo aviso. Con [ReminderPrefs.exact] y el permiso de alarma concedido arma la alarma
-     * exacta (setExactAndAllowWhileIdle, puntual incluso con Doze) Y un respaldo de WorkManager
-     * [BACKUP_OFFSET_MINUTES] minutos después: Android borra las alarmas exactas al revocar el permiso y
-     * no avisa a la app, así que el respaldo es lo único que garantiza el aviso ese día (con retraso) y la
-     * reconstrucción del ciclo. ReminderEngine evita el aviso duplicado con la marca de día.
+     * exacta (setExactAndAllowWhileIdle, puntual incluso con Doze) Y un respaldo de WorkManager con
+     * objetivo [BACKUP_OFFSET_MINUTES] minutos después (instante objetivo, sin garantía: WorkManager es
+     * inexacto y Doze o las cuotas pueden aplazarlo más). Android borra las alarmas exactas al revocar el
+     * permiso y no avisa a la app, así que el respaldo es la única vía de aviso ese día y de reconstruir
+     * el ciclo. ReminderEngine evita el aviso duplicado con la marca de día, escrita bajo un mutex.
      * Sin exacto o sin permiso, solo el trabajo único de WorkManager, inexacto por diseño.
      * El aviso se reprograma a sí mismo tras disparar; BootReceiver lo realinea tras reiniciar y
      * ExactPermissionReceiver al conceder el permiso. Con el móvil apagado o la app detenida a la fuerza
@@ -159,9 +162,17 @@ object ReminderScheduler {
 
 /** Decide si avisar, avisa y reprograma el siguiente. Compartido por el Worker (WorkManager) y el Receiver (alarma exacta). */
 object ReminderEngine {
-    suspend fun runCycle(app: HomeFitApp, isSnooze: Boolean) {
+    /** Serializa el ciclo completo (decidir, avisar, marcar el día y reprogramar). Alarma exacta,
+     *  respaldo de WorkManager y snooze corren en el mismo proceso y pueden disparar casi a la vez
+     *  (p. ej. los dos atrasados y liberados juntos tras un arranque): sin el mutex ambos leerían la
+     *  marca de día antes de que el otro la escribiera y el aviso saldría duplicado. También evita
+     *  que dos reprogramaciones concurrentes se pisen (REPLACE desde un solo hilo a la vez). */
+    private val cycleMutex = kotlinx.coroutines.sync.Mutex()
+
+    suspend fun runCycle(app: HomeFitApp, isSnooze: Boolean) = cycleMutex.withLock {
         val db = app.container.database
-        val prefs = app.container.settings.settings.first().reminderPrefs()
+        val settings = app.container.settings.settings.first()
+        val prefs = settings.reminderPrefs()
         val profile = db.profileDao().profile() ?: return
         if (!prefs.enabled) return
         val zone = ZoneId.systemDefault()
@@ -174,7 +185,7 @@ object ReminderEngine {
         // La marca de día evita que suene dos veces el mismo aviso diario cuando la alarma exacta y el
         // respaldo de WorkManager disparan el mismo día. El pospuesto (snooze) es a petición del usuario:
         // avisa siempre y no toca la marca.
-        val alreadyFired = !isSnooze && prefs.reminderFiredEpochDay == today.toEpochDay()
+        val alreadyFired = !isSnooze && settings.reminderFiredEpochDay == today.toEpochDay()
         if (decision == ReminderDecision.SHOW && !alreadyFired) {
             val routineId = todays.firstOrNull { it.status == "SCHEDULED" }?.routineId
             val name = routineId?.let { db.routineDao().byId(it)?.name }
