@@ -262,10 +262,7 @@
     ],
     "easierVariantId": "fondos_banco_rodillas",
     "harderVariantId": "fondos_paralelas",
-    "images": [
-      "media/fondos_banco_0.jpg",
-      "media/fondos_banco_1.jpg"
-    ]
+    "images": []
   },
   {
     "id": "fondos_banco_rodillas",
@@ -928,10 +925,7 @@
     ],
     "easierVariantId": "sentadilla",
     "harderVariantId": "sentadilla_bulgara",
-    "images": [
-      "media/sentadilla_goblet_0.jpg",
-      "media/sentadilla_goblet_1.jpg"
-    ]
+    "images": []
   },
   {
     "id": "sentadilla_sumo",
@@ -1666,10 +1660,7 @@
     ],
     "easierVariantId": null,
     "harderVariantId": "hollow_hold",
-    "images": [
-      "media/dead_bug_0.jpg",
-      "media/dead_bug_1.jpg"
-    ]
+    "images": []
   },
   {
     "id": "bird_dog",
@@ -2216,10 +2207,7 @@
     ],
     "easierVariantId": "almeja",
     "harderVariantId": null,
-    "images": [
-      "media/paseo_monstruo_0.jpg",
-      "media/paseo_monstruo_1.jpg"
-    ]
+    "images": []
   },
   {
     "id": "pallof_press",
@@ -2295,10 +2283,7 @@
     ],
     "easierVariantId": null,
     "harderVariantId": null,
-    "images": [
-      "media/gato_camello_0.jpg",
-      "media/gato_camello_1.jpg"
-    ]
+    "images": []
   },
   {
     "id": "postura_nino",
