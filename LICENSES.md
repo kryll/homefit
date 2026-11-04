@@ -5,7 +5,8 @@ El proyecto no tiene todavía licencia propia elegida.
 ## Medios y datos de ejercicios
 
 - Textos del catálogo (nombres, pasos, errores, consejos de seguridad, variantes): escritos para HomeFit, no copiados de otra fuente.
-- Imágenes: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) de yuhonas, licencia Unlicense (dominio público, comprobada en https://github.com/yuhonas/free-exercise-db/blob/main/LICENSE.md). Se usan las dos fotos (posición inicial y final) de cada ejercicio listado abajo, reescaladas a 480 px como máximo y recomprimidas. Cada ejercicio de HomeFit se asocia a la entrada de free-exercise-db con el mismo movimiento; los ejercicios sin entrada equivalente no llevan imagen.
+- Imágenes: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) de yuhonas, licencia Unlicense (dominio público, comprobada en https://github.com/yuhonas/free-exercise-db/blob/main/LICENSE.md). Se usan las dos fotos (posición inicial y final) de cada ejercicio listado abajo, reescaladas a 480 px como máximo y recomprimidas. Cada ejercicio de HomeFit se asocia a la entrada de free-exercise-db con el mismo movimiento.
+- Ilustraciones propias: los ejercicios sin entrada equivalente en free-exercise-db llevan ilustraciones originales creadas para HomeFit (figuras de palitos, dos fotogramas: posición inicial y final). Se generan con el script `tools/illustrations/gen.py` incluido en este repositorio y se publican como dominio público bajo [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/deed.es). Cada par de fotogramas fue revisado visualmente.
 - Vídeo/GIF: no incluidos todavía.
 - Revisión visual: se retiraron asociaciones que mostraban otro material, apoyo o variante; no se cambia el ejercicio para justificar una foto parecida.
 
@@ -55,6 +56,58 @@ El proyecto no tiene todavía licencia propia elegida.
 | remo_kettlebell | One-Arm_Kettlebell_Row |
 | v_ups | Jackknife_Sit-Up |
 | patinador | Lateral_Bound |
+
+### Ejercicios con ilustración propia (CC0 1.0)
+
+| Ejercicio HomeFit (id) |
+|---|
+| abduccion_cadera_lateral |
+| almeja |
+| aperturas_banda |
+| bird_dog |
+| buenos_dias |
+| burpees |
+| burpees_sin_salto |
+| curl_banda |
+| curl_femoral_suelo |
+| dead_bug |
+| elevacion_gemelos |
+| elevacion_gemelos_una_pierna |
+| elevacion_piernas |
+| estiramiento_cuadriceps |
+| estiramiento_isquios |
+| estiramiento_pecho |
+| face_pull_banda |
+| flexiones_rodillas |
+| fondos_banco |
+| fondos_banco_rodillas |
+| gato_camello |
+| hip_thrust |
+| hollow_hold |
+| jalon_banda |
+| jumping_jacks |
+| pajaros |
+| pallof_press |
+| paseo_monstruo |
+| pike_push_up |
+| plancha_rodillas |
+| plancha_toque_hombro |
+| press_kettlebell |
+| press_pecho_banda |
+| remo_banda |
+| rodillas_altas |
+| russian_twist |
+| sentadilla_bulgara |
+| sentadilla_goblet |
+| sentadilla_pistol |
+| sentadilla_silla |
+| sentadilla_sumo |
+| shadow_boxing |
+| skipping_lateral |
+| subida_banco |
+| swing_kettlebell |
+| zancada |
+| zancada_atras |
 
 ## Bibliotecas
 
