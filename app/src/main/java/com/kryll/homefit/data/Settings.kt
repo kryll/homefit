@@ -33,6 +33,8 @@ data class AppSettings(
     val reminderHour: Int = 18,
     val reminderMinute: Int = 0,
     val reminderLeadMinutes: Int = 0,
+    /** Aviso con alarma exacta (permiso especial); sin él, cae al trabajo inexacto de WorkManager. */
+    val reminderExact: Boolean = false,
 )
 
 class SettingsStore(private val context: Context) {
@@ -51,6 +53,7 @@ class SettingsStore(private val context: Context) {
         val reminderHour = intPreferencesKey("reminder_hour")
         val reminderMinute = intPreferencesKey("reminder_minute")
         val reminderLead = intPreferencesKey("reminder_lead")
+        val reminderExact = booleanPreferencesKey("reminder_exact")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { p ->
@@ -70,6 +73,7 @@ class SettingsStore(private val context: Context) {
             reminderHour = p[Keys.reminderHour] ?: d.reminderHour,
             reminderMinute = p[Keys.reminderMinute] ?: d.reminderMinute,
             reminderLeadMinutes = p[Keys.reminderLead] ?: d.reminderLeadMinutes,
+            reminderExact = p[Keys.reminderExact] ?: d.reminderExact,
         )
     }
 
@@ -90,6 +94,7 @@ class SettingsStore(private val context: Context) {
                 reminderHour = p[Keys.reminderHour] ?: 18,
                 reminderMinute = p[Keys.reminderMinute] ?: 0,
                 reminderLeadMinutes = p[Keys.reminderLead] ?: 0,
+                reminderExact = p[Keys.reminderExact] ?: false,
             )
             val n = transform(cur)
             p[Keys.theme] = n.theme.name
@@ -106,6 +111,7 @@ class SettingsStore(private val context: Context) {
             p[Keys.reminderHour] = n.reminderHour
             p[Keys.reminderMinute] = n.reminderMinute
             p[Keys.reminderLead] = n.reminderLeadMinutes
+            p[Keys.reminderExact] = n.reminderExact
         }
     }
 }

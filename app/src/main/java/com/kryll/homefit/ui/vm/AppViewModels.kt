@@ -175,7 +175,7 @@ class AppViewModelFactory(private val app: com.kryll.homefit.HomeFitApp) : ViewM
 }
 
 /** Preferencias de recordatorio tal como las consume la pantalla de planificación. */
-data class ReminderPrefsUi(val enabled: Boolean, val hour: Int, val minute: Int, val leadMinutes: Int)
+data class ReminderPrefsUi(val enabled: Boolean, val hour: Int, val minute: Int, val leadMinutes: Int, val exact: Boolean = false)
 
 /** Pestaña Hoy: planificación semanal (asignar, autocompletar, limpiar, saltar, mover) y recordatorios. */
 class PlanViewModel(
@@ -206,7 +206,7 @@ class PlanViewModel(
         PlanUi(
             today = java.time.LocalDate.now(zone), zone = zone,
             daysMask = p?.daysMask ?: 0, routines = r, scheduled = sch, workouts = w,
-            prefs = ReminderPrefsUi(prefs.enabled, prefs.hour, prefs.minute, prefs.leadMinutes),
+            prefs = ReminderPrefsUi(prefs.enabled, prefs.hour, prefs.minute, prefs.leadMinutes, prefs.exact),
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -248,8 +248,11 @@ class PlanViewModel(
         dao.insertScheduled(entry.copy(id = 0, startMillis = com.kryll.homefit.domain.movedStartMillis(entry.startMillis, zone, newDate), status = "SCHEDULED"))
     }
 
+    /** Realinea el mecanismo del aviso (p. ej. al volver de conceder el permiso de alarma). */
+    fun syncReminders() = viewModelScope.launch { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
+
     fun saveReminderPrefs(n: ReminderPrefsUi) = viewModelScope.launch {
-        settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute, reminderLeadMinutes = n.leadMinutes) }
+        settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute, reminderLeadMinutes = n.leadMinutes, reminderExact = n.exact) }
         com.kryll.homefit.reminders.ReminderScheduler.sync(app)
     }
 }

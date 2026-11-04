@@ -10,6 +10,8 @@
     <string name="plan_title">Tu semana</string>
     <string name="plan_reminder_title">Recordatorio diario</string>
     <string name="plan_reminder_switch">Avisarme los días de entreno</string>
+    <string name="plan_reminder_exact">Aviso exacto (permiso «Alarmas y recordatorios»)</string>
+    <string name="plan_reminder_exact_denied">Sin el permiso de alarma, el aviso usa el mecanismo normal y el ahorro de batería puede retrasarlo. Toca el interruptor de nuevo para abrir los ajustes de Android.</string>
     <string name="plan_reminder_time">Hora de entrenar: %1$02d:%2$02d</string>
     <string name="plan_reminder_lead_none">Aviso a esa hora</string>
     <string name="plan_reminder_lead">Aviso %1$d min antes (a las %2$02d:%3$02d)</string>

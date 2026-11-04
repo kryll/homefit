@@ -6,7 +6,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /** [hour]:[minute] es la hora de entrenar; el aviso sale [leadMinutes] antes (0 = a esa hora). */
-data class ReminderPrefs(val enabled: Boolean = false, val hour: Int = 18, val minute: Int = 0, val leadMinutes: Int = 0) {
+data class ReminderPrefs(val enabled: Boolean = false, val hour: Int = 18, val minute: Int = 0, val leadMinutes: Int = 0, val exact: Boolean = false) {
     init {
         require(hour in 0..23 && minute in 0..59) { "Hora no válida" }
         require(leadMinutes in 0..120) { "Antelación no válida" }
