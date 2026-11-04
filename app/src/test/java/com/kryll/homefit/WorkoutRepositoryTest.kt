@@ -93,4 +93,39 @@ class WorkoutRepositoryTest {
         repo.checkpoint(1L, plan, 10_000L, 15_000L, r) { false }
         assertEquals(2, db.sessionDao().observeWorkouts().first().size)
     }
+    @Test fun interruptedTodayAdoptsSessionAndCheckpointUpdatesSameRow() = runBlocking {
+        val zone = java.time.ZoneId.of("UTC")
+        val today = java.time.LocalDate.of(2026, 11, 4).atTime(10, 0).atZone(zone).toInstant().toEpochMilli()
+        val results = listOf(SetResult(0, 1, 7, false, 25, reps = 8))
+        repo.checkpoint(5L, plan, today, today + 60_000L, results) { false }
+        val before = db.sessionDao().observeWorkouts().first().single()
+        assertEquals("incompleto", before.notes)
+
+        val r = repo.interruptedToday(5L, plan, today + 120_000L, zone)!!
+        assertEquals(before.id, r.sessionId)
+        assertEquals(before.startMillis, r.startMillis)
+        assertEquals(1, r.results.size)
+        assertEquals(8, r.results[0].reps)
+
+        // Al reanudar, los checkpoints siguen en la misma fila: no hay duplicados.
+        repo.checkpoint(5L, plan, r.startMillis, today + 300_000L, r.results + SetResult(0, 2, 8, false, 30, reps = 10)) { false }
+        val all = db.sessionDao().observeWorkouts().first()
+        assertEquals(1, all.size)
+        assertEquals(2, db.sessionDao().setsOf(before.id).size)
+    }
+
+    @Test fun interruptedTodayIsNullWithoutMatchOrAfterRelease() = runBlocking {
+        val zone = java.time.ZoneId.of("UTC")
+        val today = java.time.LocalDate.of(2026, 11, 4).atTime(10, 0).atZone(zone).toInstant().toEpochMilli()
+        assertNull(repo.interruptedToday(5L, plan, today, zone))
+        repo.save(5L, plan, today, today + 60_000L, true, listOf(SetResult(0, 1, 7, false, 25, reps = 8)))
+        assertNull("una sesión terminada no se reanuda", repo.interruptedToday(5L, plan, today + 120_000L, zone))
+
+        repo.checkpoint(5L, plan, today, today + 60_000L, listOf(SetResult(0, 1, 7, false, 25, reps = 8))) { false }
+        repo.interruptedToday(5L, plan, today + 120_000L, zone)!!
+        repo.releaseInterrupted()
+        // Tras soltarla, un checkpoint abre fila nueva (la interrumpida queda como historial).
+        repo.checkpoint(5L, plan, today + 600_000L, today + 660_000L, listOf(SetResult(0, 1, 6, false, 20, reps = 8))) { false }
+        assertEquals(3, db.sessionDao().observeWorkouts().first().size)
+    }
 }
