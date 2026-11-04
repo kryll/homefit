@@ -11,13 +11,78 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val LightColors = lightColorScheme(primary = Color(0xFF1B6B63), secondary = Color(0xFF4A6360))
-private val DarkColors = darkColorScheme(primary = Color(0xFF7FD6CB), secondary = Color(0xFFB1CCC7))
+// Paleta de marca HomeFit (semilla coral energético, esquema de alta fidelidad cromática):
+// primario coral vivo, contenedores cálidos y terciario turquesa como contraste.
+// Se usa siempre (dynamicColor = false por defecto) para que la app se vea colorida
+// también con el fondo de pantalla neutro de Android 12+.
+private val LightColors = lightColorScheme(
+    primary = Color(0xFFB62500),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFFF704F),
+    onPrimaryContainer = Color(0xFF250200),
+    secondary = Color(0xFF9E412C),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFFF9B84),
+    onSecondaryContainer = Color(0xFF560C00),
+    tertiary = Color(0xFF006783),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFF29ABD4),
+    onTertiaryContainer = Color(0xFF00141C),
+    error = Color(0xFFBA1A1A),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF410002),
+    background = Color(0xFFFFF8F6),
+    onBackground = Color(0xFF271814),
+    surface = Color(0xFFFFF8F6),
+    onSurface = Color(0xFF271814),
+    surfaceVariant = Color(0xFFFFDAD2),
+    onSurfaceVariant = Color(0xFF5B403A),
+    outline = Color(0xFF8F7069),
+    outlineVariant = Color(0xFFE4BEB5),
+    inverseSurface = Color(0xFF3E2C28),
+    inverseOnSurface = Color(0xFFFFEDE9),
+    inversePrimary = Color(0xFFFFB4A3),
+    surfaceTint = Color(0xFFB62500),
+)
+
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFFFFB4A3),
+    onPrimary = Color(0xFF630F00),
+    primaryContainer = Color(0xFFD73A16),
+    onPrimaryContainer = Color(0xFFFFFFFF),
+    secondary = Color(0xFFFFB4A3),
+    onSecondary = Color(0xFF601404),
+    secondaryContainer = Color(0xFF73210F),
+    onSecondaryContainer = Color(0xFFFFC4B6),
+    tertiary = Color(0xFF61D4FF),
+    onTertiary = Color(0xFF003545),
+    tertiaryContainer = Color(0xFF007FA1),
+    onTertiaryContainer = Color(0xFFFFFFFF),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color(0xFF1E100C),
+    onBackground = Color(0xFFFADCD6),
+    surface = Color(0xFF1E100C),
+    onSurface = Color(0xFFFADCD6),
+    surfaceVariant = Color(0xFF5B403A),
+    onSurfaceVariant = Color(0xFFE4BEB5),
+    outline = Color(0xFFAB8981),
+    outlineVariant = Color(0xFF5B403A),
+    inverseSurface = Color(0xFFFADCD6),
+    inverseOnSurface = Color(0xFF3E2C28),
+    inversePrimary = Color(0xFFB62500),
+    surfaceTint = Color(0xFFFFB4A3),
+)
 
 @Composable
 fun HomeFitTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // La app usa su paleta de marca por defecto; el color dinámico del sistema queda
+    // disponible como opción (p. ej. un futuro ajuste en pantalla).
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
