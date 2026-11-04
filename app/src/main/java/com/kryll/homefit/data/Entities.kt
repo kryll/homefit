@@ -49,6 +49,9 @@ data class Exercise(
     val safetyTips: String,
     val easierVariantId: String? = null,
     val harderVariantId: String? = null,
+    /** Modulación del propio ejercicio cuando no hay variante encadenada (apoyo, recorrido, tempo, unilateral). */
+    val easierText: String? = null,
+    val harderText: String? = null,
     /** Rutas de assets separadas por salto de línea. */
     val images: String = "",
     val videoUrl: String? = null,
@@ -115,6 +118,8 @@ data class WorkoutSession(
     val endMillis: Long,
     val durationSeconds: Int,
     val notes: String = "",
+    /** Plan con el que empezó la sesión (reanudación fiel aunque la rutina cambie); null = filas de antes de la v2. */
+    val planJson: String? = null,
 )
 
 @Entity(
@@ -132,4 +137,6 @@ data class SetLog(
     val seconds: Int? = null,
     /** Esfuerzo percibido 1-10. */
     val rpe: Int? = null,
+    /** Posición del ejercicio en el plan de la sesión; -1 = filas de antes de la v2 (se ubican por exerciseId). */
+    val itemIndex: Int = -1,
 )

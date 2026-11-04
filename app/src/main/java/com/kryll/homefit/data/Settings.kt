@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,15 @@ data class AppSettings(
     val defaultRestSeconds: Int = 45,
     val defaultCountdownSeconds: Int = 5,
     val onboardingDone: Boolean = false,
+    val reminderEnabled: Boolean = false,
+    val reminderHour: Int = 18,
+    val reminderMinute: Int = 0,
+    val reminderLeadMinutes: Int = 0,
+    /** Aviso con alarma exacta (permiso especial); sin él, cae al trabajo inexacto de WorkManager. */
+    val reminderExact: Boolean = false,
+    /** Día del último aviso diario emitido (estado de ejecución; evita duplicar el aviso entre la
+     *  alarma exacta y el respaldo de WorkManager). No forma parte de la copia de seguridad. */
+    val reminderFiredEpochDay: Long = -1,
 )
 
 class SettingsStore(private val context: Context) {
@@ -43,6 +53,12 @@ class SettingsStore(private val context: Context) {
         val defaultRest = intPreferencesKey("default_rest")
         val defaultCountdown = intPreferencesKey("default_countdown")
         val onboardingDone = booleanPreferencesKey("onboarding_done")
+        val reminderEnabled = booleanPreferencesKey("reminder_enabled")
+        val reminderHour = intPreferencesKey("reminder_hour")
+        val reminderMinute = intPreferencesKey("reminder_minute")
+        val reminderLead = intPreferencesKey("reminder_lead")
+        val reminderExact = booleanPreferencesKey("reminder_exact")
+        val reminderFiredDay = longPreferencesKey("reminder_fired_day")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { p ->
@@ -58,6 +74,12 @@ class SettingsStore(private val context: Context) {
             defaultRestSeconds = p[Keys.defaultRest] ?: d.defaultRestSeconds,
             defaultCountdownSeconds = p[Keys.defaultCountdown] ?: d.defaultCountdownSeconds,
             onboardingDone = p[Keys.onboardingDone] ?: d.onboardingDone,
+            reminderEnabled = p[Keys.reminderEnabled] ?: d.reminderEnabled,
+            reminderHour = p[Keys.reminderHour] ?: d.reminderHour,
+            reminderMinute = p[Keys.reminderMinute] ?: d.reminderMinute,
+            reminderLeadMinutes = p[Keys.reminderLead] ?: d.reminderLeadMinutes,
+            reminderExact = p[Keys.reminderExact] ?: d.reminderExact,
+            reminderFiredEpochDay = p[Keys.reminderFiredDay] ?: d.reminderFiredEpochDay,
         )
     }
 
@@ -74,6 +96,12 @@ class SettingsStore(private val context: Context) {
                 defaultRestSeconds = p[Keys.defaultRest] ?: 45,
                 defaultCountdownSeconds = p[Keys.defaultCountdown] ?: 5,
                 onboardingDone = p[Keys.onboardingDone] ?: false,
+                reminderEnabled = p[Keys.reminderEnabled] ?: false,
+                reminderHour = p[Keys.reminderHour] ?: 18,
+                reminderMinute = p[Keys.reminderMinute] ?: 0,
+                reminderLeadMinutes = p[Keys.reminderLead] ?: 0,
+                reminderExact = p[Keys.reminderExact] ?: false,
+                reminderFiredEpochDay = p[Keys.reminderFiredDay] ?: -1,
             )
             val n = transform(cur)
             p[Keys.theme] = n.theme.name
@@ -86,6 +114,12 @@ class SettingsStore(private val context: Context) {
             p[Keys.defaultRest] = n.defaultRestSeconds
             p[Keys.defaultCountdown] = n.defaultCountdownSeconds
             p[Keys.onboardingDone] = n.onboardingDone
+            p[Keys.reminderEnabled] = n.reminderEnabled
+            p[Keys.reminderHour] = n.reminderHour
+            p[Keys.reminderMinute] = n.reminderMinute
+            p[Keys.reminderLead] = n.reminderLeadMinutes
+            p[Keys.reminderExact] = n.reminderExact
+            p[Keys.reminderFiredDay] = n.reminderFiredEpochDay
         }
     }
 }

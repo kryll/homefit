@@ -6,4 +6,6 @@ import android.content.Context
 class AppContainer(context: Context) {
     val database: HomeFitDatabase = HomeFitDatabase.build(context)
     val settings: SettingsStore = SettingsStore(context)
+    /** Único por proceso: su cerrojo ordena los puntos de control del servicio y el guardado final. */
+    val workoutRepository: WorkoutRepository = WorkoutRepository(database)
 }
