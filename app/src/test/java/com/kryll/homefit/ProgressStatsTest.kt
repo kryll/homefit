@@ -118,4 +118,17 @@ class ProgressStatsTest {
         val recs = com.kryll.homefit.domain.personalRecords(listOf(row(1, ms(2026, 11, 3), sets = sets)))
         assertEquals(listOf("Abdominales", "Zancadas"), recs.map { it.exerciseName })
     }
+
+    @Test fun partialSessionsAreKeptButNotCountedAsComplete() {
+        val done = row(1, ms(2026, 11, 4), 600, listOf(SetRow("Sentadilla", 1, 10, null, 7, null, "sentadilla")))
+        val partial = row(2, ms(2026, 11, 4), 600).copy(incomplete = true)
+        val s = ProgressStats.summary(listOf(done, partial), now, zone)
+        assertEquals(1, s.totalSessions)
+        assertEquals(1, s.weekSessions)
+        assertEquals(1, s.streakDays)
+        assertEquals(10, s.totalMinutes)
+        assertEquals(1, s.totalSets)
+        assertEquals(7.0, s.avgRpe!!, 0.001)
+        assertEquals(1, s.partialSessions)
+    }
 }

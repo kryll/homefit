@@ -115,6 +115,8 @@ data class WorkoutSession(
     val endMillis: Long,
     val durationSeconds: Int,
     val notes: String = "",
+    /** Plan con el que empezó la sesión (reanudación fiel aunque la rutina cambie); null = filas de antes de la v2. */
+    val planJson: String? = null,
 )
 
 @Entity(
@@ -132,4 +134,6 @@ data class SetLog(
     val seconds: Int? = null,
     /** Esfuerzo percibido 1-10. */
     val rpe: Int? = null,
+    /** Posición del ejercicio en el plan de la sesión; -1 = filas de antes de la v2 (se ubican por exerciseId). */
+    val itemIndex: Int = -1,
 )
