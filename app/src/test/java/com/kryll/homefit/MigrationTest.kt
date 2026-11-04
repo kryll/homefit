@@ -36,6 +36,10 @@ class MigrationTest {
         for (i in 0 until entities.length()) {
             val e = entities.getJSONObject(i)
             sqlite.execSQL(e.getString("createSql").replace("\${TABLE_NAME}", e.getString("tableName")))
+            val idx = e.optJSONArray("indices")
+            if (idx != null) for (j in 0 until idx.length()) {
+                sqlite.execSQL(idx.getJSONObject(j).getString("createSql").replace("\${TABLE_NAME}", e.getString("tableName")))
+            }
         }
         val setup = schema.getJSONArray("setupQueries")
         for (i in 0 until setup.length()) sqlite.execSQL(setup.getString(i))
