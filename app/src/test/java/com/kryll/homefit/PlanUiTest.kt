@@ -89,6 +89,9 @@ class PlanUiTest {
     @Test fun exactSwitchVisibleWithoutNoteWhenGranted() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = true) } }
         rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
+        // Modo exacto concedido: nota específica sin promesa absoluta y SIN la frase de retraso del modo normal.
+        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").assertIsDisplayed()
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
         capture("plan_recordatorio_exacto")
     }
 
@@ -96,7 +99,16 @@ class PlanUiTest {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = false) } }
         rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
         rule.onNodeWithText("Sin el permiso de alarma, el aviso usa el mecanismo normal y el ahorro de batería puede retrasarlo. Toca el interruptor de nuevo para abrir los ajustes de Android.").assertIsDisplayed()
+        // La nota de denegación ya avisa del retraso: la frase genérica no debe duplicarla.
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
         capture("plan_recordatorio_sin_permiso")
+    }
+
+    @Test fun normalModeShowsBatteryDelayNote() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30), true) } }
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertIsDisplayed()
+        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").assertDoesNotExist()
+        capture("plan_recordatorio_normal")
     }
 
     @Test fun warnsWhenNotificationsAreOff() {

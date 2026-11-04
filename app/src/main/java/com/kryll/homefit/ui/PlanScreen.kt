@@ -131,6 +131,12 @@ fun PlanScreen(
                         }
                     }
                     Text(stringResource(R.string.plan_reminder_note), style = MaterialTheme.typography.bodySmall)
+                    if (prefs.enabled && !prefs.exact) {
+                        Text(stringResource(R.string.plan_reminder_note_delay), style = MaterialTheme.typography.bodySmall)
+                    } else if (prefs.enabled && prefs.exact && exactAllowed) {
+                        // Sin promesa absoluta de puntualidad; la denegación ya avisa arriba (sin duplicar).
+                        Text(stringResource(R.string.plan_reminder_note_exact), style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
         }

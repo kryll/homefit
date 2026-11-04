@@ -21,7 +21,9 @@
     <string name="plan_hour_plus">+ hora</string>
     <string name="plan_min_minus">− 5 min</string>
     <string name="plan_min_plus">+ 5 min</string>
-    <string name="plan_reminder_note">Solo en los días que elegiste en tu perfil. Android puede retrasar el aviso por el ahorro de batería.</string>
+    <string name="plan_reminder_note">Solo en los días que elegiste en tu perfil.</string>
+    <string name="plan_reminder_note_delay">Android puede retrasar el aviso por el ahorro de batería.</string>
+    <string name="plan_reminder_note_exact">Android intenta avisar a la hora elegida incluso con ahorro de batería.</string>
     <string name="plan_notifications_off">Las notificaciones de HomeFit están desactivadas en el sistema: actívalas para recibir el aviso.</string>
     <string name="plan_auto">Generar plan de la semana</string>
     <string name="plan_clear">Vaciar semana</string>
