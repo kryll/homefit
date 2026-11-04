@@ -17,9 +17,19 @@ def P(x, y): return (x * SC, y * SC)
 def draw_fig(dr, j, lw=7):
     def seg(a, b, w=lw):
         dr.line([P(*a), P(*b)], fill=INK, width=int(w * SC), joint='curve')
+    def far(a, b, w=lw):
+        dr.line([P(*a), P(*b)], fill=FAR, width=int(w * SC), joint='curve')
     def dot(a, r=2.6):
         x, y = P(*a); rr = r * SC
         dr.ellipse([x - rr, y - rr, x + rr, y + rr], fill=INK)
+    # extremidades lejanas primero (quedan tras el tronco)
+    if 'elbow2' in j:
+        far(j['shoulder'], j['elbow2']); far(j['elbow2'], j['hand2'])
+    if 'knee2' in j:
+        far(j['hip'], j['knee2']); far(j['knee2'], j['foot2'])
+    if 'shoulderBar' in j:
+        w2 = j['shoulderBar']
+        far((j['shoulder'][0] - w2, j['shoulder'][1]), (j['shoulder'][0] + w2, j['shoulder'][1]), w=5)
     # cabeza
     hx, hy = P(*j['head']); hr = 5.2 * SC
     dr.ellipse([hx - hr, hy - hr, hx + hr, hy + hr], outline=INK, width=int(3.2 * SC))
@@ -29,16 +39,9 @@ def draw_fig(dr, j, lw=7):
     else:
         seg(j['neck'], j['hip'])
     seg(j['neck'], j['shoulder']) if False else None
-    # brazo (y segundo brazo opcional, en tono claro)
+    # brazo y pierna cercanos
     seg(j['shoulder'], j['elbow']); seg(j['elbow'], j['hand'])
-    if 'elbow2' in j:
-        dr.line([P(*j['shoulder']), P(*j['elbow2'])], fill=FAR, width=int(lw * SC), joint='curve')
-        dr.line([P(*j['elbow2']), P(*j['hand2'])], fill=FAR, width=int(lw * SC), joint='curve')
-    # pierna (y segunda pierna opcional, en tono claro)
     seg(j['hip'], j['knee']); seg(j['knee'], j['foot'])
-    if 'knee2' in j:
-        dr.line([P(*j['hip']), P(*j['knee2'])], fill=FAR, width=int(lw * SC), joint='curve')
-        dr.line([P(*j['knee2']), P(*j['foot2'])], fill=FAR, width=int(lw * SC), joint='curve')
     # articulaciones
     for k in ('shoulder', 'elbow', 'hip', 'knee', 'elbow2', 'knee2'):
         if k in j: dot(j[k])
@@ -144,10 +147,8 @@ POSES = {
   ],
   # elevacion de gemelos (0 = pie plano; 1 = de puntillas)
   'elevacion_gemelos': [
-    dict(head=(46, 18), neck=(46, 26), shoulder=(46, 30), elbow=(50, 44), hand=(53, 56),
-         hip=(46, 58), knee=(47, 72), foot=(46, 86)),
-    dict(head=(46, 12), neck=(46, 20), shoulder=(46, 24), elbow=(50, 38), hand=(53, 50),
-         hip=(46, 52), knee=(49, 70), foot=(42, 84)),
+    dict(head=(46, 18), neck=(46, 26), shoulder=(46, 30), elbow=(50, 44), hand=(53, 56), hip=(46, 58), knee=(47, 72), foot=(46, 82)),
+    dict(head=(46, 12), neck=(46, 20), shoulder=(46, 24), elbow=(50, 38), hand=(53, 50), hip=(46, 52), knee=(49, 68), foot=(44, 76)),
   ],
   # estiramiento de isquiotibiales sentado
   'estiramiento_isquios': [
@@ -188,12 +189,8 @@ POSES = {
   ],
   # russian twist (sentado en V; 0 = manos a un lado; 1 = al otro)
   'russian_twist': [
-    dict(head=(40, 38), neck=(40, 46), shoulder=(41, 50), elbow=(32, 58), hand=(24, 64),
-         elbow2=(33, 61), hand2=(25, 67),
-         hip=(50, 80), knee=(64, 68), foot=(74, 76)),
-    dict(head=(40, 38), neck=(40, 46), shoulder=(41, 50), elbow=(52, 58), hand=(62, 62),
-         elbow2=(51, 61), hand2=(61, 65),
-         hip=(50, 80), knee=(64, 68), foot=(74, 76)),
+    dict(head=(44, 34), neck=(44, 42), shoulder=(44, 46), shoulderBar=7, elbow=(36, 56), hand=(28, 62), elbow2=(37, 59), hand2=(29, 65), hip=(48, 80), knee=(62, 70), foot=(72, 78), knee2=(58, 74), foot2=(70, 82)),
+    dict(head=(44, 34), neck=(44, 42), shoulder=(44, 46), shoulderBar=7, elbow=(54, 56), hand=(62, 62), elbow2=(53, 59), hand2=(61, 65), hip=(48, 80), knee=(62, 70), foot=(72, 78), knee2=(58, 74), foot2=(70, 82)),
   ],
   # dead bug (tumbado boca arriba; 0 = brazos arriba y piernas en mesa; 1 = brazo y pierna contrarios extendidos)
   'dead_bug': [
@@ -213,12 +210,8 @@ POSES = {
   ],
   # pajaros con banda (0 = brazos al frente juntos; 1 = brazos abiertos, banda estirada)
   'pajaros': [
-    dict(head=(44, 18), neck=(44, 26), shoulder=(44, 30), elbow=(54, 31), hand=(64, 32),
-         elbow2=(53, 35), hand2=(63, 36),
-         hip=(44, 58), knee=(45, 72), foot=(47, 86)),
-    dict(head=(44, 18), neck=(44, 26), shoulder=(44, 30), elbow=(56, 36), hand=(70, 42),
-         elbow2=(32, 36), hand2=(20, 42),
-         hip=(44, 58), knee=(45, 72), foot=(47, 86)),
+    dict(head=(34, 34), neck=(38, 40), shoulder=(42, 43), elbow=(48, 58), hand=(50, 72), elbow2=(44, 60), hand2=(46, 74), hip=(62, 52), knee=(56, 68), foot=(52, 86), knee2=(60, 70), foot2=(58, 86), spineMid=(52, 46)),
+    dict(head=(34, 34), neck=(38, 40), shoulder=(42, 43), elbow=(56, 40), hand=(70, 38), elbow2=(30, 40), hand2=(16, 38), hip=(62, 52), knee=(56, 68), foot=(52, 86), knee2=(60, 70), foot2=(58, 86), spineMid=(52, 46)),
   ],
   # remo con banda sentado (banda en los pies)
   'remo_banda': [
@@ -229,17 +222,13 @@ POSES = {
   ],
   # jalon con banda (anclaje alto, 0 = brazos arriba; 1 = tirar al pecho)
   'jalon_banda': [
-    dict(head=(42, 26), neck=(42, 34), shoulder=(42, 38), elbow=(48, 22), hand=(56, 8),
-         hip=(42, 64), knee=(44, 76), foot=(46, 86)),
-    dict(head=(42, 28), neck=(42, 36), shoulder=(42, 40), elbow=(48, 50), hand=(44, 44),
-         hip=(42, 64), knee=(44, 76), foot=(46, 86)),
+    dict(head=(42, 34), neck=(42, 42), shoulder=(42, 46), elbow=(48, 28), hand=(56, 12), hip=(42, 70), knee=(44, 86), foot=(56, 86)),
+    dict(head=(42, 36), neck=(42, 44), shoulder=(42, 48), elbow=(48, 56), hand=(44, 50), hip=(42, 70), knee=(44, 86), foot=(56, 86)),
   ],
   # curl de biceps con banda (pisando la banda)
   'curl_banda': [
-    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(45, 44), hand=(46, 60),
-         hip=(44, 56), knee=(45, 70), foot=(44, 86)),
-    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(44, 48), hand=(38, 28),
-         hip=(44, 56), knee=(45, 70), foot=(44, 86)),
+    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(50, 42), hand=(52, 58), hip=(44, 56), knee=(45, 70), foot=(44, 86)),
+    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(50, 44), hand=(42, 26), hip=(44, 56), knee=(45, 70), foot=(44, 86)),
   ],
   # face pull con banda (anclaje a la altura de la cara)
   'face_pull_banda': [
@@ -290,10 +279,8 @@ POSES = {
   ],
   # sentadilla pistol (a una pierna, la otra extendida al frente)
   'sentadilla_pistol': [
-    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(50, 40), hand=(56, 44),
-         hip=(44, 56), knee=(46, 70), foot=(46, 86)),
-    dict(head=(38, 48), neck=(38, 56), shoulder=(39, 60), elbow=(48, 56), hand=(58, 52),
-         hip=(38, 74), knee=(46, 70), foot=(46, 86), knee2=(54, 68), foot2=(70, 68)),
+    dict(head=(44, 16), neck=(44, 24), shoulder=(44, 28), elbow=(52, 34), hand=(62, 38), hip=(44, 56), knee=(46, 70), foot=(46, 86)),
+    dict(head=(38, 46), neck=(38, 54), shoulder=(39, 58), elbow=(48, 52), hand=(62, 38), hip=(38, 74), knee=(46, 70), foot=(46, 86), knee2=(54, 68), foot2=(70, 68)),
   ],
   # sentadilla bulgara (pie trasero en el banco)
   'sentadilla_bulgara': [
@@ -311,17 +298,13 @@ POSES = {
   ],
   # curl femoral en el suelo (puente; 1 = piernas extendidas)
   'curl_femoral_suelo': [
-    dict(head=(18, 78), neck=(24, 80), shoulder=(28, 78), elbow=(24, 84), hand=(20, 86),
-         hip=(48, 74), knee=(56, 64), foot=(64, 84)),
-    dict(head=(18, 80), neck=(24, 82), shoulder=(28, 82), elbow=(24, 85), hand=(20, 87),
-         hip=(48, 82), knee=(64, 80), foot=(82, 86)),
+    dict(head=(18, 76), neck=(24, 78), shoulder=(28, 76), elbow=(22, 82), hand=(18, 85), hip=(48, 68), knee=(58, 60), foot=(62, 84)),
+    dict(head=(18, 76), neck=(24, 78), shoulder=(28, 76), elbow=(22, 82), hand=(18, 85), hip=(50, 70), knee=(66, 68), foot=(84, 84)),
   ],
   # hip thrust (espalda alta en el banco; 0 = cadera abajo; 1 = cadera arriba)
   'hip_thrust': [
-    dict(head=(22, 52), neck=(27, 55), shoulder=(32, 56), elbow=(36, 64), hand=(42, 68),
-         hip=(48, 78), knee=(62, 74), foot=(64, 86)),
-    dict(head=(22, 48), neck=(27, 51), shoulder=(32, 53), elbow=(38, 58), hand=(46, 58),
-         hip=(52, 54), knee=(64, 62), foot=(64, 86)),
+    dict(head=(24, 48), neck=(29, 52), shoulder=(33, 53), elbow=(38, 62), hand=(44, 66), hip=(50, 78), knee=(62, 74), foot=(64, 86)),
+    dict(head=(24, 46), neck=(29, 50), shoulder=(33, 51), elbow=(40, 56), hand=(48, 56), hip=(54, 53), knee=(64, 62), foot=(64, 86)),
   ],
   # abduccion de cadera tumbado de lado (0 = piernas juntas; 1 = pierna superior arriba)
   'abduccion_cadera_lateral': [
@@ -339,17 +322,13 @@ POSES = {
   ],
   # elevacion de gemelos a una pierna
   'elevacion_gemelos_una_pierna': [
-    dict(head=(46, 18), neck=(46, 26), shoulder=(46, 30), elbow=(50, 44), hand=(53, 56),
-         hip=(46, 58), knee=(47, 72), foot=(46, 86), knee2=(42, 72), foot2=(38, 64)),
-    dict(head=(46, 12), neck=(46, 20), shoulder=(46, 24), elbow=(50, 38), hand=(53, 50),
-         hip=(46, 52), knee=(49, 70), foot=(42, 84), knee2=(42, 68), foot2=(38, 60)),
+    dict(head=(46, 18), neck=(46, 26), shoulder=(46, 30), elbow=(56, 34), hand=(66, 36), hip=(46, 58), knee=(47, 72), foot=(46, 86), knee2=(42, 72), foot2=(38, 64)),
+    dict(head=(46, 12), neck=(46, 20), shoulder=(46, 24), elbow=(56, 30), hand=(66, 32), hip=(46, 52), knee=(49, 70), foot=(42, 84), knee2=(42, 68), foot2=(38, 60)),
   ],
   # plancha con toque de hombro (1 = una mano toca el hombro contrario)
   'plancha_toque_hombro': [
-    dict(head=(25, 40), neck=(29, 46), shoulder=(32, 49), elbow=(34, 67), hand=(35, 86),
-         hip=(58, 60), knee=(72, 74), foot=(88, 82), spineMid=(45, 52)),
-    dict(head=(25, 40), neck=(29, 46), shoulder=(32, 49), elbow=(26, 62), hand=(33, 47),
-         hip=(58, 60), knee=(72, 74), foot=(88, 82), spineMid=(45, 52)),
+    dict(head=(25, 40), neck=(29, 46), shoulder=(32, 49), elbow=(34, 67), hand=(35, 86), hip=(58, 60), knee=(72, 74), foot=(88, 84), knee2=(74, 78), foot2=(90, 87), spineMid=(45, 52)),
+    dict(head=(25, 40), neck=(29, 46), shoulder=(32, 49), elbow=(26, 62), hand=(33, 47), hip=(58, 60), knee=(72, 74), foot=(88, 84), knee2=(74, 78), foot2=(90, 87), spineMid=(45, 52)),
   ],
   # elevacion de piernas tumbado (0 = piernas en el suelo; 1 = piernas verticales)
   'elevacion_piernas': [
@@ -367,10 +346,8 @@ POSES = {
   ],
   # skipping lateral (desplazamiento lateral; 1 = pierna elevada al lado)
   'skipping_lateral': [
-    dict(head=(46, 24), neck=(46, 32), shoulder=(46, 36), elbow=(52, 48), hand=(56, 58),
-         hip=(46, 60), knee=(44, 72), foot=(42, 86), knee2=(52, 72), foot2=(54, 86)),
-    dict(head=(46, 20), neck=(46, 28), shoulder=(46, 32), elbow=(52, 44), hand=(56, 54),
-         hip=(46, 56), knee=(42, 68), foot=(40, 86), knee2=(58, 56), foot2=(62, 70)),
+    dict(head=(46, 28), neck=(46, 36), shoulder=(46, 40), elbow=(52, 52), hand=(56, 62), hip=(46, 64), knee=(42, 74), foot=(40, 86), knee2=(54, 74), foot2=(56, 86)),
+    dict(head=(46, 24), neck=(46, 32), shoulder=(46, 36), elbow=(52, 48), hand=(56, 58), hip=(46, 60), knee=(40, 70), foot=(38, 86), knee2=(60, 60), foot2=(64, 74)),
   ],
   # shadow boxing (guardia; 1 = jab directo)
   'shadow_boxing': [
@@ -412,15 +389,13 @@ POSES = {
   ],
   # estiramiento de pecho en la pared (0 = brazo apoyado; 1 = giro alejandose)
   'estiramiento_pecho': [
-    dict(head=(54, 20), neck=(54, 28), shoulder=(54, 32), elbow=(64, 34), hand=(76, 36),
-         hip=(54, 60), knee=(55, 72), foot=(57, 86)),
-    dict(head=(40, 22), neck=(42, 30), shoulder=(44, 34), elbow=(60, 34), hand=(76, 36),
-         hip=(44, 62), knee=(36, 74), foot=(30, 86), knee2=(50, 74), foot2=(54, 86)),
+    dict(head=(54, 20), neck=(54, 28), shoulder=(54, 32), elbow=(66, 36), hand=(72, 24), hip=(54, 60), knee=(55, 72), foot=(57, 86)),
+    dict(head=(42, 22), neck=(44, 30), shoulder=(46, 34), elbow=(62, 36), hand=(72, 24), hip=(44, 62), knee=(36, 74), foot=(30, 86), knee2=(52, 74), foot2=(56, 86)),
   ],
 }
 PROPS = {
-  'almeja': [[], []],
-  'elevacion_gemelos_una_pierna': [[], []],
+  'almeja': [[('band', (62, 72), (64, 76))], [('band', (52, 58), (64, 74))]],
+  'elevacion_gemelos_una_pierna': [[('wall', 72)], [('wall', 72)]],
   'plancha_toque_hombro': [[], []],
   'elevacion_piernas': [[], []],
   'hollow_hold': [[], []],
@@ -428,24 +403,24 @@ PROPS = {
   'shadow_boxing': [[], []],
   'swing_kettlebell': [[('kb', 56, 78)], [('kb', 70, 42)]],
   'press_kettlebell': [[('kb', 44, 28)], [('kb', 47, 4)]],
-  'paseo_monstruo': [[('band', (40, 68), (54, 68))], [('band', (34, 70), (60, 70))]],
+  'paseo_monstruo': [[('band', (41, 64), (53, 64))], [('band', (36, 66), (58, 66))]],
   'estiramiento_cuadriceps': [[], []],
-  'estiramiento_pecho': [[('wall', 80)], [('wall', 80)]],
+  'estiramiento_pecho': [[('wall', 78)], [('wall', 78)]],
   'sentadilla_goblet': [[('kb', 53, 42)], [('kb', 51, 56)]],
   'sentadilla_sumo': [[], []],
-  'sentadilla_pistol': [[], []],
+  'sentadilla_pistol': [[('wall', 68)], [('wall', 68)]],
   'sentadilla_bulgara': [[('bench', 66, 60, 14, 6)], [('bench', 66, 60, 14, 6)]],
   'buenos_dias': [[], []],
   'curl_femoral_suelo': [[], []],
-  'hip_thrust': [[('bench', 16, 52, 12, 8), ('kb', 48, 72)], [('bench', 16, 52, 12, 8), ('kb', 52, 48)]],
+  'hip_thrust': [[('bench', 14, 46, 16, 8), ('kb', 50, 72)], [('bench', 14, 46, 16, 8), ('kb', 54, 47)]],
   'abduccion_cadera_lateral': [[], []],
-  'pajaros': [[('band', (64, 32), (63, 36))], [('band', (70, 42), (20, 42))]],
+  'pajaros': [[('kb', 50, 76)], [('kb', 74, 38)]],
   'remo_banda': [[('band', (61, 72), (72, 82))], [('band', (38, 74), (72, 82))]],
-  'jalon_banda': [[('band', (56, 8), (64, 2))], [('band', (44, 44), (64, 2))]],
-  'curl_banda': [[('band', (46, 60), (52, 86))], [('band', (38, 28), (52, 86))]],
+  'jalon_banda': [[('band', (56, 12), (62, 4))], [('band', (44, 50), (62, 4))]],
+  'curl_banda': [[('band', (52, 58), (54, 86))], [('band', (42, 26), (54, 86))]],
   'face_pull_banda': [[('wall', 82), ('band', (82, 30), (62, 32))], [('wall', 82), ('band', (82, 30), (42, 28))]],
   'press_pecho_banda': [[('band', (52, 40), (38, 34))], [('band', (72, 36), (38, 34))]],
-  'aperturas_banda': [[('band', (68, 44), (22, 44))], [('band', (64, 36), (40, 30))]],
+  'aperturas_banda': [[('band', (68, 44), (38, 34))], [('band', (64, 36), (38, 34))]],
   'pallof_press': [[('wall', 16), ('band', (16, 38), (54, 38))], [('wall', 16), ('band', (16, 38), (70, 36))]],
   'jumping_jacks': [[], []],
   'rodillas_altas': [[], []],
@@ -461,7 +436,7 @@ PROPS = {
   'zancada_atras': [[], []],
   'subida_banco': [[('bench', 60, 60, 16, 8)], [('bench', 60, 60, 16, 8)]],
   'plancha_rodillas': [[], []],
-  'elevacion_gemelos': [[], []],
+  'elevacion_gemelos': [[('bench', 36, 80, 20, 6)], [('bench', 36, 80, 20, 6)]],
   'estiramiento_isquios': [[], []],
   'flexiones_rodillas': [[], []],
   'gato_camello': [[], []],
