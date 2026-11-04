@@ -57,6 +57,19 @@ interface ExerciseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(items: List<Exercise>)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAllIgnore(items: List<Exercise>)
+
+    /** UPDATE por clave primaria: no borra la fila (un REPLACE dispararia el CASCADE de las tablas de unión). */
+    @Update
+    suspend fun updateAll(items: List<Exercise>)
+
+    @Query("DELETE FROM exercise_muscle WHERE exerciseId = :exerciseId")
+    suspend fun deleteMusclesOf(exerciseId: String)
+
+    @Query("DELETE FROM exercise_equipment WHERE exerciseId = :exerciseId")
+    suspend fun deleteEquipmentOf(exerciseId: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMuscles(items: List<ExerciseMuscle>)
 
