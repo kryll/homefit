@@ -55,6 +55,10 @@ android {
     testOptions { unitTests { isReturnDefaultValues = true; isIncludeAndroidResources = true } }
 }
 
+// Esquemas Room commiteados (app/schemas): al cambiar entities/DAOs/versión de la DB,
+// el PR que lo haga debe commitear el nuevo <version>.json generado por el build.
+// Con el esquema actual commiteado, Room no lo reescribe en CI (evita el fallo
+// intermitente "Empty schema file" por escrituras concurrentes debug/release).
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
 dependencies {
