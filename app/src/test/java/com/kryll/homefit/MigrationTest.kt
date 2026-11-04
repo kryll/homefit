@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.kryll.homefit.data.HomeFitDatabase
 import com.kryll.homefit.data.MIGRATION_1_2
+import com.kryll.homefit.data.MIGRATION_2_3
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -16,7 +17,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Migración real 1 -> 2 sobre SQLite: crea el esquema v1 desde el JSON exportado (fuente de verdad del esquema
+ * Migración real 1 -> 2 (encadenada 1->2->3, versión actual 3) sobre SQLite: crea el esquema v1 desde el JSON exportado (fuente de verdad del esquema
  * anterior), inserta filas representativas y abre con Room aplicando la migración. Verifica ALTERs, datos
  * retenidos (planJson null, itemIndex -1 en filas viejas) y reapertura válida.
  */
@@ -50,7 +51,7 @@ class MigrationTest {
         sqlite.execSQL("INSERT INTO set_log (sessionId, exerciseId, setIndex, reps) VALUES (1, 'sentadilla', 1, 10)")
         sqlite.close()
 
-        val db = Room.databaseBuilder(context, HomeFitDatabase::class.java, "migration-test.db").addMigrations(MIGRATION_1_2).build()
+        val db = Room.databaseBuilder(context, HomeFitDatabase::class.java, "migration-test.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
         val sessions = db.sessionDao().observeWorkouts().first()
         assertEquals(1, sessions.size)
         assertNull(sessions[0].planJson)
@@ -60,7 +61,7 @@ class MigrationTest {
         db.close()
 
         // Reapertura tras migrar: el esquema queda válido y los datos siguen
-        val reopened = Room.databaseBuilder(context, HomeFitDatabase::class.java, "migration-test.db").addMigrations(MIGRATION_1_2).build()
+        val reopened = Room.databaseBuilder(context, HomeFitDatabase::class.java, "migration-test.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
         assertEquals(1, reopened.sessionDao().setsOf(1).size)
         reopened.close()
         dbFile.delete()

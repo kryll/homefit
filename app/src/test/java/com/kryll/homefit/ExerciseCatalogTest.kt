@@ -21,6 +21,20 @@ class ExerciseCatalogTest {
         }
     }
 
+    @Test fun everyExerciseHasEasierAndHarderVariant() {
+        catalog.exercises.forEach {
+            assertTrue("${it.id} sin variante más fácil", it.easierVariantId != null || !it.easierText.isNullOrBlank())
+            assertTrue("${it.id} sin variante más difícil", it.harderVariantId != null || !it.harderText.isNullOrBlank())
+        }
+    }
+
+    @Test fun variantTextsOnlyWhereNoChainedVariant() {
+        catalog.exercises.forEach {
+            assertTrue("${it.id} duplica variante fácil", it.easierVariantId == null || it.easierText == null)
+            assertTrue("${it.id} duplica variante difícil", it.harderVariantId == null || it.harderText == null)
+        }
+    }
+
     @Test fun everyExerciseHasStepsAndMuscle() {
         catalog.exercises.forEach {
             assertTrue(it.id, it.steps.lines().size >= 2)

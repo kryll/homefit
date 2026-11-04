@@ -29,11 +29,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Publicar capturas en la rama ci-shots (solo PRs del propio repo)
-        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: success() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
           rm -rf /tmp/pub && mkdir -p /tmp/pub
           cp -r app/build/outputs/compose-shots/. /tmp/pub/ || true
           cd /tmp/pub
+          if ! find . -name '*.png' -print -quit | grep -q .; then
+            echo "Sin capturas PNG: no se publica; se conserva la última evidencia válida en ci-shots"
+            exit 0
+          fi
           echo "Capturas Robolectric del commit ${{ github.event.pull_request.head.sha }}" > README.txt
           git init -q
           git config user.name "homefit-ci"

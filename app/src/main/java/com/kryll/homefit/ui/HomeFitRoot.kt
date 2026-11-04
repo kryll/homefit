@@ -247,11 +247,17 @@ private fun PlanTab(onStart: (Long) -> Unit) {
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
     ) { refresh++ }
     val u = ui ?: return
-    val prefs = com.kryll.homefit.domain.ReminderPrefs(u.prefs.enabled, u.prefs.hour, u.prefs.minute, u.prefs.leadMinutes)
+    var exactRefresh by remember { mutableStateOf(0) }
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        exactRefresh++
+        vm.syncReminders()
+    }
+    val exactAllowed = remember(exactRefresh) { com.kryll.homefit.reminders.ExactReminders.canSchedule(context) }
+    val prefs = com.kryll.homefit.domain.ReminderPrefs(u.prefs.enabled, u.prefs.hour, u.prefs.minute, u.prefs.leadMinutes, u.prefs.exact)
 
     PlanScreen(
         today = u.today, zone = u.zone, daysMask = u.daysMask, routines = u.routines, scheduled = u.scheduled, workouts = u.workouts,
-        prefs = prefs, notificationsAllowed = notificationsAllowed,
+        prefs = prefs, notificationsAllowed = notificationsAllowed, exactAllowed = exactAllowed,
         onAssign = { d, rid -> vm.assign(d, rid) },
         onAuto = { vm.autoPlan() },
         onClear = { vm.clearWeek() },
@@ -260,7 +266,8 @@ private fun PlanTab(onStart: (Long) -> Unit) {
         onStart = onStart,
         onPrefs = { n ->
             if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            vm.saveReminderPrefs(ReminderPrefsUi(n.enabled, n.hour, n.minute, n.leadMinutes))
+            if (n.exact && !prefs.exact) com.kryll.homefit.reminders.ExactReminders.permissionIntent(context)?.let { context.startActivity(it) }
+            vm.saveReminderPrefs(ReminderPrefsUi(n.enabled, n.hour, n.minute, n.leadMinutes, n.exact))
         },
     )
 }

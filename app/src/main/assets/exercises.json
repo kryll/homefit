@@ -88,7 +88,8 @@
     "images": [
       "media/flexiones_diamante_0.jpg",
       "media/flexiones_diamante_1.jpg"
-    ]
+    ],
+    "harderText": "Eleva los pies sobre un banco o añade una pausa de 2 s abajo."
   },
   {
     "id": "flexiones_inclinadas",
@@ -118,7 +119,8 @@
     "images": [
       "media/flexiones_inclinadas_0.jpg",
       "media/flexiones_inclinadas_1.jpg"
-    ]
+    ],
+    "easierText": "Apoya las manos en una superficie más alta (pared o encimera) para reducir la carga."
   },
   {
     "id": "flexiones_declinadas",
@@ -148,7 +150,8 @@
     "images": [
       "media/flexiones_declinadas_0.jpg",
       "media/flexiones_declinadas_1.jpg"
-    ]
+    ],
+    "harderText": "Añade una pausa de 2 s abajo o hazlas con una mochila lastrada."
   },
   {
     "id": "press_banca_mancuernas",
@@ -180,7 +183,8 @@
     "images": [
       "media/press_banca_mancuernas_0.jpg",
       "media/press_banca_mancuernas_1.jpg"
-    ]
+    ],
+    "harderText": "Aumenta el peso, o baja en 3-4 s (excéntrica lenta) manteniendo el control."
   },
   {
     "id": "press_suelo_mancuernas",
@@ -209,7 +213,8 @@
     "images": [
       "media/press_suelo_mancuernas_0.jpg",
       "media/press_suelo_mancuernas_1.jpg"
-    ]
+    ],
+    "easierText": "Usa botellas de agua o menos peso, o haz el press alternando un brazo."
   },
   {
     "id": "aperturas_mancuernas",
@@ -239,7 +244,8 @@
     "images": [
       "media/aperturas_mancuernas_0.jpg",
       "media/aperturas_mancuernas_1.jpg"
-    ]
+    ],
+    "harderText": "Baja en 3-4 s (excéntrica lenta) o añade una pausa con los brazos abiertos."
   },
   {
     "id": "fondos_banco",
@@ -298,7 +304,8 @@
     "images": [
       "media/fondos_banco_rodillas_0.jpg",
       "media/fondos_banco_rodillas_1.jpg"
-    ]
+    ],
+    "easierText": "Acerca más los pies al banco y baja solo hasta donde controles el movimiento."
   },
   {
     "id": "fondos_paralelas",
@@ -328,7 +335,8 @@
     "images": [
       "media/fondos_paralelas_0.jpg",
       "media/fondos_paralelas_1.jpg"
-    ]
+    ],
+    "harderText": "Añade lastre con una mochila o baja más despacio (3-4 s) con pausa abajo."
   },
   {
     "id": "extension_triceps_mancuerna",
@@ -382,7 +390,8 @@
     "images": [
       "media/patada_triceps_0.jpg",
       "media/patada_triceps_1.jpg"
-    ]
+    ],
+    "easierText": "Hazlo sin peso o con una botella ligera, con el codo bien pegado al cuerpo."
   },
   {
     "id": "press_militar_mancuernas",
@@ -411,7 +420,9 @@
     "images": [
       "media/press_militar_mancuernas_0.jpg",
       "media/press_militar_mancuernas_1.jpg"
-    ]
+    ],
+    "easierText": "Hazlo sentado con respaldo y con botellas de agua en lugar de mancuernas.",
+    "harderText": "Hazlo a un brazo alternando lados, o baja en 3-4 s (excéntrica lenta)."
   },
   {
     "id": "elevaciones_laterales",
@@ -439,7 +450,8 @@
     "images": [
       "media/elevaciones_laterales_0.jpg",
       "media/elevaciones_laterales_1.jpg"
-    ]
+    ],
+    "easierText": "Usa botellas ligeras o sube solo hasta la altura de los hombros con control."
   },
   {
     "id": "elevaciones_frontales",
@@ -466,7 +478,8 @@
     "images": [
       "media/elevaciones_frontales_0.jpg",
       "media/elevaciones_frontales_1.jpg"
-    ]
+    ],
+    "easierText": "Usa botellas ligeras o alterna un brazo, subiendo solo hasta la altura de los hombros."
   },
   {
     "id": "pajaros",
@@ -495,7 +508,8 @@
     "images": [
       "media/pajaros_0.jpg",
       "media/pajaros_1.jpg"
-    ]
+    ],
+    "harderText": "Añade una pausa de 2 s con los brazos abiertos o sube el peso ligeramente."
   },
   {
     "id": "pike_push_up",
@@ -524,7 +538,8 @@
     "images": [
       "media/pike_push_up_0.jpg",
       "media/pike_push_up_1.jpg"
-    ]
+    ],
+    "harderText": "Eleva los pies sobre un banco para cargar más el hombro (flexión pike elevada)."
   },
   {
     "id": "remo_mancuerna",
@@ -612,7 +627,8 @@
     "images": [
       "media/remo_banda_0.jpg",
       "media/remo_banda_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una banda más floja o agarra más largo para reducir la tensión."
   },
   {
     "id": "remo_invertido",
@@ -671,7 +687,8 @@
     "images": [
       "media/dominadas_0.jpg",
       "media/dominadas_1.jpg"
-    ]
+    ],
+    "harderText": "Añade lastre con una mochila o alarga la bajada a 3-4 s controlada."
   },
   {
     "id": "dominadas_banda",
@@ -730,7 +747,8 @@
     "images": [
       "media/jalon_banda_0.jpg",
       "media/jalon_banda_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una banda más floja o tira solo hasta la altura del pecho."
   },
   {
     "id": "superman",
@@ -759,7 +777,9 @@
     "images": [
       "media/superman_0.jpg",
       "media/superman_1.jpg"
-    ]
+    ],
+    "easierText": "Levanta solo el pecho o solo las piernas, alternando, sin forzar la zona lumbar.",
+    "harderText": "Mantén la contracción arriba 3-5 s en cada repetición."
   },
   {
     "id": "curl_biceps_mancuernas",
@@ -845,7 +865,8 @@
     "images": [
       "media/curl_concentrado_0.jpg",
       "media/curl_concentrado_1.jpg"
-    ]
+    ],
+    "harderText": "Baja en 3-4 s (excéntrica lenta) o añade una pausa de 1-2 s arriba."
   },
   {
     "id": "curl_banda",
@@ -872,7 +893,8 @@
     "images": [
       "media/curl_banda_0.jpg",
       "media/curl_banda_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una banda más floja o pisa la banda con un solo pie para reducir la tensión."
   },
   {
     "id": "sentadilla",
@@ -932,7 +954,8 @@
     "images": [
       "media/sentadilla_silla_0.jpg",
       "media/sentadilla_silla_1.jpg"
-    ]
+    ],
+    "easierText": "Sube la altura de apoyo con un cojín en la silla o sujétate del respaldo."
   },
   {
     "id": "sentadilla_goblet",
@@ -993,7 +1016,8 @@
     "images": [
       "media/sentadilla_sumo_0.jpg",
       "media/sentadilla_sumo_1.jpg"
-    ]
+    ],
+    "harderText": "Sujeta una mochila o una botella al pecho (goblet), o baja en 3-4 s."
   },
   {
     "id": "sentadilla_salto",
@@ -1023,7 +1047,8 @@
     "images": [
       "media/sentadilla_salto_0.jpg",
       "media/sentadilla_salto_1.jpg"
-    ]
+    ],
+    "harderText": "Salta más alto y encadena las repeticiones sin pausa, manteniendo aterrizajes suaves."
   },
   {
     "id": "sentadilla_pistol",
@@ -1053,7 +1078,8 @@
     "images": [
       "media/sentadilla_pistol_0.jpg",
       "media/sentadilla_pistol_1.jpg"
-    ]
+    ],
+    "harderText": "Hazla sin apoyo de la pared, o baja en 4-5 s controlando todo el recorrido."
   },
   {
     "id": "zancada",
@@ -1171,7 +1197,8 @@
     "images": [
       "media/sentadilla_bulgara_0.jpg",
       "media/sentadilla_bulgara_1.jpg"
-    ]
+    ],
+    "harderText": "Añade peso (mochila o mancuernas) o baja en 3-4 s con pausa abajo."
   },
   {
     "id": "subida_banco",
@@ -1230,7 +1257,8 @@
     "images": [
       "media/peso_muerto_rumano_0.jpg",
       "media/peso_muerto_rumano_1.jpg"
-    ]
+    ],
+    "harderText": "Sube el peso, hazlo a una pierna o baja en 3-4 s manteniendo la espalda neutra."
   },
   {
     "id": "buenos_dias",
@@ -1260,7 +1288,8 @@
     "images": [
       "media/buenos_dias_0.jpg",
       "media/buenos_dias_1.jpg"
-    ]
+    ],
+    "harderText": "Sujeta una mochila o una mancuerna contra el pecho, o baja en 3-4 s."
   },
   {
     "id": "curl_femoral_suelo",
@@ -1289,7 +1318,8 @@
     "images": [
       "media/curl_femoral_suelo_0.jpg",
       "media/curl_femoral_suelo_1.jpg"
-    ]
+    ],
+    "harderText": "Hazlo a una pierna o alarga la fase de regreso a 4-5 s."
   },
   {
     "id": "puente_gluteos",
@@ -1318,7 +1348,8 @@
     "images": [
       "media/puente_gluteos_0.jpg",
       "media/puente_gluteos_1.jpg"
-    ]
+    ],
+    "easierText": "Reduce el recorrido: sube la cadera sin llegar a alinear del todo y baja despacio."
   },
   {
     "id": "puente_una_pierna",
@@ -1347,7 +1378,8 @@
     "images": [
       "media/puente_una_pierna_0.jpg",
       "media/puente_una_pierna_1.jpg"
-    ]
+    ],
+    "harderText": "Apoya la espalda alta en un banco (hip thrust a una pierna) o añade una pausa de 2 s arriba."
   },
   {
     "id": "hip_thrust",
@@ -1377,7 +1409,8 @@
     "images": [
       "media/hip_thrust_0.jpg",
       "media/hip_thrust_1.jpg"
-    ]
+    ],
+    "harderText": "Añade más peso, hazlo a una pierna o mantén la cadera arriba 2-3 s."
   },
   {
     "id": "patada_gluteo",
@@ -1404,7 +1437,9 @@
     "images": [
       "media/patada_gluteo_0.jpg",
       "media/patada_gluteo_1.jpg"
-    ]
+    ],
+    "easierText": "Eleva la pierna solo hasta la altura de la cadera, o apoya los codos en el suelo.",
+    "harderText": "Añade una banda sobre los muslos o una pausa de 2 s con la pierna arriba."
   },
   {
     "id": "abduccion_cadera_lateral",
@@ -1433,7 +1468,8 @@
     "images": [
       "media/abduccion_cadera_lateral_0.jpg",
       "media/abduccion_cadera_lateral_1.jpg"
-    ]
+    ],
+    "easierText": "Eleva la pierna menos alto y apoya la mano libre delante del pecho para estabilizarte."
   },
   {
     "id": "almeja",
@@ -1460,7 +1496,8 @@
     "images": [
       "media/almeja_0.jpg",
       "media/almeja_1.jpg"
-    ]
+    ],
+    "easierText": "Hazlo sin banda, abriendo las rodillas solo hasta donde controles la pelvis."
   },
   {
     "id": "elevacion_gemelos",
@@ -1487,7 +1524,8 @@
     "images": [
       "media/elevacion_gemelos_0.jpg",
       "media/elevacion_gemelos_1.jpg"
-    ]
+    ],
+    "easierText": "Hazlo en el suelo, sin escalón, y sujétate a una pared o silla."
   },
   {
     "id": "elevacion_gemelos_una_pierna",
@@ -1514,7 +1552,8 @@
     "images": [
       "media/elevacion_gemelos_una_pierna_0.jpg",
       "media/elevacion_gemelos_una_pierna_1.jpg"
-    ]
+    ],
+    "harderText": "Sujeta una mochila o una mancuerna, o baja el talón por debajo del escalón en 3-4 s."
   },
   {
     "id": "plancha",
@@ -1570,7 +1609,8 @@
     "images": [
       "media/plancha_rodillas_0.jpg",
       "media/plancha_rodillas_1.jpg"
-    ]
+    ],
+    "easierText": "Acorta la serie a 10-20 s o apoya las manos en una superficie elevada."
   },
   {
     "id": "plancha_lateral",
@@ -1599,7 +1639,8 @@
     "images": [
       "media/plancha_lateral_0.jpg",
       "media/plancha_lateral_1.jpg"
-    ]
+    ],
+    "harderText": "Eleva la pierna superior o lleva la cadera abajo y arriba sin apoyarla."
   },
   {
     "id": "plancha_toque_hombro",
@@ -1628,7 +1669,8 @@
     "images": [
       "media/plancha_toque_hombro_0.jpg",
       "media/plancha_toque_hombro_1.jpg"
-    ]
+    ],
+    "harderText": "Junta más los pies o alarga la serie manteniendo la cadera estable."
   },
   {
     "id": "crunch",
@@ -1655,7 +1697,8 @@
     "images": [
       "media/crunch_0.jpg",
       "media/crunch_1.jpg"
-    ]
+    ],
+    "easierText": "Cruza las manos sobre el pecho para no tirar del cuello y sube solo la cabeza y los omóplatos."
   },
   {
     "id": "crunch_bicicleta",
@@ -1738,7 +1781,8 @@
     "images": [
       "media/rodillas_pecho_0.jpg",
       "media/rodillas_pecho_1.jpg"
-    ]
+    ],
+    "easierText": "Acerca una rodilla cada vez, alternando, en lugar de las dos a la vez."
   },
   {
     "id": "dead_bug",
@@ -1765,7 +1809,8 @@
     "images": [
       "media/dead_bug_0.jpg",
       "media/dead_bug_1.jpg"
-    ]
+    ],
+    "easierText": "Mueve solo los brazos o solo las piernas en cada repetición, sin hundir la zona lumbar."
   },
   {
     "id": "bird_dog",
@@ -1795,7 +1840,8 @@
     "images": [
       "media/bird_dog_0.jpg",
       "media/bird_dog_1.jpg"
-    ]
+    ],
+    "easierText": "Extiende solo el brazo o solo la pierna en cada repetición."
   },
   {
     "id": "mountain_climbers",
@@ -1852,7 +1898,8 @@
     "images": [
       "media/russian_twist_0.jpg",
       "media/russian_twist_1.jpg"
-    ]
+    ],
+    "harderText": "Sujeta una botella o una mochila con las dos manos, o baja más la espalda sin tocar el suelo."
   },
   {
     "id": "hollow_hold",
@@ -1879,7 +1926,8 @@
     "images": [
       "media/hollow_hold_0.jpg",
       "media/hollow_hold_1.jpg"
-    ]
+    ],
+    "harderText": "Acerca más los brazos y las piernas al suelo sin que se arquee la zona lumbar, o alarga la serie."
   },
   {
     "id": "v_ups",
@@ -1906,7 +1954,8 @@
     "images": [
       "media/v_ups_0.jpg",
       "media/v_ups_1.jpg"
-    ]
+    ],
+    "harderText": "Baja en 3-4 s (excéntrica lenta) o mantén el equilibrio arriba 1-2 s."
   },
   {
     "id": "jumping_jacks",
@@ -1935,7 +1984,8 @@
     "images": [
       "media/jumping_jacks_0.jpg",
       "media/jumping_jacks_1.jpg"
-    ]
+    ],
+    "easierText": "Haz el paso lateral sin salto, alternando un pie cada vez."
   },
   {
     "id": "rodillas_altas",
@@ -1964,7 +2014,8 @@
     "images": [
       "media/rodillas_altas_0.jpg",
       "media/rodillas_altas_1.jpg"
-    ]
+    ],
+    "easierText": "Marcha en el sitio elevando las rodillas, sin trote."
   },
   {
     "id": "burpees",
@@ -1994,7 +2045,8 @@
     "images": [
       "media/burpees_0.jpg",
       "media/burpees_1.jpg"
-    ]
+    ],
+    "harderText": "Añade una flexión completa abajo o un salto más alto al subir."
   },
   {
     "id": "burpees_sin_salto",
@@ -2053,7 +2105,8 @@
     "images": [
       "media/saltar_cuerda_0.jpg",
       "media/saltar_cuerda_1.jpg"
-    ]
+    ],
+    "harderText": "Aumenta el ritmo o alterna un pie, como una carrera con cuerda."
   },
   {
     "id": "patinador",
@@ -2111,7 +2164,8 @@
     "images": [
       "media/skipping_lateral_0.jpg",
       "media/skipping_lateral_1.jpg"
-    ]
+    ],
+    "easierText": "Haz el desplazamiento caminando, sin saltos, con pasos laterales controlados."
   },
   {
     "id": "shadow_boxing",
@@ -2140,7 +2194,8 @@
     "images": [
       "media/shadow_boxing_0.jpg",
       "media/shadow_boxing_1.jpg"
-    ]
+    ],
+    "easierText": "Reduce la velocidad y el recorrido de los golpes; marca el ritmo sin impacto."
   },
   {
     "id": "swing_kettlebell",
@@ -2170,7 +2225,8 @@
     "images": [
       "media/swing_kettlebell_0.jpg",
       "media/swing_kettlebell_1.jpg"
-    ]
+    ],
+    "harderText": "Sube el peso de la kettlebell o hazlo a un brazo alternando."
   },
   {
     "id": "press_kettlebell",
@@ -2199,7 +2255,9 @@
     "images": [
       "media/press_kettlebell_0.jpg",
       "media/press_kettlebell_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una mochila ligera o una botella en lugar de la kettlebell, sentado si necesitas apoyo.",
+    "harderText": "Sube el peso o baja en 3-4 s controlando."
   },
   {
     "id": "remo_kettlebell",
@@ -2257,7 +2315,8 @@
     "images": [
       "media/sentadilla_kettlebell_0.jpg",
       "media/sentadilla_kettlebell_1.jpg"
-    ]
+    ],
+    "harderText": "Sube el peso o baja en 3-4 s con pausa de 2 s abajo."
   },
   {
     "id": "face_pull_banda",
@@ -2286,7 +2345,8 @@
     "images": [
       "media/face_pull_banda_0.jpg",
       "media/face_pull_banda_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una banda más floja y tira solo hasta la altura de los ojos."
   },
   {
     "id": "press_pecho_banda",
@@ -2315,7 +2375,8 @@
     "images": [
       "media/press_pecho_banda_0.jpg",
       "media/press_pecho_banda_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una banda más floja o da un paso atrás para reducir la tensión."
   },
   {
     "id": "aperturas_banda",
@@ -2342,7 +2403,8 @@
     "images": [
       "media/aperturas_banda_0.jpg",
       "media/aperturas_banda_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una banda más floja y abre solo hasta la altura de los hombros."
   },
   {
     "id": "paseo_monstruo",
@@ -2371,7 +2433,8 @@
     "images": [
       "media/paseo_monstruo_0.jpg",
       "media/paseo_monstruo_1.jpg"
-    ]
+    ],
+    "harderText": "Usa una banda más fuerte o baja más la cadera manteniendo la tensión."
   },
   {
     "id": "pallof_press",
@@ -2398,7 +2461,9 @@
     "images": [
       "media/pallof_press_0.jpg",
       "media/pallof_press_1.jpg"
-    ]
+    ],
+    "easierText": "Usa una banda más floja o acércate al anclaje para reducir la tensión.",
+    "harderText": "Aléjate del anclaje, usa una banda más fuerte o añade una pausa de 2-3 s con los brazos extendidos."
   },
   {
     "id": "movilidad_cuello_hombros",
@@ -2425,7 +2490,9 @@
     "images": [
       "media/movilidad_cuello_hombros_0.jpg",
       "media/movilidad_cuello_hombros_1.jpg"
-    ]
+    ],
+    "easierText": "Reduce el recorrido de los círculos y hazlos más despacio, sin forzar.",
+    "harderText": "Amplía el recorrido y enlaza los movimientos más despacio, con control total."
   },
   {
     "id": "gato_camello",
@@ -2454,7 +2521,9 @@
     "images": [
       "media/gato_camello_0.jpg",
       "media/gato_camello_1.jpg"
-    ]
+    ],
+    "easierText": "Reduce el arqueado y muévete solo en la zona media de la espalda, sin forzar el cuello.",
+    "harderText": "Amplía el recorrido y sostén 2-3 s cada posición."
   },
   {
     "id": "postura_nino",
@@ -2483,7 +2552,9 @@
     "images": [
       "media/postura_nino_0.jpg",
       "media/postura_nino_1.jpg"
-    ]
+    ],
+    "easierText": "Separa más las rodillas y apoya la frente en un cojín para reducir la flexión de cadera.",
+    "harderText": "Para más apertura, camina con las manos hacia un lado y hacia el otro, manteniendo 20-30 s."
   },
   {
     "id": "estiramiento_isquios",
@@ -2510,7 +2581,9 @@
     "images": [
       "media/estiramiento_isquios_0.jpg",
       "media/estiramiento_isquios_1.jpg"
-    ]
+    ],
+    "easierText": "Flexiona ligeramente las rodillas o hazlo tumbado, acercando la pierna con las manos.",
+    "harderText": "Acerca más el pecho a la pierna manteniendo la espalda larga, o hazlo de pie con el talón en un escalón."
   },
   {
     "id": "estiramiento_cuadriceps",
@@ -2537,7 +2610,9 @@
     "images": [
       "media/estiramiento_cuadriceps_0.jpg",
       "media/estiramiento_cuadriceps_1.jpg"
-    ]
+    ],
+    "easierText": "Sujétate a una pared y no acerques del todo el talón al glúteo; basta con notar el estiramiento.",
+    "harderText": "Acerca del todo el talón al glúteo sin separar las rodillas y adelanta ligeramente la cadera, o mantén 30-40 s."
   },
   {
     "id": "estiramiento_pecho",
@@ -2566,7 +2641,9 @@
     "images": [
       "media/estiramiento_pecho_0.jpg",
       "media/estiramiento_pecho_1.jpg"
-    ]
+    ],
+    "easierText": "Coloca el antebrazo más bajo en el marco y gira menos el tronco.",
+    "harderText": "Sube el antebrazo por encima de la altura del hombro y gira un poco más el tronco, o mantén 30-40 s."
   },
   {
     "id": "estiramiento_cadera",
@@ -2595,6 +2672,8 @@
     "images": [
       "media/estiramiento_cadera_0.jpg",
       "media/estiramiento_cadera_1.jpg"
-    ]
+    ],
+    "easierText": "Apoya las manos en una silla delante y acorta la zancada.",
+    "harderText": "Alarga la zancada, hunde más la cadera y eleva el brazo del lado de atrás, o mantén 30-40 s."
   }
 ]

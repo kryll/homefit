@@ -86,6 +86,31 @@ class PlanUiTest {
         assertEquals(0, rule.onAllNodes(androidx.compose.ui.test.hasText("Entrenar")).fetchSemanticsNodes().size)
     }
 
+    @Test fun exactSwitchVisibleWithoutNoteWhenGranted() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = true) } }
+        rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
+        // Modo exacto concedido: nota específica sin promesa absoluta y SIN la frase de retraso del modo normal.
+        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").assertIsDisplayed()
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
+        capture("plan_recordatorio_exacto")
+    }
+
+    @Test fun exactDeniedShowsPermissionNote() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = false) } }
+        rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
+        rule.onNodeWithText("Sin el permiso de alarma, el aviso usa el mecanismo normal y el ahorro de batería puede retrasarlo. Toca el interruptor de nuevo para abrir los ajustes de Android.").assertIsDisplayed()
+        // La nota de denegación ya avisa del retraso: la frase genérica no debe duplicarla.
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
+        capture("plan_recordatorio_sin_permiso")
+    }
+
+    @Test fun normalModeShowsBatteryDelayNote() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30), true) } }
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertIsDisplayed()
+        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").assertDoesNotExist()
+        capture("plan_recordatorio_normal")
+    }
+
     @Test fun warnsWhenNotificationsAreOff() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), ReminderPrefs(true), notificationsAllowed = false) } }
         rule.onNodeWithText("Las notificaciones de HomeFit están desactivadas en el sistema: actívalas para recibir el aviso.").assertIsDisplayed()
@@ -130,9 +155,13 @@ class PlanUiTest {
             ScheduledSession(3, 1, ms(today.plusDays(2)), "MOVED"),
         )
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList(), ReminderPrefs(), true) } }
+        // Desplazar hasta cada fila antes de afirmar: la altura de la tarjeta de recordatorio
+        // puede variar con las notas y mover el resto de filas fuera del viewport.
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Cardio suave · Saltada"))
         rule.onNodeWithText("Cardio suave · Saltada").assertIsDisplayed()
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Movida"))
         rule.onNodeWithText("Fuerza en casa · Movida").assertIsDisplayed()
         assertEquals(0, rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().size)
         assertEquals(0, rule.onAllNodesWithText("Saltar").fetchSemanticsNodes().size)

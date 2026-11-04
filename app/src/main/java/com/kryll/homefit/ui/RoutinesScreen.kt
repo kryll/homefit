@@ -222,8 +222,8 @@ private fun ExerciseCatalogList(all: List<Exercise>, equipment: Map<String, Set<
                             Text(stringResource(R.string.safety), style = MaterialTheme.typography.labelLarge)
                             e.safetyTips.lines().forEach { Text("• $it") }
                         }
-                        e.easierVariantId?.let { v -> Text(stringResource(R.string.easier, all.firstOrNull { it.id == v }?.name ?: v)) }
-                        e.harderVariantId?.let { v -> Text(stringResource(R.string.harder, all.firstOrNull { it.id == v }?.name ?: v)) }
+                        (e.easierVariantId?.let { v -> all.firstOrNull { it.id == v }?.name ?: v } ?: e.easierText)?.let { Text(stringResource(R.string.easier, it)) }
+                        (e.harderVariantId?.let { v -> all.firstOrNull { it.id == v }?.name ?: v } ?: e.harderText)?.let { Text(stringResource(R.string.harder, it)) }
                     }
                 }
             }

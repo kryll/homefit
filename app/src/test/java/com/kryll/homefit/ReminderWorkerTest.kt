@@ -13,6 +13,9 @@ import com.kryll.homefit.domain.ReminderPrefs
 import com.kryll.homefit.reminders.ReminderScheduler
 import com.kryll.homefit.reminders.ReminderWorker
 import java.time.LocalDate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -43,7 +46,9 @@ class ReminderWorkerTest {
 
     private fun setup(mask: Int, prefs: ReminderPrefs) = runBlocking {
         app.container.database.profileDao().saveProfile(profile(mask))
-        app.container.settings.update { it.copy(reminderEnabled = prefs.enabled, reminderHour = prefs.hour, reminderMinute = prefs.minute, reminderLeadMinutes = prefs.leadMinutes) }
+        // La marca de día vive en DataStore, que NO se reinicia entre métodos de test (a diferencia de
+        // los shadows): sin este reset, un test que avisó deja la marca en hoy y los siguientes no avisan.
+        app.container.settings.update { it.copy(reminderEnabled = prefs.enabled, reminderHour = prefs.hour, reminderMinute = prefs.minute, reminderLeadMinutes = prefs.leadMinutes, reminderFiredEpochDay = -1) }
     }
 
     private fun infos(): List<WorkInfo> =
@@ -130,6 +135,48 @@ class ReminderWorkerTest {
         }
         runWorker()
         assertEquals(0, shadowOf(nm).allNotifications.size)
+    }
+
+    @Test fun dailyReminderMarksTheDaySoTheBackupDoesNotRepeatIt() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        assertEquals(ListenableWorker.Result.success(), runWorker())
+        assertEquals(1, shadowOf(nm).allNotifications.size)
+        assertEquals(LocalDate.now().toEpochDay(), runBlocking { app.container.settings.settings.first() }.reminderFiredEpochDay)
+        // Si el usuario quita el aviso y el respaldo de WorkManager dispara el mismo día, no repite…
+        nm.cancel(com.kryll.homefit.reminders.ReminderNotifier.NOTIFICATION_ID)
+        assertEquals(ListenableWorker.Result.success(), runWorker())
+        assertEquals(0, shadowOf(nm).allNotifications.size)
+        assertEquals(1, enqueued().size) // …pero el ciclo diario se reprograma igual
+    }
+
+    @Test fun concurrentCyclesNotifyOnlyOnce() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        // Alarma y respaldo liberados a la vez (p. ej. ambos atrasados hasta un arranque): el mutex del
+        // ciclo hace atómico el leer-marcar-reprogramar. Se cuentan las EMISIONES reales del aviso diario
+        // (no basta el estado final: dos notify con el mismo ID colapsarían en uno en el shadow).
+        val emissions = java.util.concurrent.atomic.AtomicInteger(0)
+        com.kryll.homefit.reminders.ReminderEngine.emitObserver = { emissions.incrementAndGet() }
+        try {
+            runBlocking {
+                val a = async(Dispatchers.IO) { com.kryll.homefit.reminders.ReminderEngine.runCycle(app, false) }
+                val b = async(Dispatchers.IO) { com.kryll.homefit.reminders.ReminderEngine.runCycle(app, false) }
+                a.await(); b.await()
+            }
+            assertEquals("dos ciclos concurrentes deben emitir el aviso diario una sola vez", 1, emissions.get())
+            assertEquals(1, shadowOf(nm).allNotifications.size)
+            assertEquals(LocalDate.now().toEpochDay(), runBlocking { app.container.settings.settings.first() }.reminderFiredEpochDay)
+            assertEquals(1, enqueued().size) // la reprogramación serializada deja un solo trabajo diario
+        } finally {
+            com.kryll.homefit.reminders.ReminderEngine.emitObserver = null
+        }
+    }
+
+    @Test fun snoozeStillNotifiesWhenTheDailyReminderAlreadyFired() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        runWorker()
+        nm.cancel(com.kryll.homefit.reminders.ReminderNotifier.NOTIFICATION_ID)
+        assertEquals(ListenableWorker.Result.success(), runSnoozedWorker())
+        assertEquals(1, shadowOf(nm).allNotifications.size)
     }
 
     @Test fun workerStaysQuietWhenNotificationsAreBlockedByTheUser() {

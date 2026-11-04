@@ -59,6 +59,7 @@ fun PlanScreen(
     onAuto: () -> Unit = {},
     onClear: () -> Unit = {},
     onStart: (Long) -> Unit = {},
+    exactAllowed: Boolean = true,
     onPrefs: (ReminderPrefs) -> Unit = {},
     onSkip: (ScheduledSession) -> Unit = {},
     onMove: (ScheduledSession, LocalDate) -> Unit = { _, _ -> },
@@ -118,11 +119,24 @@ fun PlanScreen(
                             OutlinedButton({ onPrefs(Planning.stepLead(prefs, -1)) }) { Text(stringResource(R.string.plan_lead_less)) }
                             OutlinedButton({ onPrefs(Planning.stepLead(prefs, 1)) }) { Text(stringResource(R.string.plan_lead_more)) }
                         }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.plan_reminder_exact), Modifier.weight(1f))
+                            Switch(checked = prefs.exact, onCheckedChange = { onPrefs(prefs.copy(exact = it)) })
+                        }
+                        if (prefs.exact && !exactAllowed) {
+                            Text(stringResource(R.string.plan_reminder_exact_denied), style = MaterialTheme.typography.bodySmall)
+                        }
                         if (!notificationsAllowed) {
                             Text(stringResource(R.string.plan_notifications_off), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     Text(stringResource(R.string.plan_reminder_note), style = MaterialTheme.typography.bodySmall)
+                    if (prefs.enabled && !prefs.exact) {
+                        Text(stringResource(R.string.plan_reminder_note_delay), style = MaterialTheme.typography.bodySmall)
+                    } else if (prefs.enabled && prefs.exact && exactAllowed) {
+                        // Sin promesa absoluta de puntualidad; la denegación ya avisa arriba (sin duplicar).
+                        Text(stringResource(R.string.plan_reminder_note_exact), style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
         }
