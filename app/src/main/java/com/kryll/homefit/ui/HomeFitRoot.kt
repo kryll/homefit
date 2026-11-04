@@ -25,6 +25,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kryll.homefit.R
+import com.kryll.homefit.HomeFitApp
+import androidx.compose.runtime.remember
+import com.kryll.homefit.data.UserEquipment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 private enum class Tab(val route: String, @StringRes val label: Int, @StringRes val placeholder: Int, val icon: ImageVector) {
     Today("today", R.string.tab_today, R.string.placeholder_today, Icons.Filled.CalendarMonth),
@@ -35,6 +42,27 @@ private enum class Tab(val route: String, @StringRes val label: Int, @StringRes 
 
 @Composable
 fun HomeFitRoot() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val scope = rememberCoroutineScope()
+    val settings by app.container.settings.settings.collectAsState(initial = null)
+    val s = settings ?: return
+    if (!s.onboardingDone) {
+        OnboardingScreen { profile, equipment ->
+            scope.launch {
+                val dao = app.container.database.profileDao()
+                dao.saveProfile(profile)
+                dao.clearEquipment()
+                dao.addEquipment(equipment.map { UserEquipment(it) })
+                app.container.settings.update { it.copy(onboardingDone = true) }
+            }
+        }
+        return
+    }
+    MainTabs()
+}
+
+@Composable
+private fun MainTabs() {
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination?.route
@@ -60,11 +88,31 @@ fun HomeFitRoot() {
         NavHost(nav, startDestination = Tab.Today.route, modifier = Modifier.padding(padding)) {
             Tab.entries.forEach { tab ->
                 composable(tab.route) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(stringResource(tab.placeholder))
+                    if (tab == Tab.Routines) {
+                        RoutinesTab()
+                    } else {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(stringResource(tab.placeholder))
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun RoutinesTab() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val db = app.container.database
+    val routines by db.routineDao().observeAll().collectAsState(initial = emptyList())
+    val exercises by db.exerciseDao().observeAll().collectAsState(initial = emptyList())
+    val gear by db.exerciseDao().observeEquipment().collectAsState(initial = emptyList())
+    val map = gear.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() }
+    val allItems by db.routineDao().observeAllItems().collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+    RoutinesScreen(
+        routines, exercises, map,
+        items = allItems.groupBy { it.routineId },
+    )
 }

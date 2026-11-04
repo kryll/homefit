@@ -52,6 +52,9 @@ interface ExerciseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEquipment(items: List<ExerciseEquipment>)
+
+    @Query("SELECT * FROM exercise_equipment")
+    fun observeEquipment(): Flow<List<ExerciseEquipment>>
 }
 
 @Dao
@@ -61,6 +64,22 @@ interface RoutineDao {
 
     @Query("SELECT * FROM routine_item WHERE routineId = :routineId ORDER BY position")
     fun observeItems(routineId: Long): Flow<List<RoutineItem>>
+
+    @Query("SELECT * FROM routine_item ORDER BY routineId, position")
+    fun observeAllItems(): Flow<List<RoutineItem>>
+
+    @Query("SELECT * FROM routine WHERE id = :id")
+    suspend fun byId(id: Long): Routine?
+
+    @androidx.room.Update
+    suspend fun updateRoutine(routine: Routine)
+
+    @Query("DELETE FROM routine_item WHERE routineId = :id")
+    suspend fun clearItems(id: Long)
+
+    /** Solo borra rutinas del usuario; las predefinidas se ignoran. */
+    @Query("DELETE FROM routine WHERE id = :id AND predefined = 0")
+    suspend fun deleteUser(id: Long)
 
     @Insert
     suspend fun insertRoutine(routine: Routine): Long

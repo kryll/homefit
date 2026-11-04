@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,3 +18,32 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Tests y APK debug
         run: ./gradlew testDebugUnitTest assembleDebug
+      - name: Capturas de UI (Robolectric)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-shots
+          path: app/build/outputs/compose-shots/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publicar capturas en la rama ci-shots (solo PRs del propio repo)
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          rm -rf /tmp/pub && mkdir -p /tmp/pub
+          cp -r app/build/outputs/compose-shots/. /tmp/pub/ || true
+          cd /tmp/pub
+          echo "Capturas Robolectric del commit ${{ github.event.pull_request.head.sha }}" > README.txt
+          git init -q
+          git config user.name "homefit-ci"
+          git config user.email "homefit-ci@users.noreply.github.com"
+          git add -A
+          git commit -q -m "shots ${{ github.event.pull_request.head.sha }}"
+          # Distintos PR pueden publicar a la vez; reintentar solo el push de capturas.
+          for attempt in 1 2 3 4 5; do
+            if git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-shots; then
+              exit 0
+            fi
+            sleep "$attempt"
+          done
+          echo "No se pudieron publicar las capturas tras 5 intentos" >&2
+          exit 1
