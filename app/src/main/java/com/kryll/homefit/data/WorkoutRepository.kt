@@ -54,18 +54,16 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         id
     }
 
-    /** Sesión interrumpida de hoy lista para reanudar con el plan actual; null si no hay o ya no encaja. */
+    /** Sesión interrumpida reciente (48 h) lista para reanudar con el plan actual; null si no hay o ya no encaja. */
     data class ResumableSession(val sessionId: Long, val startMillis: Long, val results: List<com.kryll.homefit.domain.SetResult>)
 
     /**
      * Busca el entreno incompleto de hoy para esa rutina y, si sus series encajan en el plan,
      * adopta su fila para que los próximos [checkpoint] la actualicen en vez de duplicarla.
      */
-    suspend fun interruptedToday(routineId: Long, plan: List<WorkItem>, nowMillis: Long, zone: ZoneId): ResumableSession? = lock.withLock {
-        val day = Instant.ofEpochMilli(nowMillis).atZone(zone).toLocalDate()
-        val from = day.atStartOfDay(zone).toInstant().toEpochMilli()
-        val to = day.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
-        val s = db.sessionDao().latestIncomplete(routineId, from, to) ?: return@withLock null
+    suspend fun interruptedToday(routineId: Long, plan: List<WorkItem>, nowMillis: Long): ResumableSession? = lock.withLock {
+        val from = nowMillis - RESUME_WINDOW_MILLIS
+        val s = db.sessionDao().latestIncomplete(routineId, from) ?: return@withLock null
         val logs = db.sessionDao().setsOf(s.id)
         val results = com.kryll.homefit.domain.WorkoutResume.fromLogs(
             plan,
@@ -75,8 +73,11 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         ResumableSession(s.id, s.startMillis, results)
     }
 
-    /** Suelta la fila adoptada por [interruptedToday] si el usuario prefiere empezar de nuevo. */
-    suspend fun releaseInterrupted() = lock.withLock { openSessionId = null }
+    /** Descarta la fila adoptada por [interruptedToday] si el usuario prefiere empezar de nuevo: no se vuelve a ofrecer. */
+    suspend fun releaseInterrupted() = lock.withLock {
+        openSessionId?.let { db.sessionDao().discardSession(it) }
+        openSessionId = null
+    }
 
     private suspend fun write(
         routineId: Long?, plan: List<WorkItem>, startMillis: Long, endMillis: Long,
@@ -107,5 +108,10 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         }
     }
 
-    companion object { const val NOTE_INCOMPLETE = "incompleto" }
+    companion object {
+        const val NOTE_INCOMPLETE = "incompleto"
+
+        /** Una sesión interrumpida se puede reanudar durante 48 h (cubre entrenos que cruzan medianoche). */
+        private const val RESUME_WINDOW_MILLIS = 48L * 3_600_000L
+    }
 }
