@@ -90,13 +90,23 @@ class ProgressionTest {
 
     @Test fun noHistoryNoDeload() = assertNull(Deload.advice(emptyList(), now, zone))
 
-    @Test fun threeFullWeeksWithTwoSessionsSuggestsDeload() {
+    @Test fun fourFullWeeksWithTwoSessionsSuggestsDeload() {
         val sessions = listOf(
-            s(10, 12), s(10, 14), // semana 12-18 oct... (lunes 12 oct)
+            s(10, 5), s(10, 7), // semana 5-11 oct (lunes 5 oct)
+            s(10, 12), s(10, 14), // semana 12-18 oct (lunes 12 oct)
             s(10, 19), s(10, 21),
             s(10, 26), s(10, 28),
         )
         assertEquals(DeloadReason.LONG_BLOCK, Deload.advice(sessions, now, zone))
+    }
+
+    @Test fun threeFullWeeksDoNotTriggerDeloadYet() {
+        val sessions = listOf(
+            s(10, 12), s(10, 14),
+            s(10, 19), s(10, 21),
+            s(10, 26), s(10, 28),
+        )
+        assertNull(Deload.advice(sessions, now, zone))
     }
 
     @Test fun missingWeekBreaksTheBlock() {
