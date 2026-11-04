@@ -50,7 +50,7 @@ class ExactReminderTest {
         ReminderScheduler.schedule(app, p, 0b1111111, from)
         val alarm = shadowOf(alarmManager).nextScheduledAlarm
         assertNotNull("con el permiso concedido debe armar la alarma exacta", alarm)
-        assertEquals(Planning.nextReminder(from, 0b1111111, p)!!.toInstant().toEpochMilli(), alarm.triggerAtMs)
+        assertEquals(Planning.nextReminder(from, 0b1111111, p)!!.toInstant().toEpochMilli(), alarm!!.triggerAtMs)
         // Respaldo de WorkManager unos minutos después: si el sistema borra la alarma (revocación),
         // ese día avisa el respaldo con retraso y el ciclo se reconstruye solo.
         val backup = enqueuedWork().singleOrNull()
