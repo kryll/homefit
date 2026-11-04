@@ -46,7 +46,9 @@ class ReminderWorkerTest {
 
     private fun setup(mask: Int, prefs: ReminderPrefs) = runBlocking {
         app.container.database.profileDao().saveProfile(profile(mask))
-        app.container.settings.update { it.copy(reminderEnabled = prefs.enabled, reminderHour = prefs.hour, reminderMinute = prefs.minute, reminderLeadMinutes = prefs.leadMinutes) }
+        // La marca de día vive en DataStore, que NO se reinicia entre métodos de test (a diferencia de
+        // los shadows): sin este reset, un test que avisó deja la marca en hoy y los siguientes no avisan.
+        app.container.settings.update { it.copy(reminderEnabled = prefs.enabled, reminderHour = prefs.hour, reminderMinute = prefs.minute, reminderLeadMinutes = prefs.leadMinutes, reminderFiredEpochDay = -1) }
     }
 
     private fun infos(): List<WorkInfo> =
