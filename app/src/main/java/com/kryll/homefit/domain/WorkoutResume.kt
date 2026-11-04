@@ -11,6 +11,8 @@ object WorkoutResume {
      */
     fun fromLogs(plan: List<WorkItem>, logs: List<InterruptedSet>): List<SetResult>? {
         if (logs.isEmpty()) return null
+        // Un ejercicio repetido en el plan no se puede asignar sin ambigüedad: las series no guardan la ocurrencia.
+        if (plan.map { it.exerciseId }.toSet().size != plan.size) return null
         val byExercise = logs.groupBy { it.exerciseId }
         if (byExercise.keys.any { id -> plan.none { it.exerciseId == id } }) return null
         val out = mutableListOf<SetResult>()
