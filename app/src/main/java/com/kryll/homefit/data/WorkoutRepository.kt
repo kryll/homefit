@@ -54,8 +54,8 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         id
     }
 
-    /** Sesión interrumpida reciente (48 h) lista para reanudar con el plan actual; null si no hay o ya no encaja. */
-    data class ResumableSession(val sessionId: Long, val startMillis: Long, val results: List<com.kryll.homefit.domain.SetResult>)
+    /** Sesión interrumpida reciente (48 h) lista para reanudar contra su plan guardado (o el actual en filas legadas); null si no hay o no encaja. */
+    data class ResumableSession(val sessionId: Long, val startMillis: Long, val plan: List<com.kryll.homefit.domain.WorkItem>, val results: List<com.kryll.homefit.domain.SetResult>)
 
     /**
      * Busca el entreno incompleto de hoy para esa rutina y, si sus series encajan en el plan,
@@ -65,12 +65,16 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         val from = nowMillis - RESUME_WINDOW_MILLIS
         val s = db.sessionDao().latestIncomplete(routineId, from) ?: return@withLock null
         val logs = db.sessionDao().setsOf(s.id)
-        val results = com.kryll.homefit.domain.WorkoutResume.fromLogs(
-            plan,
-            logs.map { com.kryll.homefit.domain.InterruptedSet(it.exerciseId, it.setIndex, it.reps, it.seconds, it.rpe, it.weightKg) },
-        ) ?: return@withLock null
+        // Reanudar contra el plan guardado con la sesión; las filas legadas (sin snapshot) usan el plan actual.
+        val usePlan = s.planJson?.let { com.kryll.homefit.domain.WorkoutPlanSnapshot.fromJson(it) } ?: plan
+        val mapped = logs.map { com.kryll.homefit.domain.InterruptedSet(it.exerciseId, it.setIndex, it.reps, it.seconds, it.rpe, it.weightKg, it.itemIndex) }
+        val results = if (mapped.all { it.itemIndex >= 0 }) {
+            com.kryll.homefit.domain.WorkoutResume.fromLogsPositional(usePlan, mapped)
+        } else {
+            com.kryll.homefit.domain.WorkoutResume.fromLogs(usePlan, mapped)
+        } ?: return@withLock null
         openSessionId = s.id
-        ResumableSession(s.id, s.startMillis, results)
+        ResumableSession(s.id, s.startMillis, usePlan, results)
     }
 
     /** Descarta la fila adoptada por [interruptedToday] si el usuario prefiere empezar de nuevo: no se vuelve a ofrecer. */
@@ -88,11 +92,13 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
         val seconds = ((endMillis - startMillis) / 1000).coerceAtLeast(0).toInt()
         return db.withTransaction {
             val dao = db.sessionDao()
-            val session = WorkoutSession(
-                id = openSessionId ?: 0, routineId = routineId, startMillis = startMillis, endMillis = endMillis,
-                durationSeconds = seconds, notes = if (finished) "" else NOTE_INCOMPLETE,
-            )
             val id = openSessionId
+            val session = WorkoutSession(
+                id = id ?: 0, routineId = routineId, startMillis = startMillis, endMillis = endMillis,
+                durationSeconds = seconds, notes = if (finished) "" else NOTE_INCOMPLETE,
+                // El snapshot se escribe al abrir la sesión y no se sobrescribe en checkpoints posteriores.
+                planJson = id?.let { dao.workoutById(it)?.planJson } ?: com.kryll.homefit.domain.WorkoutPlanSnapshot.toJson(plan),
+            )
             val sid = if (id == null) dao.insertWorkout(session) else { dao.updateWorkout(session); dao.deleteSets(id); id }
             dao.insertSets(
                 done.map { r ->
@@ -100,6 +106,7 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
                     SetLog(
                         sessionId = sid, exerciseId = item.exerciseId, setIndex = r.set,
                         reps = r.reps, weightKg = r.weightKg, seconds = if (item.timed) r.workSeconds else null, rpe = r.rpe,
+                        itemIndex = r.itemIndex,
                     )
                 },
             )
@@ -110,6 +117,9 @@ class WorkoutRepository(private val db: HomeFitDatabase) {
 
     companion object {
         const val NOTE_INCOMPLETE = "incompleto"
+
+        /** Sesión descartada por el usuario al elegir "empezar de nuevo": se conserva como parcial, no se re-ofrece. */
+        const val NOTE_DISCARDED = "descartado"
 
         /** Una sesión interrumpida se puede reanudar durante 48 h (cubre entrenos que cruzan medianoche). */
         private const val RESUME_WINDOW_MILLIS = 48L * 3_600_000L
