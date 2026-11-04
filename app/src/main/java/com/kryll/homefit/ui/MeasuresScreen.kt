@@ -84,6 +84,7 @@ fun MeasuresContent(
     weightUnit: WeightUnit = WeightUnit.KG,
     lengthUnit: LengthUnit = LengthUnit.CM,
     onExport: (() -> Unit)? = null,
+    onImport: (() -> Unit)? = null,
     exportMessage: String? = null,
 ) {
     var dateText by remember(today) { mutableStateOf(com.kryll.homefit.domain.MeasureDate.text(today)) }
@@ -195,9 +196,10 @@ fun MeasuresContent(
             }
         }
         item { Text(stringResource(R.string.measures_history), style = MaterialTheme.typography.titleMedium) }
-        if (onExport != null && items.isNotEmpty()) item {
+        if ((onExport != null && items.isNotEmpty()) || onImport != null) item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                androidx.compose.material3.OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.measures_export)) }
+                if (onExport != null && items.isNotEmpty()) androidx.compose.material3.OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.measures_export)) }
+                if (onImport != null) androidx.compose.material3.OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.measures_import)) }
                 exportMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
             }
         }
@@ -286,6 +288,7 @@ fun ProgressWithMeasures(
     weightUnit: WeightUnit = WeightUnit.KG,
     lengthUnit: LengthUnit = LengthUnit.CM,
     onExport: (() -> Unit)? = null,
+    onImport: (() -> Unit)? = null,
     exportMessage: String? = null,
 ) {
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
@@ -295,6 +298,6 @@ fun ProgressWithMeasures(
             androidx.compose.material3.Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.measures_tab_measures)) })
         }
         if (tab == 0) ProgressContent(summary, rows, volume = volume)
-        else MeasuresContent(measurements, LocalDate.now().toEpochDay(), onSave, onDelete, weightUnit, lengthUnit, onExport, exportMessage)
+        else MeasuresContent(measurements, LocalDate.now().toEpochDay(), onSave, onDelete, weightUnit, lengthUnit, onExport, onImport, exportMessage)
     }
 }
