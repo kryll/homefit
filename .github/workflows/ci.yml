@@ -27,17 +27,17 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Publicar capturas en la rama ci-shots (solo PRs del propio repo)
-        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
         run: |
           rm -rf /tmp/pub && mkdir -p /tmp/pub
           cp -r app/build/outputs/compose-shots/. /tmp/pub/ || true
           cd /tmp/pub
-          echo "Capturas Robolectric del commit ${{ github.event.pull_request.head.sha }}" > README.txt
+          echo "Capturas Robolectric del commit ${{ github.event.pull_request.head.sha || github.sha }}" > README.txt
           git init -q
           git config user.name "homefit-ci"
           git config user.email "homefit-ci@users.noreply.github.com"
           git add -A
-          git commit -q -m "shots ${{ github.event.pull_request.head.sha }}"
+          git commit -q -m "shots ${{ github.event.pull_request.head.sha || github.sha }}"
           # Distintos PR pueden publicar a la vez; reintentar solo el push de capturas.
           for attempt in 1 2 3 4 5; do
             if git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-shots; then
