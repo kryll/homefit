@@ -48,6 +48,7 @@ fun SettingsScreen(
     availableVoices: List<String> = emptyList(),
     onChange: ((AppSettings) -> AppSettings) -> Unit = {},
     onExport: () -> Unit = {},
+    onExportWorkouts: () -> Unit = {},
     onImport: () -> Unit = {},
     onConfirmImport: () -> Unit = {},
     onCancelImport: () -> Unit = {},
@@ -160,6 +161,7 @@ fun SettingsScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onExport) { Text(stringResource(R.string.backup_export)) }
                 OutlinedButton(onImport) { Text(stringResource(R.string.backup_import)) }
+                OutlinedButton(onExportWorkouts) { Text(stringResource(R.string.backup_export_workouts_csv)) }
             }
             if (message != null) Text(message, style = MaterialTheme.typography.bodyMedium)
         }
