@@ -23,7 +23,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
 class MigrationTest {
-    @Test fun v1ToV2MigratesRealSqliteKeepingRows() = runBlocking {
+    @Test fun v1ToV2MigratesRealSqliteKeepingRows(): Unit = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Application>()
         val dbFile = context.getDatabasePath("migration-test.db")
         dbFile.parentFile?.mkdirs()
