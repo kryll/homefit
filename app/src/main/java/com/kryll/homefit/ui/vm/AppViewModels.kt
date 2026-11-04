@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 /** Alta inicial: guarda perfil + equipamiento y marca el alta como hecha. */
 class OnboardingViewModel(private val db: HomeFitDatabase, private val settings: SettingsStore) : ViewModel() {
-    fun complete(profile: UserProfile, equipment: List<String>) {
+    fun complete(profile: UserProfile, equipment: Collection<String>) {
         viewModelScope.launch {
             val dao = db.profileDao()
             dao.saveProfile(profile)
