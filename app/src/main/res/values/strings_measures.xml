@@ -37,6 +37,10 @@
     <string name="measures_save_edit">Guardar cambios</string>
     <string name="measures_edit_cancel">Cancelar edición</string>
     <string name="measures_export">Exportar CSV</string>
+    <string name="measures_import">Importar CSV</string>
+    <string name="measures_imported">%1$d medidas importadas (%2$d ya existían).</string>
+    <string name="measures_imported_with_errors">%1$d medidas importadas (%2$d ya existían, %3$d líneas con error).</string>
+    <string name="measures_import_failed">No se pudo leer el CSV elegido.</string>
     <string name="measures_exported">Medidas exportadas.</string>
     <string name="measures_export_failed">No se pudo exportar.</string>
     <string name="measures_date">Fecha (dd/mm/aaaa)</string>
