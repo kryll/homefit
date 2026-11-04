@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Ajustes</string>
+    <string name="settings_profile">Perfil</string>
+    <string name="settings_profile_empty">Sin perfil guardado.</string>
+    <string name="settings_profile_summary">%1$s · %2$.0f cm · %3$.1f kg</string>
+    <string name="settings_profile_bmi">IMC orientativo: %1$.1f (%2$s). No es un diagnóstico.</string>
+    <string name="settings_profile_edit">Editar perfil</string>
+    <string name="settings_profile_saved">Perfil guardado.</string>
+    <string name="profile_dialog_title">Editar perfil</string>
+    <string name="profile_save">Guardar</string>
     <string name="settings_theme">Tema</string>
     <string name="theme_system">Sistema</string>
     <string name="theme_light">Claro</string>
