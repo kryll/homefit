@@ -168,7 +168,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
             var resumable by remember(active) { mutableStateOf<com.kryll.homefit.data.WorkoutRepository.ResumableSession?>(null) }
             var resumeChecked by rememberSaveable(active) { mutableStateOf(false) }
             androidx.compose.runtime.LaunchedEffect(active) {
-                resumable = workoutRepo.interruptedToday(active, plan, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+                resumable = workoutRepo.interruptedToday(active, plan, System.currentTimeMillis())
                 resumeChecked = true
             }
             if (resumeChecked && resumable == null && resumedSets == null) {
