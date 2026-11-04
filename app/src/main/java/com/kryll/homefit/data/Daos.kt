@@ -141,4 +141,8 @@ interface SessionDao {
 
     @Query("SELECT * FROM set_log WHERE sessionId = :sessionId ORDER BY id")
     suspend fun setsOf(sessionId: Long): List<SetLog>
+
+    /** La sesión incompleta más reciente de esa rutina empezada hoy (candidata a reanudar). */
+    @Query("SELECT * FROM workout_session WHERE routineId = :routineId AND notes = 'incompleto' AND startMillis >= :from AND startMillis < :to ORDER BY startMillis DESC LIMIT 1")
+    suspend fun latestIncomplete(routineId: Long, from: Long, to: Long): WorkoutSession?
 }
