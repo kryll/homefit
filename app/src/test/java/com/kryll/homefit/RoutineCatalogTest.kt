@@ -14,6 +14,12 @@ class RoutineCatalogTest {
 
     @Test fun allExercisesExist() = routines.forEach { r -> r.items.forEach { assertTrue("${r.name}: ${it.exerciseId}", it.exerciseId in ids) } }
 
+
+    @Test fun allLevelsCovered() {
+        val levels = routines.map { it.level }.toSet()
+        assertTrue(levels.toString(), setOf("principiante", "intermedio", "avanzado").all { it in levels })
+    }
+
     @Test fun itemsHaveRepsOrSeconds() = routines.forEach { r ->
         assertTrue(r.name, r.items.isNotEmpty())
         r.items.forEach { assertTrue(r.name, (it.reps != null) != (it.seconds != null) && it.sets > 0) }
