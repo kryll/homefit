@@ -1,12 +1,8 @@
 name: SchemaGen (borrador)
 on:
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: 'gen | race-repro | fix-check'
-        required: true
-        type: choice
-        options: [gen, race-repro, fix-check]
+  push:
+    branches: [draft/build-hardening]
+    paths: [.schemagen-mode]
 
 permissions:
   contents: write
@@ -21,36 +17,33 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
-
-      - name: Generar esquema actual (una sola variante, sin carrera)
-        if: inputs.mode == 'gen'
-        run: ./gradlew kspDebugKotlin
-
-      - name: Commitear esquema generado a esta rama
-        if: inputs.mode == 'gen'
+      - name: Ejecutar modo
         run: |
-          git config user.name "homefit-ci"
-          git config user.email "homefit-ci@users.noreply.github.com"
-          git add app/schemas
-          if git diff --cached --quiet; then echo "sin cambios de esquema"; exit 0; fi
-          git commit -m "Esquema Room actual generado en build limpio (variante unica)"
-          git push
-
-      - name: Reproducir fallo con 3.json vacio (debe fallar con Empty schema file)
-        if: inputs.mode == 'race-repro'
-        run: |
-          mkdir -p app/schemas/com.kryll.homefit.data.HomeFitDatabase
-          : > app/schemas/com.kryll.homefit.data.HomeFitDatabase/3.json
-          if ./gradlew kspReleaseKotlin > /tmp/repro.log 2>&1; then
-            echo "INESPERADO: compilo con esquema vacio"; exit 1
-          fi
-          grep -q "Empty schema file" /tmp/repro.log
-          echo "REPRODUCIDO: Empty schema file con 3.json vacio"
-
-      - name: Verificar no-reescritura con esquema valido commiteado
-        if: inputs.mode == 'fix-check'
-        run: |
-          chmod a-w app/schemas/com.kryll.homefit.data.HomeFitDatabase/3.json
-          ./gradlew testDebugUnitTest assembleDebug assembleRelease bundleRelease
-          git diff --exit-code app/schemas
-          echo "OK: esquema intacto (sin reescritura) y build completo verde"
+          MODE=$(cat .schemagen-mode)
+          echo "Modo: $MODE"
+          case "$MODE" in
+          gen)
+            ./gradlew kspDebugKotlin
+            git config user.name "homefit-ci"
+            git config user.email "homefit-ci@users.noreply.github.com"
+            git add app/schemas
+            if git diff --cached --quiet; then echo "sin cambios de esquema"; exit 0; fi
+            git commit -m "Esquema Room actual generado en build limpio (variante unica)"
+            git push
+            ;;
+          race-repro)
+            mkdir -p app/schemas/com.kryll.homefit.data.HomeFitDatabase
+            : > app/schemas/com.kryll.homefit.data.HomeFitDatabase/3.json
+            if ./gradlew kspReleaseKotlin > /tmp/repro.log 2>&1; then
+              echo "INESPERADO: compilo con esquema vacio"; exit 1
+            fi
+            grep -q "Empty schema file" /tmp/repro.log
+            echo "REPRODUCIDO: Empty schema file con 3.json vacio"
+            ;;
+          fix-check)
+            chmod a-w app/schemas/com.kryll.homefit.data.HomeFitDatabase/3.json
+            ./gradlew testDebugUnitTest assembleDebug assembleRelease bundleRelease
+            git diff --exit-code app/schemas
+            echo "OK: esquema intacto y build completo verde"
+            ;;
+          esac
