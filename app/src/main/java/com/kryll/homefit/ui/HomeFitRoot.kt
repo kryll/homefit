@@ -374,6 +374,25 @@ private fun SettingsTab(updater: com.kryll.homefit.update.UpdateViewModel) {
             }.getOrElse { context.getString(R.string.backup_export_failed) }
         }
     }
+
+    val exportWorkouts = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            message = runCatching {
+                val csv = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val db = app.container.database
+                    val names = db.routineDao().observeAll().first().associate { it.id to it.name }
+                    val pairs = db.sessionDao().observeWorkouts().first().map { it to db.sessionDao().setsOf(it.id) }
+                    com.kryll.homefit.domain.WorkoutCsv.build(pairs, names)
+                }
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.backup_exported)
+            }.getOrElse { context.getString(R.string.backup_export_failed) }
+        }
+    }
     val pick = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -427,6 +446,7 @@ private fun SettingsTab(updater: com.kryll.homefit.update.UpdateViewModel) {
         },
         onChange = { t -> scope.launch { app.container.settings.update(t) } },
         onExport = { export.launch("homefit-copia-${java.time.LocalDate.now()}.json") },
+        onExportWorkouts = { exportWorkouts.launch("homefit-entrenos-${java.time.LocalDate.now()}.csv") },
         onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
         onCancelImport = { pending = null },
         updateState = updateState,
