@@ -50,6 +50,8 @@ fun RoutineEditorScreen(
     exercises: List<Exercise>,
     onSave: (RoutineDraft) -> Unit,
     onCancel: () -> Unit,
+    /** Descanso con el que nace cada ejercicio nuevo (ajuste del usuario). */
+    defaultRest: Int = 45,
 ) {
     var draft by rememberSaveable { mutableStateOf(initial) }
     var showErrors by rememberSaveable { mutableStateOf(false) }
@@ -100,7 +102,7 @@ fun RoutineEditorScreen(
         }
         item {
             OutlinedButton({ picking = !picking }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.editor_add_exercise)) }
-            if (picking) ExercisePicker(exercises, onPick = { draft = draft.add(it); picking = false })
+            if (picking) ExercisePicker(exercises, onPick = { draft = draft.add(it, defaultRest); picking = false })
             if (showErrors && errors.isNotEmpty()) {
                 errors.forEach { Text(stringResource(errorText(it)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
