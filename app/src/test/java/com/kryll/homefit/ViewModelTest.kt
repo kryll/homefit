@@ -13,6 +13,9 @@ import com.kryll.homefit.domain.RoutineDraft
 import com.kryll.homefit.domain.SetResult
 import com.kryll.homefit.domain.WorkItem
 import com.kryll.homefit.ui.vm.RoutinesViewModel
+import com.kryll.homefit.data.BodyMeasurement
+import com.kryll.homefit.data.WorkoutSession
+import com.kryll.homefit.ui.vm.ProgressViewModel
 import com.kryll.homefit.ui.vm.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -162,5 +165,24 @@ class ViewModelTest {
         val p = svm.profile.first { it != null }
         assertEquals("Ana", p!!.name)
         assertEquals(setOf("bandas_elasticas"), svm.equipment.first { it.isNotEmpty() })
+    }
+
+    @Test fun progresoResumeElHistorial() = runTest {
+        val pvm = ProgressViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext()))
+        db.sessionDao().insertWorkout(WorkoutSession(routineId = null, startMillis = System.currentTimeMillis(), endMillis = System.currentTimeMillis(), durationSeconds = 1800))
+        val s = pvm.summary.first { it.totalSessions > 0 }
+        assertEquals(1, s.totalSessions)
+        assertEquals(30, s.totalMinutes)
+    }
+
+    @Test fun importarMedidasCsvOmiteDiasDuplicados() = runTest {
+        val pvm = ProgressViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext()))
+        pvm.saveMeasurement(BodyMeasurement(epochDay = 20000, weightKg = 80f))
+        pvm.measurements.first { it.isNotEmpty() }
+        val csv = pvm.measuresCsv()
+        val again = pvm.importMeasuresCsv(csv)
+        assertEquals(0, again.imported)
+        assertEquals(1, again.skipped)
+        assertTrue(pvm.measurements.first { it.isNotEmpty() }.size == 1)
     }
 }

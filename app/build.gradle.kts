@@ -8,6 +8,7 @@ plugins {
 // Version y firma vienen del entorno (CI al crear un tag vX.Y.Z). En local: 0.0.0-dev, sin firma de release.
 val keystorePath: String? = System.getenv("HOMEFIT_KEYSTORE_PATH")
 
+val robolectricDeps26 = configurations.create("robolectricDeps26")
 val robolectricDeps34 = configurations.create("robolectricDeps34")
 val robolectricDeps35 = configurations.create("robolectricDeps35")
 
@@ -82,6 +83,7 @@ dependencies {
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
+    "robolectricDeps26"("org.robolectric:android-all-instrumented:8.0.0_r4-robolectric-r1-i7")
     "robolectricDeps34"("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7")
     "robolectricDeps35"("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
     testImplementation(libs.coroutines.test)
@@ -93,9 +95,14 @@ tasks.withType<Test>().configureEach {
     val depsDir = File(layout.buildDirectory.get().asFile, "robolectric-deps")
     doFirst {
         depsDir.mkdirs()
-        (robolectricDeps34.files + robolectricDeps35.files).forEach { it.copyTo(File(depsDir, it.name), overwrite = true) }
+        (robolectricDeps26.files + robolectricDeps34.files + robolectricDeps35.files).forEach { it.copyTo(File(depsDir, it.name), overwrite = true) }
     }
     systemProperty("robolectric.offline", "true")
     systemProperty("robolectric.dependency.dir", depsDir.absolutePath)
     maxHeapSize = "768m"
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStackTraces = true
+        showStandardStreams = false
+    }
 }

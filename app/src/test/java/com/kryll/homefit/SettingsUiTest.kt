@@ -9,6 +9,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performScrollTo
+
+import androidx.compose.ui.test.hasText
+
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.data.ThemeMode
@@ -46,9 +49,9 @@ class SettingsUiTest {
     @Test fun showsSectionsAndCurrentValues() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(beepVolume = 0.8f, ttsRate = 1.25f), "1.2.3", null, null) } }
         rule.onNodeWithText("Ajustes").assertIsDisplayed()
+        capture("ajustes_arriba")
         rule.onNodeWithText("Volumen de los pitidos: 80 %").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Velocidad de la voz: 1,25×").performScrollTo().assertIsDisplayed()
-        capture("ajustes_arriba")
         rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
     }
 
@@ -106,6 +109,59 @@ class SettingsUiTest {
         assertEquals(6, s.defaultCountdownSeconds)
         capture("ajustes_entreno")
     }
+
+    @Test fun unitChipsChangeWeightAndLengthUnits() {
+        var s = AppSettings()
+        rule.setContent { HomeFitTheme { SettingsScreen(s, "1", null, null, onChange = { t -> s = t(s) }) } }
+        rule.onNodeWithText("Peso: lb").performScrollTo().performClick()
+        assertEquals(com.kryll.homefit.data.WeightUnit.LB, s.weightUnit)
+        rule.onNodeWithText("Medidas: in").performScrollTo().performClick()
+        assertEquals(com.kryll.homefit.data.LengthUnit.IN, s.lengthUnit)
+    }
+
+    @Test fun updateStatesAreShown() {
+        var checked = 0
+        var opened = ""
+        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", "https://github.com/kryll/homefit/releases/download/v1.2.0/homefit.apk", "https://example.test/rel")
+        rule.setContent {
+            HomeFitTheme {
+                SettingsScreen(
+                    AppSettings(), "1.0.0", null, null,
+                    updateState = com.kryll.homefit.domain.UpdateState.Available(info),
+                    onCheckUpdates = { checked++ },
+                    onOpenUpdate = { opened = it },
+                )
+            }
+        }
+        rule.onNodeWithText("Nueva versión 1.2.0 disponible").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Descargar APK").performScrollTo().performClick()
+        assertEquals(info.apkUrl, opened)
+        rule.onNodeWithText("Buscar actualizaciones").performScrollTo().performClick()
+        assertEquals(1, checked)
+        capture("ajustes_actualizacion")
+    }
+
+    @Test fun updateErrorIsShown() {
+        rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(), "1", null, null, updateState = com.kryll.homefit.domain.UpdateState.Failed) } }
+        rule.onNodeWithText("No se pudo comprobar. Inténtalo más tarde.").performScrollTo().assertIsDisplayed()
+    }
+    @Test fun verifiedApkOffersAndroidInstallerButDoesNotInstallItself() {
+        var installs = 0
+        val info = com.kryll.homefit.domain.ReleaseInfo("v1.2.0", "1.2.0", "https://github.com/kryll/homefit/releases/download/v1.2.0/homefit.apk", "")
+        rule.setContent { HomeFitTheme {
+            com.kryll.homefit.ui.UpdateInstallContent("1.0.0",
+                updateState = com.kryll.homefit.domain.UpdateState.Available(info),
+                downloadState = com.kryll.homefit.update.DownloadUi(file = File("fixture.apk")),
+                onInstallUpdate = { installs++ })
+        } }
+        assertEquals(0, installs)
+        rule.onNodeWithText("Instalar actualización").assertIsDisplayed()
+        rule.waitForIdle(); rule.mainClock.advanceTimeByFrame(); rule.waitForIdle()
+        rule.runOnIdle { capture("ajustes_instalar_apk") }
+        rule.onNodeWithText("Instalar actualización").performClick()
+        assertEquals(1, installs)
+    }
+
     @Test fun voiceSelectorListsAndEmits() {
         val s = androidx.compose.runtime.mutableStateOf(AppSettings(ttsVoice = "es-es-x-eee-local"))
         val voices = listOf("es-es-x-eee-local", "es-es-x-eef-network")

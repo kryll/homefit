@@ -1,8 +1,21 @@
 # HomeFit
 
-App Android nativa de ejercicio en casa. Kotlin, Jetpack Compose, Material 3, MVVM, Room, DataStore y WorkManager. Offline primero, en español y preparada para i18n. `minSdk 26`.
+App Android nativa de ejercicio en casa. Kotlin, Jetpack Compose, Material 3, Room, DataStore y WorkManager. Offline primero, en español y preparada para i18n. `minSdk 26`.
 
-> Estado: hito H0 (base del proyecto). Las pantallas son marcadores de posición; el catálogo, las rutinas y el modo entrenamiento llegan en los siguientes hitos.
+La lógica de negocio vive en clases Kotlin puras (motor de entrenamiento, progresión, estadísticas) probadas con tests unitarios; la UI son composables que observan repositorios Room. No hay ViewModel de Android: el estado de pantalla se mantiene en los propios composables y en los repositorios.
+
+## Qué incluye
+
+- Onboarding con perfil (objetivo, nivel, material, días por semana) y edición posterior en Ajustes, con IMC calculado desde la última medida.
+- Catálogo de 90 ejercicios con filtros por músculo, material y dificultad; instrucciones y media con licencia libre.
+- 12 rutinas predefinidas por objetivo, nivel (principiante, intermedio y avanzado) y tipo (fuerza, superior, inferior, core, cardio, HIIT, movilidad, calentamiento y estiramiento), más un constructor de rutinas propias.
+- Modo entrenamiento: pantalla encendida, temporizadores, pitidos y frases por voz (TTS con selector de voz), servicio en primer plano, pausa, saltar, repetir, ajustar descanso, RPE por serie y reanudación de sesiones interrumpidas.
+- Progresión de doble progresión con semanas de descarga.
+- Planificación semanal y mensual con recordatorios (WorkManager); sesiones que se marcan completadas, saltadas o movidas.
+- Medidas corporales con IMC, importación y exportación CSV.
+- Estadísticas: racha, volumen por grupo muscular, gráficas de evolución y récords personales.
+- Copia de seguridad JSON/CSV y restauración desde Ajustes.
+- Actualización manual desde GitHub Releases (ver más abajo).
 
 ## Hitos
 
@@ -31,7 +44,7 @@ El APK de debug queda en `app/build/outputs/apk/debug/`. Ojo: el APK de debug y 
 
 ## Releases y firma
 
-Al crear un tag `vX.Y.Z`, GitHub Actions compila el APK y el AAB de release firmados y los publica en GitHub Releases con un changelog hecho con los commits. `versionName` sale del tag y `versionCode` es `X*1000000 + Y*1000 + Z`, así que crece con cada versión. Las versiones `0.x` o con sufijo se marcan como pre-release.
+Al crear un tag `vX.Y.Z`, GitHub Actions compila el APK y el AAB de release firmados y los publica en GitHub Releases con un changelog hecho con los commits. `versionName` sale del tag y `versionCode` es `X*1000000 + Y*1000 + Z`, así que crece con cada versión. Las versiones `0.x` se marcan como pre-release. Solo se admiten tags numéricos `vX.Y.Z`, sin sufijos ni ceros iniciales; Y y Z deben ser menores que 1000 y el código debe estar entre 1 y 2100000000. La validación falla antes de restaurar el keystore.
 
 Para que las actualizaciones se instalen unas encima de otras, la firma tiene que ser siempre la misma. El keystore nunca se guarda en el repositorio. Se genera una vez y se guarda en GitHub (Settings, Secrets and variables, Actions) con estos nombres:
 
@@ -50,6 +63,10 @@ base64 -w0 homefit.jks   # el resultado va al secret HOMEFIT_KEYSTORE_B64
 ```
 
 Guarda una copia del keystore y de sus contraseñas fuera de GitHub. Si se pierde, no se podrán publicar actualizaciones instalables sobre la app ya instalada.
+
+## Actualización desde la app
+
+En Ajustes, «Buscar actualizaciones» consulta hasta 100 releases públicas de GitHub y ofrece abrir el APK en el navegador (o la página de la release si no tiene APK). Elige la versión numérica X.Y.Z más alta, incluidas las 0.x marcadas como prerelease; excluye borradores y etiquetas con sufijos alfa/beta/rc. La comprobación es manual: no sondea en segundo plano ni descarga por sí misma. Si no hay releases válidas o falla la red, muestra que no pudo comprobar. El APK se instala a mano y solo actualiza si lleva la misma firma.
 
 ## Contribuir
 

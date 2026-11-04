@@ -64,11 +64,22 @@ fun HomeFitRoot() {
         OnboardingScreen { profile, equipment -> vm.complete(profile, equipment) }
         return
     }
-    MainTabs()
+    val updater: com.kryll.homefit.update.UpdateViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    androidx.compose.runtime.LaunchedEffect(updater) { updater.checkOnLaunch() }
+    val updateNotice by updater.launchNotice.collectAsState()
+    updateNotice?.let { info ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { updater.dismissNotice() },
+            title = { Text(stringResource(R.string.updates_new, info.version)) },
+            text = { Text(stringResource(R.string.updates_launch_notice)) },
+            confirmButton = { androidx.compose.material3.TextButton({ updater.dismissNotice() }) { Text(stringResource(R.string.updates_acknowledge)) } },
+        )
+    }
+    MainTabs(updater)
 }
 
 @Composable
-private fun MainTabs() {
+private fun MainTabs(updater: com.kryll.homefit.update.UpdateViewModel) {
     val nav = rememberNavController()
     var startRequest by rememberSaveable { mutableStateOf<Long?>(null) }
     val entry by nav.currentBackStackEntryAsState()
@@ -102,8 +113,10 @@ private fun MainTabs() {
                             startRequest = id
                             nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
                         })
+                    } else if (tab == Tab.Progress) {
+                        ProgressTab()
                     } else if (tab == Tab.Settings) {
-                        SettingsTab()
+                        SettingsTab(updater)
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -253,8 +266,24 @@ private fun PlanTab(onStart: (Long) -> Unit) {
 }
 
 @Composable
-private fun SettingsTab() {
+private fun SettingsTab(updater: com.kryll.homefit.update.UpdateViewModel) {
     val context = LocalContext.current
+    val updateState by updater.updates.collectAsState()
+    val downloadState by updater.download.collectAsState()
+    fun installDownloaded() {
+        val file = downloadState.file ?: return
+        try {
+            com.kryll.homefit.update.ApkDownloader.verify(context, file)
+            if (android.os.Build.VERSION.SDK_INT >= 26 && !context.packageManager.canRequestPackageInstalls()) {
+                context.startActivity(android.content.Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    android.net.Uri.parse("package:${context.packageName}")))
+            } else {
+                val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.updates", file)
+                context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri, "application/vnd.android.package-archive")
+                    .addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION))
+            }
+        } catch (e: Exception) { updater.installFailed() }
+    }
     val app = context.applicationContext as HomeFitApp
     val vm: SettingsViewModel = viewModel(factory = AppViewModelFactory(app))
     val settings by vm.appSettings.collectAsState()
@@ -324,6 +353,11 @@ private fun SettingsTab() {
 
     SettingsScreen(
         settings = settings, versionName = versionName, message = message,
+        updateState = updateState,
+        onCheckUpdates = { updater.check() },
+        onOpenUpdate = { updater.fetch() },
+        downloadState = downloadState,
+        onInstallUpdate = { installDownloaded() },
         pendingImport = pending?.let { ImportSummary(it.routines.size, it.workouts.size, it.scheduled.size, it.measurements.size) },
         availableVoices = voiceNames.value,
         profile = profile,
@@ -348,5 +382,54 @@ private fun SettingsTab() {
                 }.getOrElse { if (it is com.kryll.homefit.data.BackupException) errorText(it) else context.getString(R.string.backup_err_failed) })
             }
         },
+    )
+}
+
+@Composable
+private fun ProgressTab() {
+    val app = LocalContext.current.applicationContext as HomeFitApp
+    val vm: com.kryll.homefit.ui.vm.ProgressViewModel = viewModel(factory = com.kryll.homefit.ui.vm.AppViewModelFactory(app))
+    val summary by vm.summary.collectAsState()
+    val rows by vm.rows.collectAsState()
+    val volume by vm.volume.collectAsState()
+    val measurements by vm.measurements.collectAsState()
+    val appSettings by vm.appSettings.collectAsState()
+    val message by vm.message.collectAsState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val exportCsv = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            vm.message.value = runCatching {
+                val csv = vm.measuresCsv()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.measures_exported)
+            }.getOrElse { context.getString(R.string.measures_export_failed) }
+        }
+    }
+    val importCsv = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) scope.launch {
+            vm.message.value = runCatching {
+                val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)!!.use { String(it.readBytes(), Charsets.UTF_8) }
+                }
+                val result = vm.importMeasuresCsv(text)
+                if (result.errors.isEmpty()) context.getString(R.string.measures_imported, result.imported, result.skipped)
+                else context.getString(R.string.measures_imported_with_errors, result.imported, result.skipped, result.errors.size)
+            }.getOrElse { context.getString(R.string.measures_import_failed) }
+        }
+    }
+    ProgressWithMeasures(
+        summary, rows, measurements, volume = volume,
+        onSave = vm::saveMeasurement, onDelete = vm::deleteMeasurement,
+        weightUnit = appSettings.weightUnit, lengthUnit = appSettings.lengthUnit,
+        onExport = { exportCsv.launch("homefit-medidas-${java.time.LocalDate.now()}.csv") },
+        onImport = { importCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain", "application/octet-stream")) },
+        exportMessage = message,
     )
 }

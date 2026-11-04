@@ -27,7 +27,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.text.input.KeyboardType
 import com.kryll.homefit.data.AppSettings
+import com.kryll.homefit.data.LengthUnit
 import com.kryll.homefit.data.ThemeMode
+import com.kryll.homefit.data.WeightUnit
 import com.kryll.homefit.data.UserProfile
 import com.kryll.homefit.domain.Bmi
 import com.kryll.homefit.domain.ProfileInput
@@ -50,6 +52,11 @@ fun SettingsScreen(
     onImport: () -> Unit = {},
     onConfirmImport: () -> Unit = {},
     onCancelImport: () -> Unit = {},
+    updateState: com.kryll.homefit.domain.UpdateState = com.kryll.homefit.domain.UpdateState.Idle,
+    onCheckUpdates: () -> Unit = {},
+    onOpenUpdate: (String) -> Unit = {},
+    downloadState: com.kryll.homefit.update.DownloadUi = com.kryll.homefit.update.DownloadUi(),
+    onInstallUpdate: () -> Unit = {},
     profile: UserProfile? = null,
     equipment: Set<String> = emptySet(),
     latestWeightKg: Float? = null,
@@ -90,6 +97,28 @@ fun SettingsScreen(
                     )
                 }
             }
+        }
+
+        Section(R.string.settings_units) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(WeightUnit.KG to R.string.unit_kg, WeightUnit.LB to R.string.unit_lb).forEach { (u, label) ->
+                    FilterChip(
+                        selected = settings.weightUnit == u,
+                        onClick = { onChange { it.copy(weightUnit = u) } },
+                        label = { Text(stringResource(label)) },
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(LengthUnit.CM to R.string.unit_cm, LengthUnit.IN to R.string.unit_in).forEach { (u, label) ->
+                    FilterChip(
+                        selected = settings.lengthUnit == u,
+                        onClick = { onChange { it.copy(lengthUnit = u) } },
+                        label = { Text(stringResource(label)) },
+                    )
+                }
+            }
+            Text(stringResource(R.string.settings_units_note), style = MaterialTheme.typography.bodySmall)
         }
 
         Section(R.string.settings_workout) {
@@ -143,9 +172,8 @@ fun SettingsScreen(
         }
 
         Section(R.string.settings_about) {
-            Text(stringResource(R.string.version_label, versionName))
+            UpdateInstallContent(versionName, updateState, downloadState, onCheckUpdates, onOpenUpdate, onInstallUpdate)
             Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
-            Text(stringResource(R.string.settings_units_note), style = MaterialTheme.typography.bodySmall)
         }
     }
 
@@ -221,6 +249,44 @@ private fun Stepper(onMinus: () -> Unit, onPlus: () -> Unit) {
     }
 }
 
+/** Panel aislado para revisar todo el flujo de actualización sin capturas recortadas. */
+@Composable
+fun UpdateInstallContent(
+    versionName: String,
+    updateState: com.kryll.homefit.domain.UpdateState,
+    downloadState: com.kryll.homefit.update.DownloadUi,
+    onCheckUpdates: () -> Unit = {},
+    onOpenUpdate: (String) -> Unit = {},
+    onInstallUpdate: () -> Unit = {},
+) {
+    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.version_label, versionName))
+            OutlinedButton(onClick = onCheckUpdates, enabled = updateState !is com.kryll.homefit.domain.UpdateState.Checking) {
+                Text(stringResource(R.string.updates_check))
+            }
+            when (val u = updateState) {
+                com.kryll.homefit.domain.UpdateState.Checking -> Text(stringResource(R.string.updates_checking), style = MaterialTheme.typography.bodySmall)
+                com.kryll.homefit.domain.UpdateState.UpToDate -> Text(stringResource(R.string.updates_latest), style = MaterialTheme.typography.bodySmall)
+                com.kryll.homefit.domain.UpdateState.Failed -> Text(stringResource(R.string.updates_error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                is com.kryll.homefit.domain.UpdateState.Available -> {
+                    Text(stringResource(R.string.updates_new, u.info.version), style = MaterialTheme.typography.bodyMedium)
+                    if (u.info.apkUrl == null) Text(stringResource(R.string.updates_no_apk))
+                    else when {
+                        downloadState.busy -> Text(stringResource(R.string.updates_downloading, downloadState.percent?.let { "$it%" } ?: "…"))
+                        downloadState.file != null -> {
+                            Text(stringResource(R.string.updates_install_help), style = MaterialTheme.typography.bodySmall)
+                            OutlinedButton(onClick = onInstallUpdate) { Text(stringResource(R.string.updates_install)) }
+                        }
+                        else -> {
+                            if (downloadState.failed) Text(stringResource(R.string.updates_download_failed), color = MaterialTheme.colorScheme.error)
+                            OutlinedButton(onClick = { onOpenUpdate(u.info.apkUrl) }) { Text(stringResource(R.string.updates_download)) }
+                        }
+                    }
+                }
+                com.kryll.homefit.domain.UpdateState.Idle -> {}
+            }
+    }
+}
 private val PROFILE_LABELS = mapOf("silla_banco" to "silla / banco", "bandas_elasticas" to "bandas elásticas", "prefiero_no_decir" to "prefiero no decir")
 
 /** Diálogo de edición del perfil guardado. Misma validación que el onboarding ([ProfileInput.validate]). */

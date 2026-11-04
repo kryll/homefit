@@ -18,10 +18,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Versión desde el tag
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          IFS=. read -r MA MI PA <<< "${TAG%%-*}"
-          echo "HOMEFIT_VERSION_NAME=$TAG" >> "$GITHUB_ENV"
-          echo "HOMEFIT_VERSION_CODE=$((MA*1000000 + MI*1000 + PA))" >> "$GITHUB_ENV"
+          python3 scripts/release_version.py "$GITHUB_REF_NAME" >> "$GITHUB_ENV"
       - name: Restaurar keystore
         env:
           KEYSTORE_B64: ${{ secrets.HOMEFIT_KEYSTORE_B64 }}
@@ -39,7 +36,11 @@ jobs:
         run: |
           cp app/build/outputs/apk/release/app-release.apk "homefit-${HOMEFIT_VERSION_NAME}.apk"
           cp app/build/outputs/bundle/release/app-release.aab "homefit-${HOMEFIT_VERSION_NAME}.aab"
-          keytool -printcert -jarfile "homefit-${HOMEFIT_VERSION_NAME}.apk" | grep -E "SHA256" || true
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "homefit-${HOMEFIT_VERSION_NAME}.apk"
+          LC_ALL=C jarsigner -verify "homefit-${HOMEFIT_VERSION_NAME}.aab" | tee "$RUNNER_TEMP/aab-verify.txt"
+          grep -q 'jar verified' "$RUNNER_TEMP/aab-verify.txt"
       - name: Publicar en GitHub Releases
         env:
           GH_TOKEN: ${{ github.token }}
@@ -49,3 +50,6 @@ jobs:
           PREV=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
           if [ -n "$PREV" ]; then NOTES=$(git log --pretty='- %s' "$PREV..${GITHUB_REF_NAME}"); else NOTES=$(git log --pretty='- %s' "${GITHUB_REF_NAME}"); fi
           gh release create "$GITHUB_REF_NAME" $PRE --title "HomeFit $HOMEFIT_VERSION_NAME" --notes "$NOTES" "homefit-${HOMEFIT_VERSION_NAME}.apk" "homefit-${HOMEFIT_VERSION_NAME}.aab"
+      - name: Borrar keystore temporal
+        if: always()
+        run: rm -f "$RUNNER_TEMP/homefit.jks"

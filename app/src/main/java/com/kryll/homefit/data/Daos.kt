@@ -35,6 +35,12 @@ interface MeasurementDao {
 
     @Insert
     suspend fun insert(measurement: BodyMeasurement): Long
+
+    @androidx.room.Update
+    suspend fun update(measurement: BodyMeasurement)
+
+    @Query("DELETE FROM body_measurement WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
 
 @Dao
