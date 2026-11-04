@@ -7,7 +7,6 @@ import com.kryll.homefit.data.HomeFitDatabase
 import com.kryll.homefit.data.RoutineRepository
 import com.kryll.homefit.data.WorkoutRepository
 import com.kryll.homefit.domain.RoutineDraft
-import com.kryll.homefit.domain.RoutineItemDraft
 import com.kryll.homefit.domain.SetResult
 import com.kryll.homefit.domain.WorkItem
 import com.kryll.homefit.ui.vm.RoutinesViewModel
