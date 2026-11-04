@@ -1,8 +1,21 @@
 # HomeFit
 
-App Android nativa de ejercicio en casa. Kotlin, Jetpack Compose, Material 3, MVVM, Room, DataStore y WorkManager. Offline primero, en español y preparada para i18n. `minSdk 26`.
+App Android nativa de ejercicio en casa. Kotlin, Jetpack Compose, Material 3, Room, DataStore y WorkManager. Offline primero, en español y preparada para i18n. `minSdk 26`.
 
-> Estado: hito H0 (base del proyecto). Las pantallas son marcadores de posición; el catálogo, las rutinas y el modo entrenamiento llegan en los siguientes hitos.
+La lógica de negocio vive en clases Kotlin puras (motor de entrenamiento, progresión, estadísticas) probadas con tests unitarios; la UI son composables que observan repositorios Room. No hay ViewModel de Android: el estado de pantalla se mantiene en los propios composables y en los repositorios.
+
+## Qué incluye
+
+- Onboarding con perfil (objetivo, nivel, material, días por semana) y edición posterior en Ajustes, con IMC calculado desde la última medida.
+- Catálogo de 90 ejercicios con filtros por músculo, material y dificultad; instrucciones y media con licencia libre.
+- 12 rutinas predefinidas por objetivo, nivel (principiante, intermedio y avanzado) y tipo (fuerza, superior, inferior, core, cardio, HIIT, movilidad, calentamiento y estiramiento), más un constructor de rutinas propias.
+- Modo entrenamiento: pantalla encendida, temporizadores, pitidos y frases por voz (TTS con selector de voz), servicio en primer plano, pausa, saltar, repetir, ajustar descanso, RPE por serie y reanudación de sesiones interrumpidas.
+- Progresión de doble progresión con semanas de descarga.
+- Planificación semanal y mensual con recordatorios (WorkManager); sesiones que se marcan completadas, saltadas o movidas.
+- Medidas corporales con IMC, importación y exportación CSV.
+- Estadísticas: racha, volumen por grupo muscular, gráficas de evolución y récords personales.
+- Copia de seguridad JSON/CSV y restauración desde Ajustes.
+- Actualización manual desde GitHub Releases (ver más abajo).
 
 ## Hitos
 
