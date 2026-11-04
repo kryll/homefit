@@ -33,7 +33,7 @@ object ProgressionConfig {
     const val MAX_SETS = 5
     const val EASY_RPE = 7.0
     const val HARD_RPE = 9.5
-    const val DELOAD_TRAIN_WEEKS = 3
+    const val DELOAD_TRAIN_WEEKS = 4
     const val DELOAD_MIN_SESSIONS_PER_WEEK = 2
     const val DELOAD_RPE = 9.0
     const val DELOAD_VOLUME = 0.6
