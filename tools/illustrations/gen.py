@@ -168,7 +168,7 @@ POSES = {
   # elevacion de gemelos (0 = pie plano; 1 = de puntillas)
   'elevacion_gemelos': [
     dict(head=(46, 14), neck=(46, 22), shoulder=(46, 26), elbow=(50, 40), hand=(53, 52), hip=(46, 54), knee=(47, 68), foot=(46, 80), heel=(34, 82)),
-    dict(head=(46, 7), neck=(46, 15), shoulder=(46, 19), elbow=(50, 33), hand=(53, 45), hip=(46, 47), knee=(49, 61), foot=(46, 80), heel=(35, 69)),
+    dict(head=(46, 7), neck=(46, 15), shoulder=(46, 19), elbow=(50, 33), hand=(53, 45), hip=(46, 47), knee=(46, 61), foot=(46, 80), heel=(35, 69)),
   ],
   # estiramiento de isquiotibiales sentado
   'estiramiento_isquios': [
@@ -342,8 +342,8 @@ POSES = {
   ],
   # elevacion de gemelos a una pierna
   'elevacion_gemelos_una_pierna': [
-    dict(head=(46, 18), neck=(46, 26), shoulder=(46, 30), elbow=(56, 34), hand=(66, 36), hip=(46, 58), knee=(47, 72), foot=(46, 86), knee2=(42, 72), foot2=(38, 64)),
-    dict(head=(46, 12), neck=(46, 20), shoulder=(46, 24), elbow=(56, 30), hand=(66, 32), hip=(46, 52), knee=(49, 70), foot=(42, 84), knee2=(42, 68), foot2=(38, 60)),
+    dict(head=(46, 18), neck=(46, 26), shoulder=(46, 30), elbow=(56, 34), hand=(66, 36), hip=(46, 58), knee=(47, 72), foot=(46, 86), heel=(40, 86), knee2=(42, 72), foot2=(38, 64)),
+    dict(head=(46, 12), neck=(46, 20), shoulder=(46, 24), elbow=(56, 30), hand=(66, 32), hip=(46, 53), knee=(47, 67), foot=(46, 86), heel=(40, 78), knee2=(42, 68), foot2=(38, 60)),
   ],
   # plancha con toque de hombro (1 = una mano toca el hombro contrario)
   'plancha_toque_hombro': [
