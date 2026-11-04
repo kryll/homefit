@@ -155,9 +155,13 @@ class PlanUiTest {
             ScheduledSession(3, 1, ms(today.plusDays(2)), "MOVED"),
         )
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList(), ReminderPrefs(), true) } }
+        // Desplazar hasta cada fila antes de afirmar: la altura de la tarjeta de recordatorio
+        // puede variar con las notas y mover el resto de filas fuera del viewport.
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Cardio suave · Saltada"))
         rule.onNodeWithText("Cardio suave · Saltada").assertIsDisplayed()
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Movida"))
         rule.onNodeWithText("Fuerza en casa · Movida").assertIsDisplayed()
         assertEquals(0, rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().size)
         assertEquals(0, rule.onAllNodesWithText("Saltar").fetchSemanticsNodes().size)
