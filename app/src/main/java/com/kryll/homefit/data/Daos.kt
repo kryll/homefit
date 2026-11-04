@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -102,6 +103,26 @@ interface SessionDao {
     @Insert
     suspend fun insertSets(items: List<SetLog>)
 
+    @Update
+    suspend fun updateWorkout(session: WorkoutSession)
+
+    @Query("DELETE FROM set_log WHERE sessionId = :sessionId")
+    suspend fun deleteSets(sessionId: Long)
+
     @Query("SELECT * FROM workout_session ORDER BY startMillis DESC")
     fun observeWorkouts(): Flow<List<WorkoutSession>>
+
+    @Query("SELECT * FROM set_log WHERE sessionId = :sessionId ORDER BY id")
+    suspend fun setsOf(sessionId: Long): List<SetLog>
+
+    /** La sesión incompleta más reciente de esa rutina empezada hoy (candidata a reanudar). */
+    @Query("SELECT * FROM workout_session WHERE routineId = :routineId AND notes = 'incompleto' AND startMillis >= :from ORDER BY startMillis DESC LIMIT 1")
+    suspend fun latestIncomplete(routineId: Long, from: Long): WorkoutSession?
+
+    /** Marca una sesión interrumpida como descartada para que no se vuelva a ofrecer. */
+    @Query("UPDATE workout_session SET notes = 'descartado' WHERE id = :id")
+    suspend fun discardSession(id: Long)
+
+    @Query("SELECT * FROM workout_session WHERE id = :id")
+    suspend fun workoutById(id: Long): WorkoutSession?
 }
