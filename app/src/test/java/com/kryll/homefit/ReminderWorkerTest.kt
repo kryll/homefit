@@ -13,6 +13,7 @@ import com.kryll.homefit.domain.ReminderPrefs
 import com.kryll.homefit.reminders.ReminderScheduler
 import com.kryll.homefit.reminders.ReminderWorker
 import java.time.LocalDate
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -130,6 +131,26 @@ class ReminderWorkerTest {
         }
         runWorker()
         assertEquals(0, shadowOf(nm).allNotifications.size)
+    }
+
+    @Test fun dailyReminderMarksTheDaySoTheBackupDoesNotRepeatIt() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        assertEquals(ListenableWorker.Result.success(), runWorker())
+        assertEquals(1, shadowOf(nm).allNotifications.size)
+        assertEquals(LocalDate.now().toEpochDay(), runBlocking { app.container.settings.settings.first() }.reminderFiredEpochDay)
+        // Si el usuario quita el aviso y el respaldo de WorkManager dispara el mismo día, no repite…
+        shadowOf(nm).cancel(com.kryll.homefit.reminders.ReminderNotifier.NOTIFICATION_ID)
+        assertEquals(ListenableWorker.Result.success(), runWorker())
+        assertEquals(0, shadowOf(nm).allNotifications.size)
+        assertEquals(1, enqueued().size) // …pero el ciclo diario se reprograma igual
+    }
+
+    @Test fun snoozeStillNotifiesWhenTheDailyReminderAlreadyFired() {
+        setup(allDays, ReminderPrefs(true, 8, 0))
+        runWorker()
+        shadowOf(nm).cancel(com.kryll.homefit.reminders.ReminderNotifier.NOTIFICATION_ID)
+        assertEquals(ListenableWorker.Result.success(), runSnoozedWorker())
+        assertEquals(1, shadowOf(nm).allNotifications.size)
     }
 
     @Test fun workerStaysQuietWhenNotificationsAreBlockedByTheUser() {

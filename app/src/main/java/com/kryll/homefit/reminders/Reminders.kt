@@ -88,19 +88,34 @@ object ReminderScheduler {
     private const val SNOOZE_WORK = "recordatorio_posponer"
     const val KEY_SNOOZE = "snooze"
 
+    /** Retraso del respaldo de WorkManager cuando la alarma exacta está activa. Si Android borra la
+     *  alarma (p. ej. al revocar el permiso con la app cerrada), ese día avisa el respaldo con este
+     *  margen y el ciclo se reconstruye en WorkManager al disparar. */
+    const val BACKUP_OFFSET_MINUTES = 15L
+
     /**
-     * Programa el próximo aviso. Con [ReminderPrefs.exact] y el permiso de alarma concedido usa
-     * AlarmManager.setExactAndAllowWhileIdle (puntual incluso con Doze; sin garantía con el móvil apagado
-     * o la app detenida a la fuerza). Si no, cae al trabajo único de WorkManager, inexacto por diseño.
-     * En ambos casos el aviso se reprograma a sí mismo tras disparar; BootReceiver lo realinea tras reiniciar.
+     * Programa el próximo aviso. Con [ReminderPrefs.exact] y el permiso de alarma concedido arma la alarma
+     * exacta (setExactAndAllowWhileIdle, puntual incluso con Doze) Y un respaldo de WorkManager
+     * [BACKUP_OFFSET_MINUTES] minutos después: Android borra las alarmas exactas al revocar el permiso y
+     * no avisa a la app, así que el respaldo es lo único que garantiza el aviso ese día (con retraso) y la
+     * reconstrucción del ciclo. ReminderEngine evita el aviso duplicado con la marca de día.
+     * Sin exacto o sin permiso, solo el trabajo único de WorkManager, inexacto por diseño.
+     * El aviso se reprograma a sí mismo tras disparar; BootReceiver lo realinea tras reiniciar y
+     * ExactPermissionReceiver al conceder el permiso. Con el móvil apagado o la app detenida a la fuerza
+     * no hay aviso hasta el próximo arranque o apertura de la app.
      */
     fun schedule(context: Context, prefs: ReminderPrefs, daysMask: Int, from: ZonedDateTime = ZonedDateTime.now()) {
         val wm = WorkManager.getInstance(context)
         val next = if (prefs.enabled) Planning.nextReminder(from, daysMask, prefs) else null
         if (next == null) { wm.cancelUniqueWork(WORK_NAME); ExactReminders.cancel(context); return }
         if (prefs.exact && ExactReminders.canSchedule(context)) {
-            wm.cancelUniqueWork(WORK_NAME)
             ExactReminders.scheduleAt(context, next.toInstant().toEpochMilli())
+            val backupAt = next.plusMinutes(BACKUP_OFFSET_MINUTES)
+            val delay = Duration.between(ZonedDateTime.now(next.zone), backupAt).toMillis().coerceAtLeast(0)
+            wm.enqueueUniqueWork(
+                WORK_NAME, ExistingWorkPolicy.REPLACE,
+                OneTimeWorkRequestBuilder<ReminderWorker>().setInitialDelay(delay, TimeUnit.MILLISECONDS).build(),
+            )
         } else {
             ExactReminders.cancel(context)
             val delay = Duration.between(ZonedDateTime.now(next.zone), next).toMillis().coerceAtLeast(0)
@@ -125,6 +140,7 @@ object ReminderScheduler {
             ExactReminders.scheduleAt(context, System.currentTimeMillis() + ReminderNotifier.SNOOZE_MINUTES * 60_000, snooze = true)
             return
         }
+        ExactReminders.cancelSnooze(context) // evita un doble pospuesto si había uno exacto armado
         WorkManager.getInstance(context).enqueueUniqueWork(
             SNOOZE_WORK, ExistingWorkPolicy.REPLACE,
             OneTimeWorkRequestBuilder<ReminderWorker>()
@@ -154,10 +170,17 @@ object ReminderEngine {
         val to = today.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
         val trained = db.sessionDao().workoutsBetween(from, to).any { it.notes != WorkoutRepository.NOTE_INCOMPLETE }
         val todays = db.sessionDao().scheduledBetween(from, to)
-        if (Planning.decide(prefs, profile.daysMask, today, trained, todays.map { it.status }) == ReminderDecision.SHOW) {
+        val decision = Planning.decide(prefs, profile.daysMask, today, trained, todays.map { it.status })
+        // La marca de día evita que suene dos veces el mismo aviso diario cuando la alarma exacta y el
+        // respaldo de WorkManager disparan el mismo día. El pospuesto (snooze) es a petición del usuario:
+        // avisa siempre y no toca la marca.
+        val alreadyFired = !isSnooze && prefs.reminderFiredEpochDay == today.toEpochDay()
+        if (decision == ReminderDecision.SHOW && !alreadyFired) {
             val routineId = todays.firstOrNull { it.status == "SCHEDULED" }?.routineId
             val name = routineId?.let { db.routineDao().byId(it)?.name }
-            ReminderNotifier.show(app, name)
+            if (ReminderNotifier.show(app, name) && !isSnooze) {
+                app.container.settings.update { it.copy(reminderFiredEpochDay = today.toEpochDay()) }
+            }
         }
         // Un aviso pospuesto no reprograma el diario, que sigue su propio mecanismo.
         if (isSnooze) return
@@ -206,6 +229,12 @@ object ExactReminders {
         am.cancel(pendingIntent(context, false))
         am.cancel(pendingIntent(context, true))
     }
+
+    /** Cancela solo el pospuesto exacto (el diario sigue su propio mecanismo). */
+    fun cancelSnooze(context: Context) {
+        val am = context.getSystemService(AlarmManager::class.java) ?: return
+        am.cancel(pendingIntent(context, true))
+    }
 }
 
 class ReminderReceiver : BroadcastReceiver() {
@@ -214,6 +243,26 @@ class ReminderReceiver : BroadcastReceiver() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 ReminderEngine.runCycle(context.applicationContext as HomeFitApp, intent.getBooleanExtra(ReminderScheduler.KEY_SNOOZE, false))
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+}
+
+/**
+ * El sistema envía ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED cuando el usuario CONCEDE
+ * «Alarmas y recordatorios» (no al revocarlo): rearma la alarma exacta al momento si el ajuste sigue activo.
+ * La revocación borra las alarmas sin avisar; la reconstrucción corre a cargo del respaldo de WorkManager
+ * y del sync al abrir la app o reiniciar (ver ReminderScheduler.schedule).
+ */
+class ExactPermissionReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED) return
+        val pending = goAsync()
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            try {
+                ReminderScheduler.sync(context.applicationContext as HomeFitApp)
             } finally {
                 pending.finish()
             }

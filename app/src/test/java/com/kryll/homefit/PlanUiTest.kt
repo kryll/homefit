@@ -86,6 +86,19 @@ class PlanUiTest {
         assertEquals(0, rule.onAllNodes(androidx.compose.ui.test.hasText("Entrenar")).fetchSemanticsNodes().size)
     }
 
+    @Test fun exactSwitchVisibleWithoutNoteWhenGranted() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = true) } }
+        rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
+        capture("plan_recordatorio_exacto")
+    }
+
+    @Test fun exactDeniedShowsPermissionNote() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = false) } }
+        rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
+        rule.onNodeWithText("Sin el permiso de alarma, el aviso usa el mecanismo normal y el ahorro de batería puede retrasarlo. Toca el interruptor de nuevo para abrir los ajustes de Android.").assertIsDisplayed()
+        capture("plan_recordatorio_sin_permiso")
+    }
+
     @Test fun warnsWhenNotificationsAreOff() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), ReminderPrefs(true), notificationsAllowed = false) } }
         rule.onNodeWithText("Las notificaciones de HomeFit están desactivadas en el sistema: actívalas para recibir el aviso.").assertIsDisplayed()

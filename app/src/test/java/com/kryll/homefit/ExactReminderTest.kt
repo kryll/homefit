@@ -24,6 +24,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowAlarmManager
 
 /**
  * Selección de mecanismo del recordatorio: alarma exacta solo con el ajuste activo Y el permiso concedido;
@@ -37,31 +38,47 @@ class ExactReminderTest {
 
     @Before fun setUp() { WorkManagerTestInitHelper.initializeTestWorkManager(app) }
 
-    private fun enqueuedWork() = WorkManager.getInstance(app).getWorkInfosForUniqueWork("recordatorio_diario").get()
+    private fun enqueuedWork(name: String = "recordatorio_diario") = WorkManager.getInstance(app).getWorkInfosForUniqueWork(name).get()
         .filter { it.state == WorkInfo.State.ENQUEUED }
 
     private fun prefs(exact: Boolean) = ReminderPrefs(enabled = true, hour = 18, minute = 0, leadMinutes = 0, exact = exact)
 
-    @Test fun exactEnabledAndGrantedSchedulesAlarmNotWork() {
-        shadowOf(alarmManager).setCanScheduleExactAlarms(true)
+    @Test fun exactEnabledAndGrantedSchedulesAlarmPlusWorkManagerBackup() {
+        ShadowAlarmManager.setCanScheduleExactAlarms(true)
         val p = prefs(exact = true)
         val from = ZonedDateTime.now()
         ReminderScheduler.schedule(app, p, 0b1111111, from)
         val alarm = shadowOf(alarmManager).nextScheduledAlarm
-        assertNotNull(alarm)
-        assertEquals(Planning.nextReminder(from, 0b1111111, p)!!.toInstant().toEpochMilli(), alarm.triggerAtMillis)
-        assertTrue("WorkManager no debe tener el aviso diario en modo exacto", enqueuedWork().isEmpty())
+        assertNotNull("con el permiso concedido debe armar la alarma exacta", alarm)
+        assertEquals(Planning.nextReminder(from, 0b1111111, p)!!.toInstant().toEpochMilli(), alarm.triggerAtMs)
+        // Respaldo de WorkManager unos minutos después: si el sistema borra la alarma (revocación),
+        // ese día avisa el respaldo con retraso y el ciclo se reconstruye solo.
+        val backup = enqueuedWork().singleOrNull()
+        assertNotNull("el respaldo de WorkManager debe estar en cola junto a la alarma", backup)
+        val expectedDelay = java.time.Duration.between(ZonedDateTime.now(), Planning.nextReminder(from, 0b1111111, p)!!.plusMinutes(ReminderScheduler.BACKUP_OFFSET_MINUTES)).toMillis()
+        kotlin.math.abs(backup!!.initialDelayMillis - expectedDelay).let { assertTrue("respaldo ~15 min después: $it ms de desvío", it < 60_000) }
+    }
+
+    @Test fun snoozeWithoutPermissionCancelsExactSnooze() {
+        ShadowAlarmManager.setCanScheduleExactAlarms(true)
+        ReminderScheduler.snooze(app)
+        assertNotNull("con permiso el pospuesto usa la alarma exacta", shadowOf(alarmManager).nextScheduledAlarm)
+        // El permiso se pierde antes de volver a posponer: no debe quedar el pospuesto exacto armado.
+        ShadowAlarmManager.setCanScheduleExactAlarms(false)
+        ReminderScheduler.snooze(app)
+        assertNull("sin permiso no debe quedar ninguna alarma exacta armada", shadowOf(alarmManager).nextScheduledAlarm)
+        assertEquals(1, enqueuedWork("recordatorio_posponer").size)
     }
 
     @Test fun exactEnabledButDeniedFallsBackToWorkManager() {
-        shadowOf(alarmManager).setCanScheduleExactAlarms(false)
+        ShadowAlarmManager.setCanScheduleExactAlarms(false)
         ReminderScheduler.schedule(app, prefs(exact = true), 0b1111111)
         assertNull(shadowOf(alarmManager).nextScheduledAlarm)
         assertEquals(1, enqueuedWork().size)
     }
 
     @Test fun exactDisabledUsesWorkManagerEvenIfGranted() {
-        shadowOf(alarmManager).setCanScheduleExactAlarms(true)
+        ShadowAlarmManager.setCanScheduleExactAlarms(true)
         ReminderScheduler.schedule(app, prefs(exact = false), 0b1111111)
         assertNull(shadowOf(alarmManager).nextScheduledAlarm)
         assertEquals(1, enqueuedWork().size)
