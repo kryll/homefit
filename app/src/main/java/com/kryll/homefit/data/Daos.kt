@@ -143,4 +143,7 @@ interface SessionDao {
     /** Marca una sesión interrumpida como descartada para que no se vuelva a ofrecer. */
     @Query("UPDATE workout_session SET notes = 'descartado' WHERE id = :id")
     suspend fun discardSession(id: Long)
+
+    @Query("SELECT * FROM workout_session WHERE id = :id")
+    suspend fun workoutById(id: Long): WorkoutSession?
 }
