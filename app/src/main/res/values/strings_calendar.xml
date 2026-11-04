@@ -1,0 +1,16 @@
+<resources>
+    <string name="calendar_week">Semana</string>
+    <string name="calendar_month">Mes</string>
+    <string name="calendar_previous">Anterior</string>
+    <string name="calendar_next">Siguiente</string>
+    <string name="calendar_today">Hoy</string>
+    <string name="calendar_mon">L</string>
+    <string name="calendar_tue">M</string>
+    <string name="calendar_wed">X</string>
+    <string name="calendar_thu">J</string>
+    <string name="calendar_fri">V</string>
+    <string name="calendar_sat">S</string>
+    <string name="calendar_sun">D</string>
+    <string name="calendar_dot_hint">• Sesión programada. Toca un día para ver sus sesiones.</string>
+    <string name="calendar_auto_hint">Autoplanificar y Vaciar actúan solo en los próximos siete días desde hoy, no en el mes visible.</string>
+</resources>
