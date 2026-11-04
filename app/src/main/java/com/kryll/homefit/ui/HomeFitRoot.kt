@@ -21,6 +21,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -37,6 +40,8 @@ import com.kryll.homefit.domain.SetResult
 import com.kryll.homefit.domain.WorkItem
 import com.kryll.homefit.ui.vm.AppViewModelFactory
 import com.kryll.homefit.ui.vm.OnboardingViewModel
+import com.kryll.homefit.ui.vm.PlanViewModel
+import com.kryll.homefit.ui.vm.ReminderPrefsUi
 import com.kryll.homefit.ui.vm.RoutinesViewModel
 
 private enum class Tab(val route: String, @StringRes val label: Int, @StringRes val placeholder: Int, val icon: ImageVector) {
@@ -52,7 +57,7 @@ fun HomeFitRoot() {
     val settings by app.container.settings.settings.collectAsState(initial = null)
     val s = settings ?: return
     if (!s.onboardingDone) {
-        val vm: OnboardingViewModel = viewModel(factory = AppViewModelFactory(app.container))
+        val vm: OnboardingViewModel = viewModel(factory = AppViewModelFactory(app))
         OnboardingScreen { profile, equipment -> vm.complete(profile, equipment) }
         return
     }
@@ -62,6 +67,7 @@ fun HomeFitRoot() {
 @Composable
 private fun MainTabs() {
     val nav = rememberNavController()
+    var startRequest by rememberSaveable { mutableStateOf<Long?>(null) }
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination?.route
     Scaffold(
@@ -87,7 +93,12 @@ private fun MainTabs() {
             Tab.entries.forEach { tab ->
                 composable(tab.route) {
                     if (tab == Tab.Routines) {
-                        RoutinesTab()
+                        RoutinesTab(startRequest) { startRequest = null }
+                    } else if (tab == Tab.Today) {
+                        PlanTab(onStart = { id ->
+                            startRequest = id
+                            nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
+                        })
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -100,9 +111,9 @@ private fun MainTabs() {
 }
 
 @Composable
-private fun RoutinesTab() {
+private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit = {}) {
     val app = LocalContext.current.applicationContext as HomeFitApp
-    val vm: RoutinesViewModel = viewModel(factory = AppViewModelFactory(app.container))
+    val vm: RoutinesViewModel = viewModel(factory = AppViewModelFactory(app))
     val routines by vm.routines.collectAsState()
     val exercises by vm.exercises.collectAsState()
     val map by vm.gearByExercise.collectAsState()
@@ -110,6 +121,12 @@ private fun RoutinesTab() {
     val suggestions by vm.suggestions.collectAsState()
     val deload by vm.deload.collectAsState()
     val session by vm.session.collectAsState()
+    LaunchedEffect(startRequest) {
+        if (startRequest != null) {
+            if (vm.session.value.routineId == null) vm.startWorkout(startRequest, System.currentTimeMillis())
+            onStartConsumed()
+        }
+    }
     val active = session.routineId
     if (active != null) {
         val names = exercises.associate { it.id to it.name }
@@ -190,6 +207,40 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
                 com.kryll.homefit.audio.WorkoutHost.clear()
                 onExit(r.first, r.second)
             }
+        },
+    )
+}
+
+
+@Composable
+private fun PlanTab(onStart: (Long) -> Unit) {
+    val context = LocalContext.current
+    val app = context.applicationContext as HomeFitApp
+    val vm: PlanViewModel = viewModel(factory = AppViewModelFactory(app))
+    val ui by vm.ui.collectAsState()
+    val reminderEnabled by vm.reminderEnabled.collectAsState()
+    var refresh by remember { mutableStateOf(0) }
+    val notificationsAllowed = remember(refresh, reminderEnabled) {
+        androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
+    val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { refresh++ }
+    val u = ui ?: return
+    val prefs = com.kryll.homefit.domain.ReminderPrefs(u.prefs.enabled, u.prefs.hour, u.prefs.minute, u.prefs.leadMinutes)
+
+    PlanScreen(
+        today = u.today, zone = u.zone, daysMask = u.daysMask, routines = u.routines, scheduled = u.scheduled, workouts = u.workouts,
+        prefs = prefs, notificationsAllowed = notificationsAllowed,
+        onAssign = { d, rid -> vm.assign(d, rid) },
+        onAuto = { vm.autoPlan() },
+        onClear = { vm.clearWeek() },
+        onSkip = { e -> vm.skip(e.id) },
+        onMove = { e, nd -> vm.move(e, nd) },
+        onStart = onStart,
+        onPrefs = { n ->
+            if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            vm.saveReminderPrefs(ReminderPrefsUi(n.enabled, n.hour, n.minute, n.leadMinutes))
         },
     )
 }
