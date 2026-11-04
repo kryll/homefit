@@ -37,6 +37,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.kryll.homefit.reminders.reminderPrefs
+import com.kryll.homefit.data.BodyMeasurement
+import com.kryll.homefit.data.SetLog
+import com.kryll.homefit.data.WorkoutSession
+import com.kryll.homefit.domain.MeasureCsv
+import com.kryll.homefit.domain.MuscleVolume
+import com.kryll.homefit.domain.ProgressStats
+import com.kryll.homefit.domain.ProgressSummary
+import com.kryll.homefit.domain.SessionRow
 
 /** Alta inicial: guarda perfil + equipamiento y marca el alta como hecha. */
 class OnboardingViewModel(private val db: HomeFitDatabase, private val settings: SettingsStore) : ViewModel() {
@@ -160,6 +168,7 @@ class AppViewModelFactory(private val app: com.kryll.homefit.HomeFitApp) : ViewM
         OnboardingViewModel::class.java -> OnboardingViewModel(container.database, container.settings)
         RoutinesViewModel::class.java -> RoutinesViewModel(container.database, RoutineRepository(container.database), container.workoutRepository, container.settings)
         SettingsViewModel::class.java -> SettingsViewModel(container.database, container.settings, BackupRepository(container.database))
+        ProgressViewModel::class.java -> ProgressViewModel(container.database, container.settings)
         PlanViewModel::class.java -> PlanViewModel(container.database, container.settings, app)
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     } as T
@@ -306,5 +315,72 @@ class SettingsViewModel(
             writeSettings = { n -> settings.update { n } },
             afterApply = afterApply,
         ).apply(b)
+    }
+}
+
+
+/** Resultado de importar medidas desde CSV: insertadas, omitidas por duplicar el día y errores de parseo. */
+data class MeasureImportResult(val imported: Int, val skipped: Int, val errors: List<String>)
+
+/** Pestaña Progreso: historial (filas, resumen, volumen por músculo) y medidas corporales con exportación/importación CSV. La escritura del fichero y los textos del mensaje viven en la capa UI. */
+class ProgressViewModel(
+    private val db: HomeFitDatabase,
+    settings: SettingsStore,
+) : ViewModel() {
+    val appSettings: StateFlow<AppSettings> =
+        settings.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+    val workouts: StateFlow<List<WorkoutSession>> =
+        db.sessionDao().observeWorkouts().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val sets: StateFlow<List<SetLog>> =
+        db.sessionDao().observeAllSets().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val routines: StateFlow<List<Routine>> =
+        db.routineDao().observeAll().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val exercises: StateFlow<List<Exercise>> =
+        db.exerciseDao().observeAll().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val measurements: StateFlow<List<BodyMeasurement>> =
+        db.measurementDao().observeAll().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Filas del historial derivadas de sesiones y series. */
+    val rows: StateFlow<List<SessionRow>> =
+        combine(workouts, sets, routines, exercises) { w, s, r, e ->
+            ProgressStats.rows(w, s, r.associate { it.id to it.name }, e.associate { it.id to it.name })
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Resumen (totales, semana, racha, RPE medio) recalculado al cambiar el historial. */
+    val summary: StateFlow<ProgressSummary> =
+        rows.map { ProgressStats.summary(it, System.currentTimeMillis(), java.time.ZoneId.systemDefault()) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, ProgressStats.summary(emptyList(), System.currentTimeMillis(), java.time.ZoneId.systemDefault()))
+
+    /** Volumen agrupado por músculo primario. */
+    val volume: StateFlow<List<MuscleVolume>> =
+        combine(rows, exercises) { r, e ->
+            val primary = e.associate { it.id to it.primaryMuscle }
+            ProgressStats.volumeByMuscle(r) { primary[it] }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Mensaje de exportación/importación para mostrar en pantalla; lo fija la capa UI con sus recursos de texto. */
+    val message = MutableStateFlow<String?>(null)
+
+    fun saveMeasurement(measurement: BodyMeasurement) {
+        viewModelScope.launch {
+            if (measurement.id != 0L) db.measurementDao().update(measurement) else db.measurementDao().insert(measurement)
+        }
+    }
+
+    fun deleteMeasurement(id: Long) {
+        viewModelScope.launch { db.measurementDao().deleteById(id) }
+    }
+
+    /** CSV de medidas en las unidades actuales. */
+    fun measuresCsv(): String =
+        MeasureCsv.build(measurements.value, appSettings.value.weightUnit, appSettings.value.lengthUnit)
+
+    /** Importa medidas de un CSV: inserta solo las de días sin medida y devuelve el resultado para el mensaje. */
+    fun importMeasuresCsv(text: String): MeasureImportResult {
+        val parsed = MeasureCsv.parse(text, appSettings.value.weightUnit, appSettings.value.lengthUnit)
+        val existing = measurements.value.map { it.epochDay }.toSet()
+        val fresh = parsed.rows.filter { it.epochDay !in existing }
+        viewModelScope.launch { fresh.forEach { db.measurementDao().insert(it) } }
+        return MeasureImportResult(fresh.size, parsed.rows.size - fresh.size, parsed.errors)
     }
 }

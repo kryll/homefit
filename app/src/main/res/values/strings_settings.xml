@@ -23,6 +23,11 @@
     <string name="settings_beep_off">Pitidos desactivados</string>
     <string name="settings_minus">−</string>
     <string name="settings_plus">+</string>
+    <string name="settings_units">Unidades</string>
+    <string name="unit_kg">Peso: kg</string>
+    <string name="unit_lb">Peso: lb</string>
+    <string name="unit_cm">Medidas: cm</string>
+    <string name="unit_in">Medidas: in</string>
     <string name="settings_workout">Entreno</string>
     <string name="settings_default_rest">Descanso por defecto: %1$d s</string>
     <string name="settings_default_rest_note">Se usa al añadir un ejercicio nuevo a una rutina. Las rutinas ya creadas conservan su descanso.</string>
@@ -49,5 +54,5 @@
     <string name="backup_err_failed">La importación falló. Se intentó volver a tus datos anteriores: compruébalos.</string>
     <string name="backup_err_read">No se pudo leer el archivo.</string>
     <string name="settings_about">Acerca de</string>
-    <string name="settings_units_note">Las unidades (kg/lb, cm/in) llegarán con las medidas corporales.</string>
+    <string name="settings_units_note">Afectan a cómo ves y escribes las medidas corporales. Los datos se guardan siempre en kg y cm, así que puedes cambiar sin perder nada.</string>
 </resources>

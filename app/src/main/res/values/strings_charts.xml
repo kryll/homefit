@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="charts_weekly_title">Entrenos por semana</string>
+    <string name="charts_weekly_empty">Aún no hay entrenos registrados.</string>
+    <string name="charts_weekly_desc">Semana del %1$s: %2$d</string>
+    <string name="charts_exercise_title">Máximo de repeticiones registradas</string>
+    <string name="charts_exercise_empty">Cuando registres series aparecerá aquí tu evolución.</string>
+    <string name="charts_exercise_need_two">Con un solo día registrado no hay evolución que dibujar: máximo %1$d %2$s.</string>
+    <string name="charts_unit_reps">rep</string>
+    <string name="charts_unit_seconds">s</string>
+    <string name="charts_exercise_range">Máximo registrado: de %1$d a %2$d %3$s en %4$d días</string>
+    <string name="charts_exercise_note">Máximo de repeticiones o segundos de cada día; si registraste la carga, aparece junto al dato. No es una medida directa de fuerza.</string>
+    <string name="charts_exercise_point">%1$s: %2$d %3$s</string>
+    <string name="charts_weekly_note">Número de entrenos de cada semana, con su lunes (día/mes).</string>
+    <string name="charts_exercise_point_weight">%1$s: %2$d %3$s · %4$s kg</string>
+    <string name="charts_load_title">Carga máxima registrada (kg)</string>
+    <string name="charts_load_empty">Registra carga en al menos dos días para ver su evolución.</string>
+    <string name="charts_load_point">%1$s: %2$s kg</string>
+    <string name="charts_load_note">Máximo de cada día, siempre en kg. No compara repeticiones iguales ni estima tu fuerza máxima.</string>
+</resources>

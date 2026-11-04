@@ -46,9 +46,9 @@ class SettingsUiTest {
     @Test fun showsSectionsAndCurrentValues() {
         rule.setContent { HomeFitTheme { SettingsScreen(AppSettings(beepVolume = 0.8f, ttsRate = 1.25f), "1.2.3", null, null) } }
         rule.onNodeWithText("Ajustes").assertIsDisplayed()
+        capture("ajustes_arriba")
         rule.onNodeWithText("Volumen de los pitidos: 80 %").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Velocidad de la voz: 1,25×").performScrollTo().assertIsDisplayed()
-        capture("ajustes_arriba")
         rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
     }
 
@@ -106,6 +106,16 @@ class SettingsUiTest {
         assertEquals(6, s.defaultCountdownSeconds)
         capture("ajustes_entreno")
     }
+
+    @Test fun unitChipsChangeWeightAndLengthUnits() {
+        var s = AppSettings()
+        rule.setContent { HomeFitTheme { SettingsScreen(s, "1", null, null, onChange = { t -> s = t(s) }) } }
+        rule.onNodeWithText("Peso: lb").performScrollTo().performClick()
+        assertEquals(com.kryll.homefit.data.WeightUnit.LB, s.weightUnit)
+        rule.onNodeWithText("Medidas: in").performScrollTo().performClick()
+        assertEquals(com.kryll.homefit.data.LengthUnit.IN, s.lengthUnit)
+    }
+
     @Test fun voiceSelectorListsAndEmits() {
         val s = androidx.compose.runtime.mutableStateOf(AppSettings(ttsVoice = "es-es-x-eee-local"))
         val voices = listOf("es-es-x-eee-local", "es-es-x-eef-network")

@@ -27,7 +27,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.text.input.KeyboardType
 import com.kryll.homefit.data.AppSettings
+import com.kryll.homefit.data.LengthUnit
 import com.kryll.homefit.data.ThemeMode
+import com.kryll.homefit.data.WeightUnit
 import com.kryll.homefit.data.UserProfile
 import com.kryll.homefit.domain.Bmi
 import com.kryll.homefit.domain.ProfileInput
@@ -92,6 +94,28 @@ fun SettingsScreen(
             }
         }
 
+        Section(R.string.settings_units) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(WeightUnit.KG to R.string.unit_kg, WeightUnit.LB to R.string.unit_lb).forEach { (u, label) ->
+                    FilterChip(
+                        selected = settings.weightUnit == u,
+                        onClick = { onChange { it.copy(weightUnit = u) } },
+                        label = { Text(stringResource(label)) },
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(LengthUnit.CM to R.string.unit_cm, LengthUnit.IN to R.string.unit_in).forEach { (u, label) ->
+                    FilterChip(
+                        selected = settings.lengthUnit == u,
+                        onClick = { onChange { it.copy(lengthUnit = u) } },
+                        label = { Text(stringResource(label)) },
+                    )
+                }
+            }
+            Text(stringResource(R.string.settings_units_note), style = MaterialTheme.typography.bodySmall)
+        }
+
         Section(R.string.settings_workout) {
             Text(stringResource(R.string.settings_default_rest, settings.defaultRestSeconds))
             Stepper(
@@ -145,7 +169,6 @@ fun SettingsScreen(
         Section(R.string.settings_about) {
             Text(stringResource(R.string.version_label, versionName))
             Text(stringResource(R.string.health_disclaimer), style = MaterialTheme.typography.bodySmall)
-            Text(stringResource(R.string.settings_units_note), style = MaterialTheme.typography.bodySmall)
         }
     }
 
