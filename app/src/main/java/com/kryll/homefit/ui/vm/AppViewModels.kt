@@ -13,12 +13,19 @@ import com.kryll.homefit.data.SettingsStore
 import com.kryll.homefit.data.UserEquipment
 import com.kryll.homefit.data.UserProfile
 import com.kryll.homefit.data.WorkoutRepository
+import com.kryll.homefit.domain.Deload
+import com.kryll.homefit.domain.DeloadReason
+import com.kryll.homefit.domain.Prescribed
+import com.kryll.homefit.domain.Progression
+import com.kryll.homefit.domain.ProgressionData
 import com.kryll.homefit.domain.RoutineDraft
 import com.kryll.homefit.domain.SetResult
+import com.kryll.homefit.domain.Suggestion
 import com.kryll.homefit.domain.WorkItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -47,7 +54,7 @@ data class WorkoutSessionState(
     val resumePlan: List<WorkItem>? = null,
 )
 
-/** Pestaña Rutinas: catálogo observable, alta/baja de rutinas y ciclo de vida de la sesión de entreno. */
+/** Pestaña Rutinas: catálogo observable, progresión (doble progresión + descarga), alta/baja y ciclo de sesión. */
 class RoutinesViewModel(
     db: HomeFitDatabase,
     private val repo: RoutineRepository,
@@ -61,10 +68,29 @@ class RoutinesViewModel(
         db.exerciseDao().observeEquipment()
             .map { list -> list.groupBy({ it.exerciseId }, { it.equipment }).mapValues { it.value.toSet() } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+    private val allItems: StateFlow<List<RoutineItem>> =
+        db.routineDao().observeAllItems().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val itemsByRoutine: StateFlow<Map<Long, List<RoutineItem>>> =
-        db.routineDao().observeAllItems()
-            .map { list -> list.groupBy { it.routineId } }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+        allItems.map { list -> list.groupBy { it.routineId } }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    private val sessionSets = combine(
+        db.sessionDao().observeWorkouts(), db.sessionDao().observeAllSets(),
+    ) { w, s -> ProgressionData.sessionSets(w, s) }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val deload: StateFlow<DeloadReason?> = sessionSets.map {
+        Deload.advice(it, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** Sugerencias de progresión por (rutina, ejercicio), mismas reglas que antes en el composable. */
+    val suggestions: StateFlow<Map<Pair<Long, String>, Suggestion>> =
+        combine(sessionSets, allItems, exercises, deload) { sets, items, exs, dl ->
+            val harder = exs.associate { it.id to it.harderVariantId }
+            buildMap {
+                items.groupBy { it.routineId }.forEach { (rid, its) ->
+                    val presc = its.sortedBy { it.position }.map { Prescribed(it.exerciseId, it.sets, it.reps, it.seconds) }
+                    Progression.forRoutine(rid, presc, sets, deload = dl != null) { harder[it] }.forEach { (ex, sg) -> put(rid to ex, sg) }
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     fun saveRoutine(id: Long?, draft: RoutineDraft) = viewModelScope.launch { repo.save(id, draft) }
     fun deleteRoutine(id: Long) = viewModelScope.launch { repo.delete(id) }

@@ -107,6 +107,8 @@ private fun RoutinesTab() {
     val exercises by vm.exercises.collectAsState()
     val map by vm.gearByExercise.collectAsState()
     val itemsByRoutine by vm.itemsByRoutine.collectAsState()
+    val suggestions by vm.suggestions.collectAsState()
+    val deload by vm.deload.collectAsState()
     val session by vm.session.collectAsState()
     val active = session.routineId
     if (active != null) {
@@ -151,6 +153,8 @@ private fun RoutinesTab() {
         onSaveRoutine = { id, draft -> vm.saveRoutine(id, draft) },
         onDeleteRoutine = { id -> vm.deleteRoutine(id) },
         onStart = { vm.startWorkout(it, System.currentTimeMillis()) },
+        suggestions = suggestions,
+        deload = deload,
     )
 }
 
