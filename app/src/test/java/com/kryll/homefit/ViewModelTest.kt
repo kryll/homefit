@@ -19,7 +19,7 @@ import com.kryll.homefit.ui.vm.ProgressViewModel
 import com.kryll.homefit.ui.vm.SettingsViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -60,16 +60,18 @@ class ViewModelTest {
     private lateinit var db: HomeFitDatabase
     private lateinit var vm: RoutinesViewModel
 
-    // Ejecutor en línea: las consultas Room corren en el hilo del test, sin hilos reales.
-    private val directExecutor = Executor { it.run() }
+    // Ejecutor Room de un solo hilo: trabajo serial y orden determinista entre consultas.
+    // (Un ejecutor "directo" NO vale: compartiría el hilo del test con las transacciones
+    // suspending de Room y rompería su control por ThreadLocal.)
+    private val roomExecutor = Executors.newSingleThreadExecutor()
     private val trackedVms = mutableListOf<ViewModel>()
 
     private fun <T : ViewModel> track(instance: T): T = instance.also(trackedVms::add)
 
     @Before fun setUp() {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), HomeFitDatabase::class.java)
-            .setQueryExecutor(directExecutor)
-            .setTransactionExecutor(directExecutor)
+            .setQueryExecutor(roomExecutor)
+            .setTransactionExecutor(roomExecutor)
             .allowMainThreadQueries().build()
         vm = track(RoutinesViewModel(db, RoutineRepository(db), WorkoutRepository(db), SettingsStore(ApplicationProvider.getApplicationContext())))
     }
@@ -81,6 +83,7 @@ class ViewModelTest {
         trackedVms.forEach { it.viewModelScope.coroutineContext[Job]?.join() }
         trackedVms.clear()
         db.close()
+        roomExecutor.shutdown()
     }
 
     private suspend fun seedRoutine(): Long {
@@ -150,7 +153,9 @@ class ViewModelTest {
         vm.cancelWorkout()
         vm.startWorkout(id, 4000)
         vm.checkResume(plan, 4000)
-        // Con ejecutor directo la adopción corre en línea: assert determinista, sin esperas reales.
+        // La adopción corre en el ejecutor Room (un solo hilo serial): cualquier consulta
+        // encolada después garantiza que aquella ya terminó; assert determinista, sin esperas fijas.
+        db.routineDao().observeAll().first()
         assertNull(vm.session.value.resumable)
     }
 
