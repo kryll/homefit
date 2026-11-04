@@ -332,6 +332,9 @@ private fun SettingsTab() {
     val scope = rememberCoroutineScope()
     val settings by app.container.settings.settings.collectAsState(initial = com.kryll.homefit.data.AppSettings())
     val repo = remember { com.kryll.homefit.data.BackupRepository(app.container.database) }
+    val profile by app.container.database.profileDao().observeProfile().collectAsState(initial = null)
+    val equipmentStored by app.container.database.profileDao().observeEquipment().collectAsState(initial = emptyList())
+    val measurementsAll by app.container.database.measurementDao().observeAll().collectAsState(initial = emptyList())
     var message by remember { mutableStateOf<String?>(null) }
     var pending by remember { mutableStateOf<com.kryll.homefit.data.Backup?>(null) }
     val versionName = remember {
@@ -384,6 +387,17 @@ private fun SettingsTab() {
         settings = settings, versionName = versionName, message = message,
         pendingImport = p?.let { ImportSummary(it.routines.size, it.workouts.size, it.scheduled.size, it.measurements.size) },
         availableVoices = voiceNames.value,
+        profile = profile,
+        equipment = equipmentStored.toSet(),
+        latestWeightKg = measurementsAll.filter { it.weightKg != null }.maxByOrNull { it.epochDay }?.weightKg,
+        onSaveProfile = { prof, equip ->
+            scope.launch {
+                app.container.database.profileDao().saveProfile(prof)
+                app.container.database.profileDao().clearEquipment()
+                app.container.database.profileDao().addEquipment(equip.map { com.kryll.homefit.data.UserEquipment(it) })
+                message = context.getString(R.string.settings_profile_saved)
+            }
+        },
         onChange = { t -> scope.launch { app.container.settings.update(t) } },
         onExport = { export.launch("homefit-copia-${java.time.LocalDate.now()}.json") },
         onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
