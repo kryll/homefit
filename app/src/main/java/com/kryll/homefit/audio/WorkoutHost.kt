@@ -20,7 +20,6 @@ object WorkoutHost {
         if (cur != null && key == sessionKey && !cur.isClosed) return cur
         return WorkoutRunner(plan, getReadySeconds, now = { SystemClock.elapsedRealtime() }, resume = resume).also { runner = it; key = sessionKey; routineId = routine }
     }
-    }
 
     @Synchronized
     fun clear() { runner = null; key = null }
