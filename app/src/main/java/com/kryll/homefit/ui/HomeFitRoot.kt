@@ -161,6 +161,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
     val scope = rememberCoroutineScope()
     var workoutId by rememberSaveable { mutableStateOf<Long?>(null) }
     var workoutStart by rememberSaveable { mutableStateOf(0L) }
+    var resumedSets by remember(workoutId) { mutableStateOf<List<com.kryll.homefit.domain.SetResult>?>(null) }
     val workoutRepo = app.container.workoutRepository
     androidx.compose.runtime.LaunchedEffect(startRequest) {
         if (startRequest != null && workoutId == null) {
@@ -175,11 +176,46 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
             WorkItem(it.exerciseId, names[it.exerciseId] ?: it.exerciseId, it.sets, it.reps, it.seconds, it.restSeconds, it.alternateSides)
         }
         if (plan.isEmpty()) { workoutId = null } else {
-            WorkoutWithCues(plan, workoutStart, active, appSettings.defaultCountdownSeconds, onExit = { results, finished ->
-                val end = System.currentTimeMillis()
-                scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
-                workoutId = null
-            })
+            var resumable by remember(active) { mutableStateOf<com.kryll.homefit.data.WorkoutRepository.ResumableSession?>(null) }
+            var resumeChecked by rememberSaveable(active) { mutableStateOf(false) }
+            androidx.compose.runtime.LaunchedEffect(active) {
+                resumable = workoutRepo.interruptedToday(active, plan, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+                resumeChecked = true
+            }
+            if (resumeChecked && resumable == null && resumedSets == null) {
+                WorkoutWithCues(plan, workoutStart, active, appSettings.defaultCountdownSeconds, onExit = { results, finished ->
+                    val end = System.currentTimeMillis()
+                    scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
+                    workoutId = null
+                })
+            }
+            resumable?.let { r ->
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { scope.launch { workoutRepo.releaseInterrupted() }; resumable = null },
+                    title = { androidx.compose.material3.Text(stringResource(R.string.workout_resume_title)) },
+                    text = { androidx.compose.material3.Text(stringResource(R.string.workout_resume_text, r.results.size)) },
+                    confirmButton = {
+                        androidx.compose.material3.TextButton({
+                            val keep = r
+                            workoutStart = keep.startMillis
+                            resumable = null
+                            resumedSets = keep.results
+                        }) { androidx.compose.material3.Text(stringResource(R.string.workout_resume_continue)) }
+                    },
+                    dismissButton = {
+                        androidx.compose.material3.TextButton({ scope.launch { workoutRepo.releaseInterrupted() }; resumable = null }) { androidx.compose.material3.Text(stringResource(R.string.workout_resume_fresh)) }
+                    },
+                )
+            }
+            val resume = resumedSets
+            if (resume != null) {
+                WorkoutWithCues(plan, workoutStart, active, appSettings.defaultCountdownSeconds, resume = resume, onExit = { results, finished ->
+                    val end = System.currentTimeMillis()
+                    scope.launch { workoutRepo.save(active, plan, workoutStart, end, finished, results) }
+                    workoutId = null
+                    resumedSets = null
+                })
+            }
             return
         }
     }
@@ -196,9 +232,9 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
 }
 
 @Composable
-private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: Long?, getReadySeconds: Int, onExit: (List<SetResult>, Boolean) -> Unit) {
+private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: Long?, getReadySeconds: Int, resume: List<com.kryll.homefit.domain.SetResult> = emptyList(), onExit: (List<SetResult>, Boolean) -> Unit) {
     val context = LocalContext.current.applicationContext
-    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan, routineId, getReadySeconds) }
+    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan, routineId, getReadySeconds, resume) }
     androidx.compose.runtime.LaunchedEffect(runner) { com.kryll.homefit.audio.WorkoutService.start(context, null) }
     val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()

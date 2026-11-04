@@ -161,6 +161,45 @@ class WorkoutEngine(private val items: List<WorkItem>, private val getReadySecon
         afterRate()
     }
 
+    /**
+     * Reconstruye el entreno tras una interrupción (p. ej. muerte del proceso) con las series ya
+     * registradas, en orden de plan. Los huecos de ejercicios sin series se tratan como saltados
+     * (las series saltadas no se registran). Series extra de un ejercicio repetido no encajan: false.
+     * El motor continúa en la primera serie no hecha; series a medio hacer no se recuperan.
+     * Devuelve false si las series no encajan con el plan o si ya estaba todo hecho.
+     */
+    @Synchronized
+    fun restore(done: List<SetResult>): Boolean {
+        if (done.isEmpty()) return true
+        var idx = 0
+        var nextSet = 1
+        val rebuilt = mutableListOf<SetResult>()
+        for (r in done) {
+            if (r.itemIndex < idx || r.itemIndex > items.lastIndex) return false
+            if (r.itemIndex > idx) {
+                idx = r.itemIndex
+                nextSet = 1
+            }
+            if (r.set != nextSet || nextSet > items[idx].sets) return false
+            rebuilt += r
+            nextSet++
+        }
+        if (nextSet > items[idx].sets) {
+            if (idx == items.lastIndex) return false
+            idx++
+            nextSet = 1
+        }
+        results.clear()
+        results.addAll(rebuilt)
+        index = idx
+        set = nextSet
+        workElapsed = 0
+        paused = false
+        cues.clear()
+        if (nextSet == 1) enterGetReady() else enterWork()
+        return true
+    }
+
     companion object {
         const val MAX_REPS = 200
         const val MAX_WEIGHT_KG = 500f
