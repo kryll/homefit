@@ -2,7 +2,7 @@
 
 App Android nativa de ejercicio en casa. Kotlin, Jetpack Compose, Material 3, Room, DataStore y WorkManager. Offline primero, en español y preparada para i18n. `minSdk 26`.
 
-La lógica de negocio vive en clases Kotlin puras (motor de entrenamiento, progresión, estadísticas) probadas con tests unitarios; la UI son composables que observan repositorios Room. No hay ViewModel de Android: el estado de pantalla se mantiene en los propios composables y en los repositorios.
+La lógica de negocio vive en clases Kotlin puras (motor de entrenamiento, progresión, estadísticas) probadas con tests unitarios; la UI sigue MVVM: composables que observan ViewModels de Android (`ui/vm/AppViewModels.kt`), que a su vez leen los repositorios Room.
 
 ## Qué incluye
 
@@ -66,7 +66,9 @@ Guarda una copia del keystore y de sus contraseñas fuera de GitHub. Si se pierd
 
 ## Actualización desde la app
 
-En Ajustes, «Buscar actualizaciones» consulta hasta 100 releases públicas de GitHub y ofrece abrir el APK en el navegador (o la página de la release si no tiene APK). Elige la versión numérica X.Y.Z más alta, incluidas las 0.x marcadas como prerelease; excluye borradores y etiquetas con sufijos alfa/beta/rc. La comprobación es manual: no sondea en segundo plano ni descarga por sí misma. Si no hay releases válidas o falla la red, muestra que no pudo comprobar. El APK se instala a mano y solo actualiza si lleva la misma firma.
+La app consulta GitHub Releases al abrirse tras el onboarding (una vez por instancia de pantalla principal, sin sondeo periódico) y también desde Ajustes con «Buscar actualizaciones». Elige la versión numérica X.Y.Z más alta, incluidas las 0.x marcadas como prerelease; excluye borradores y etiquetas con sufijos alfa/beta/rc. Si no hay releases válidas o falla la red, muestra que no pudo comprobar.
+
+Al tocar Descargar, la app baja el APK de la release (solo assets APK de kryll/homefit, redirecciones limitadas a GitHub, caché con límite de 100 MiB) y, antes de ofrecer Instalar, verifica paquete, versionCode estrictamente superior y certificado firmante idéntico al de la app instalada; una rotación de clave no se admite. Android pedirá el permiso de instalar orígenes desconocidos la primera vez y el instalador del sistema hace la verificación y confirmación final: no hay instalación silenciosa. Detalles en [docs/actualizaciones.md](docs/actualizaciones.md).
 
 ## Contribuir
 

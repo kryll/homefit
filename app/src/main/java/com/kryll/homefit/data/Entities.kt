@@ -49,6 +49,9 @@ data class Exercise(
     val safetyTips: String,
     val easierVariantId: String? = null,
     val harderVariantId: String? = null,
+    /** Modulación del propio ejercicio cuando no hay variante encadenada (apoyo, recorrido, tempo, unilateral). */
+    val easierText: String? = null,
+    val harderText: String? = null,
     /** Rutas de assets separadas por salto de línea. */
     val images: String = "",
     val videoUrl: String? = null,

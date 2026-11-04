@@ -39,6 +39,8 @@ object ExerciseCatalog {
                 safetyTips = lines("safetyTips"),
                 easierVariantId = o.optString("easierVariantId").takeIf { it.isNotEmpty() && !o.isNull("easierVariantId") },
                 harderVariantId = o.optString("harderVariantId").takeIf { it.isNotEmpty() && !o.isNull("harderVariantId") },
+                easierText = o.optString("easierText").takeIf { it.isNotEmpty() && !o.isNull("easierText") },
+                harderText = o.optString("harderText").takeIf { it.isNotEmpty() && !o.isNull("harderText") },
                 images = imgs,
                 source = if (imgs.isEmpty()) SOURCE else MEDIA_SOURCE,
             )
