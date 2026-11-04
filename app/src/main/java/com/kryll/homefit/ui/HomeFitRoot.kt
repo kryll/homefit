@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -43,6 +44,8 @@ import com.kryll.homefit.ui.vm.OnboardingViewModel
 import com.kryll.homefit.ui.vm.PlanViewModel
 import com.kryll.homefit.ui.vm.ReminderPrefsUi
 import com.kryll.homefit.ui.vm.RoutinesViewModel
+import com.kryll.homefit.ui.vm.SettingsViewModel
+import kotlinx.coroutines.launch
 
 private enum class Tab(val route: String, @StringRes val label: Int, @StringRes val placeholder: Int, val icon: ImageVector) {
     Today("today", R.string.tab_today, R.string.placeholder_today, Icons.Filled.CalendarMonth),
@@ -99,6 +102,8 @@ private fun MainTabs() {
                             startRequest = id
                             nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
                         })
+                    } else if (tab == Tab.Settings) {
+                        SettingsTab()
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(stringResource(tab.placeholder))
@@ -120,6 +125,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
     val itemsByRoutine by vm.itemsByRoutine.collectAsState()
     val suggestions by vm.suggestions.collectAsState()
     val deload by vm.deload.collectAsState()
+    val appSettings by vm.appSettings.collectAsState()
     val session by vm.session.collectAsState()
     LaunchedEffect(startRequest) {
         if (startRequest != null) {
@@ -138,7 +144,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
         } else {
             LaunchedEffect(active) { vm.checkResume(plan, System.currentTimeMillis()) }
             if (session.resumeChecked && session.resumable == null && session.resumedSets == null) {
-                WorkoutWithCues(plan, session.startMillis, active, onExit = { results, finished ->
+                WorkoutWithCues(plan, session.startMillis, active, appSettings.defaultCountdownSeconds, onExit = { results, finished ->
                     vm.finishWorkout(plan, System.currentTimeMillis(), finished, results)
                 })
             }
@@ -157,7 +163,7 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
             }
             val resume = session.resumedSets
             if (resume != null) {
-                WorkoutWithCues(session.resumePlan ?: plan, session.startMillis, active, resume = resume, onExit = { results, finished ->
+                WorkoutWithCues(session.resumePlan ?: plan, session.startMillis, active, appSettings.defaultCountdownSeconds, resume = resume, onExit = { results, finished ->
                     vm.finishWorkout(session.resumePlan ?: plan, System.currentTimeMillis(), finished, results)
                 })
             }
@@ -172,13 +178,14 @@ private fun RoutinesTab(startRequest: Long? = null, onStartConsumed: () -> Unit 
         onStart = { vm.startWorkout(it, System.currentTimeMillis()) },
         suggestions = suggestions,
         deload = deload,
+        defaultRest = appSettings.defaultRestSeconds,
     )
 }
 
 @Composable
-private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: Long?, resume: List<SetResult> = emptyList(), onExit: (List<SetResult>, Boolean) -> Unit) {
+private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: Long?, getReadySeconds: Int, resume: List<SetResult> = emptyList(), onExit: (List<SetResult>, Boolean) -> Unit) {
     val context = LocalContext.current.applicationContext
-    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan, routineId, resume = resume) }
+    val runner = remember(sessionKey) { com.kryll.homefit.audio.WorkoutHost.begin(sessionKey, plan, routineId, getReadySeconds, resume) }
     LaunchedEffect(runner) { com.kryll.homefit.audio.WorkoutService.start(context, null) }
     val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
@@ -241,6 +248,105 @@ private fun PlanTab(onStart: (Long) -> Unit) {
         onPrefs = { n ->
             if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             vm.saveReminderPrefs(ReminderPrefsUi(n.enabled, n.hour, n.minute, n.leadMinutes))
+        },
+    )
+}
+
+@Composable
+private fun SettingsTab() {
+    val context = LocalContext.current
+    val app = context.applicationContext as HomeFitApp
+    val vm: SettingsViewModel = viewModel(factory = AppViewModelFactory(app))
+    val settings by vm.appSettings.collectAsState()
+    val profile by vm.profile.collectAsState()
+    val equipment by vm.equipment.collectAsState()
+    val latestWeightKg by vm.latestWeightKg.collectAsState()
+    val message by vm.message.collectAsState()
+    val pending by vm.pendingImport.collectAsState()
+    val scope = rememberCoroutineScope()
+    val versionName = remember {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
+    }
+    val voiceNames = remember { mutableStateOf(listOf<String>()) }
+    LaunchedEffect(Unit) { voiceNames.value = com.kryll.homefit.audio.listSpanishVoices(context) }
+
+    fun errorText(e: Throwable): String = if (e is com.kryll.homefit.data.BackupException) {
+        when (e.kind) {
+            com.kryll.homefit.data.BackupException.Kind.NOT_BACKUP -> context.getString(R.string.backup_err_not_backup)
+            com.kryll.homefit.data.BackupException.Kind.VERSION -> context.getString(R.string.backup_err_version, e.detail)
+            com.kryll.homefit.data.BackupException.Kind.CORRUPT -> context.getString(R.string.backup_err_corrupt)
+            com.kryll.homefit.data.BackupException.Kind.INVALID -> context.getString(R.string.backup_err_invalid, e.detail)
+            com.kryll.homefit.data.BackupException.Kind.UNKNOWN_EXERCISE -> context.getString(R.string.backup_err_unknown_exercise, e.detail)
+        }
+    } else context.getString(R.string.backup_err_read)
+
+    val export = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            vm.setMessage(runCatching {
+                val json = vm.exportBackupJson(System.currentTimeMillis())
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.backup_exported)
+            }.getOrElse { context.getString(R.string.backup_export_failed) })
+        }
+    }
+
+    val exportWorkouts = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            vm.setMessage(runCatching {
+                val csv = vm.workoutsCsv()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(csv.toByteArray(Charsets.UTF_8)) }
+                }
+                context.getString(R.string.backup_exported)
+            }.getOrElse { context.getString(R.string.backup_export_failed) })
+        }
+    }
+
+    val pick = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) scope.launch {
+            vm.setMessage(null)
+            runCatching {
+                val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)!!.use { String(it.readBytes(), Charsets.UTF_8) }
+                }
+                vm.validateImport(text)
+            }.onSuccess { vm.setPendingImport(it) }.onFailure { vm.setMessage(errorText(it)) }
+        }
+    }
+
+    SettingsScreen(
+        settings = settings, versionName = versionName, message = message,
+        pendingImport = pending?.let { ImportSummary(it.routines.size, it.workouts.size, it.scheduled.size, it.measurements.size) },
+        availableVoices = voiceNames.value,
+        profile = profile,
+        equipment = equipment,
+        latestWeightKg = latestWeightKg,
+        onSaveProfile = { prof, equip ->
+            scope.launch {
+                vm.saveProfile(prof, equip)
+                vm.setMessage(context.getString(R.string.settings_profile_saved))
+            }
+        },
+        onChange = { t -> vm.changeSettings(t) },
+        onExport = { export.launch("homefit-copia-" + java.time.LocalDate.now() + ".json") },
+        onExportWorkouts = { exportWorkouts.launch("homefit-entrenos-" + java.time.LocalDate.now() + ".csv") },
+        onImport = { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+        onCancelImport = { vm.setPendingImport(null) },
+        onConfirmImport = {
+            scope.launch {
+                vm.setMessage(runCatching {
+                    vm.applyPendingImport { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
+                    context.getString(R.string.backup_imported)
+                }.getOrElse { if (it is com.kryll.homefit.data.BackupException) errorText(it) else context.getString(R.string.backup_err_failed) })
+            }
         },
     )
 }

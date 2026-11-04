@@ -72,6 +72,8 @@ class WorkoutService : Service() {
         if (loop == null) {
             val p = CuePlayer(applicationContext).also { player = it }
             runner.cueListener = { p.play(it) }
+            val settingsStore = (application as com.kryll.homefit.HomeFitApp).container.settings
+            scope.launch { settingsStore.settings.collect { p.apply(com.kryll.homefit.domain.CueSettings.from(it)) } }
             val repo = (application as com.kryll.homefit.HomeFitApp).container.workoutRepository
             val start = WorkoutHost.startMillis
             val routine = WorkoutHost.routineId

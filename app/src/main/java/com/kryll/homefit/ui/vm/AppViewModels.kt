@@ -4,6 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kryll.homefit.data.AppContainer
+import com.kryll.homefit.data.AppSettings
+import com.kryll.homefit.data.Backup
+import com.kryll.homefit.data.BackupApplier
+import com.kryll.homefit.data.BackupCodec
+import com.kryll.homefit.data.BackupRepository
 import com.kryll.homefit.data.Exercise
 import com.kryll.homefit.data.HomeFitDatabase
 import com.kryll.homefit.data.Routine
@@ -61,7 +66,12 @@ class RoutinesViewModel(
     db: HomeFitDatabase,
     private val repo: RoutineRepository,
     private val workoutRepo: WorkoutRepository,
+    private val settings: SettingsStore,
 ) : ViewModel() {
+    /** Ajustes que condicionan el entreno (descanso y cuenta atrás por defecto). */
+    val appSettings: StateFlow<AppSettings> =
+        settings.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+
     val routines: StateFlow<List<Routine>> =
         db.routineDao().observeAll().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val exercises: StateFlow<List<Exercise>> =
@@ -148,7 +158,8 @@ class AppViewModelFactory(private val app: com.kryll.homefit.HomeFitApp) : ViewM
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when (modelClass) {
         OnboardingViewModel::class.java -> OnboardingViewModel(container.database, container.settings)
-        RoutinesViewModel::class.java -> RoutinesViewModel(container.database, RoutineRepository(container.database), container.workoutRepository)
+        RoutinesViewModel::class.java -> RoutinesViewModel(container.database, RoutineRepository(container.database), container.workoutRepository, container.settings)
+        SettingsViewModel::class.java -> SettingsViewModel(container.database, container.settings, BackupRepository(container.database))
         PlanViewModel::class.java -> PlanViewModel(container.database, container.settings, app)
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     } as T
@@ -231,5 +242,69 @@ class PlanViewModel(
     fun saveReminderPrefs(n: ReminderPrefsUi) = viewModelScope.launch {
         settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute, reminderLeadMinutes = n.leadMinutes) }
         com.kryll.homefit.reminders.ReminderScheduler.sync(app)
+    }
+}
+
+/** Pestaña Ajustes: preferencias, perfil/equipamiento, peso actual y copia de seguridad (estado y datos; la E/S de archivos queda en la UI). */
+class SettingsViewModel(
+    private val db: HomeFitDatabase,
+    private val settings: SettingsStore,
+    private val backupRepo: BackupRepository,
+) : ViewModel() {
+    val appSettings: StateFlow<AppSettings> =
+        settings.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+    val profile: StateFlow<UserProfile?> =
+        db.profileDao().observeProfile().stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val equipment: StateFlow<Set<String>> =
+        db.profileDao().observeEquipment().map { it.toSet() }.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+    val latestWeightKg: StateFlow<Float?> =
+        db.measurementDao().observeAll().map { list -> list.filter { it.weightKg != null }.maxByOrNull { it.epochDay }?.weightKg }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val _message = MutableStateFlow<String?>(null)
+    val message: StateFlow<String?> = _message
+    fun setMessage(text: String?) { _message.value = text }
+
+    private val _pendingImport = MutableStateFlow<Backup?>(null)
+    val pendingImport: StateFlow<Backup?> = _pendingImport
+    fun setPendingImport(backup: Backup?) { _pendingImport.value = backup }
+
+    fun changeSettings(transform: (AppSettings) -> AppSettings) = viewModelScope.launch { settings.update(transform) }
+
+    fun saveProfile(profile: UserProfile, equipment: Set<String>) = viewModelScope.launch {
+        val dao = db.profileDao()
+        dao.saveProfile(profile)
+        dao.clearEquipment()
+        dao.addEquipment(equipment.map { UserEquipment(it) })
+    }
+
+    /** Copia completa en JSON (el guardado a archivo lo hace la UI con su launcher). */
+    suspend fun exportBackupJson(nowMillis: Long): String =
+        BackupCodec.toJson(backupRepo.export(appSettings.value, nowMillis))
+
+    /** Entrenos en CSV para hojas de cálculo. */
+    suspend fun workoutsCsv(): String {
+        val names = db.routineDao().observeAll().first().associate { it.id to it.name }
+        val pairs = db.sessionDao().observeWorkouts().first().map { it to db.sessionDao().setsOf(it.id) }
+        return com.kryll.homefit.domain.WorkoutCsv.build(pairs, names)
+    }
+
+    /** Parsea y valida una copia; lanza BackupException u otra excepción si no sirve. */
+    suspend fun validateImport(text: String): Backup {
+        val backup = BackupCodec.fromJson(text)
+        backupRepo.validate(backup)
+        return backup
+    }
+
+    /** Aplica la copia pendiente; la UI pasa el enganche posterior (reprogramar recordatorios). */
+    suspend fun applyPendingImport(afterApply: suspend () -> Unit) {
+        val b = _pendingImport.value ?: return
+        _pendingImport.value = null
+        BackupApplier(
+            backupRepo,
+            currentSettings = { settings.settings.first() },
+            writeSettings = { n -> settings.update { n } },
+            afterApply = afterApply,
+        ).apply(b)
     }
 }

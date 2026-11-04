@@ -49,4 +49,10 @@ class RoutineDraftTest {
         assertEquals(d, d.move(2, 1))
         assertEquals(listOf("a", "c"), d.remove(1).items.map { it.exerciseId })
     }
+
+    @Test fun newExerciseUsesTheDefaultRestSetting() {
+        val d = RoutineDraft().add("sentadilla", defaultRest = 75).add("plancha", defaultRest = 20)
+        assertEquals(listOf(75, 20), d.items.map { it.restSeconds })
+        assertEquals(45, RoutineDraft().add("sentadilla").items.single().restSeconds)
+    }
 }

@@ -4,12 +4,16 @@ import android.app.Application
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.kryll.homefit.data.HomeFitDatabase
+import com.kryll.homefit.data.BackupRepository
 import com.kryll.homefit.data.RoutineRepository
+import com.kryll.homefit.data.SettingsStore
+import com.kryll.homefit.data.UserProfile
 import com.kryll.homefit.data.WorkoutRepository
 import com.kryll.homefit.domain.RoutineDraft
 import com.kryll.homefit.domain.SetResult
 import com.kryll.homefit.domain.WorkItem
 import com.kryll.homefit.ui.vm.RoutinesViewModel
+import com.kryll.homefit.ui.vm.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -50,7 +54,7 @@ class ViewModelTest {
     @Before fun setUp() {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), HomeFitDatabase::class.java)
             .allowMainThreadQueries().build()
-        vm = RoutinesViewModel(db, RoutineRepository(db), WorkoutRepository(db))
+        vm = RoutinesViewModel(db, RoutineRepository(db), WorkoutRepository(db), SettingsStore(ApplicationProvider.getApplicationContext()))
     }
 
     @After fun tearDown() = db.close()
@@ -140,4 +144,23 @@ class ViewModelTest {
         WorkItem("sentadilla", "Sentadilla", 2, 10, null, 30),
         WorkItem("plancha", "Plancha", 1, null, 30, 0),
     )
+
+    @Test fun ajustesCambianYSeReflejanEnElFlujo() = runTest {
+        val store = SettingsStore(ApplicationProvider.getApplicationContext())
+        val svm = SettingsViewModel(db, store, BackupRepository(db))
+        svm.changeSettings { it.copy(defaultRestSeconds = 60) }
+        val s = svm.appSettings.first { it.defaultRestSeconds == 60 }
+        assertEquals(60, s.defaultRestSeconds)
+    }
+
+    @Test fun guardarPerfilLoExponeEnLosFlujos() = runTest {
+        val svm = SettingsViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext()), BackupRepository(db))
+        svm.saveProfile(
+            UserProfile(name = "Ana", sex = "mujer", birthEpochDay = 0, heightCm = 165f, weightKg = 60f, goal = "TONIFICAR", level = "BASE", daysMask = 31, minutesPerSession = 30),
+            setOf("bandas_elasticas"),
+        )
+        val p = svm.profile.first { it != null }
+        assertEquals("Ana", p!!.name)
+        assertEquals(setOf("bandas_elasticas"), svm.equipment.first { it.isNotEmpty() })
+    }
 }
