@@ -17,7 +17,13 @@ import com.kryll.homefit.data.BodyMeasurement
 import com.kryll.homefit.data.WorkoutSession
 import com.kryll.homefit.ui.vm.ProgressViewModel
 import com.kryll.homefit.ui.vm.SettingsViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import java.util.concurrent.Executors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -54,13 +60,31 @@ class ViewModelTest {
     private lateinit var db: HomeFitDatabase
     private lateinit var vm: RoutinesViewModel
 
+    // Ejecutor Room de un solo hilo: trabajo serial y orden determinista entre consultas.
+    // (Un ejecutor "directo" NO vale: compartiría el hilo del test con las transacciones
+    // suspending de Room y rompería su control por ThreadLocal.)
+    private val roomExecutor = Executors.newSingleThreadExecutor()
+    private val trackedVms = mutableListOf<ViewModel>()
+
+    private fun <T : ViewModel> track(instance: T): T = instance.also(trackedVms::add)
+
     @Before fun setUp() {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), HomeFitDatabase::class.java)
+            .setQueryExecutor(roomExecutor)
+            .setTransactionExecutor(roomExecutor)
             .allowMainThreadQueries().build()
-        vm = RoutinesViewModel(db, RoutineRepository(db), WorkoutRepository(db), SettingsStore(ApplicationProvider.getApplicationContext()))
+        vm = track(RoutinesViewModel(db, RoutineRepository(db), WorkoutRepository(db), SettingsStore(ApplicationProvider.getApplicationContext())))
     }
 
-    @After fun tearDown() = db.close()
+    // Cancela los collectors de cada ViewModel y espera su fin ANTES de cerrar Room:
+    // sin tareas en vuelo, ninguna excepción cruzaba al siguiente test (UncaughtExceptionsBeforeTest).
+    @After fun tearDown() = runBlocking {
+        trackedVms.forEach { it.viewModelScope.cancel() }
+        trackedVms.forEach { it.viewModelScope.coroutineContext[Job]?.join() }
+        trackedVms.clear()
+        db.close()
+        roomExecutor.shutdown()
+    }
 
     private suspend fun seedRoutine(): Long {
         val id = db.routineDao().insertRoutine(
@@ -129,8 +153,9 @@ class ViewModelTest {
         vm.cancelWorkout()
         vm.startWorkout(id, 4000)
         vm.checkResume(plan, 4000)
-        // La adopción corre en el ejecutor de Room (hilo real): espera acotada antes del assert negativo.
-        Thread.sleep(400)
+        // La adopción corre en el ejecutor Room (un solo hilo serial): cualquier consulta
+        // encolada después garantiza que aquella ya terminó; assert determinista, sin esperas fijas.
+        db.routineDao().observeAll().first()
         assertNull(vm.session.value.resumable)
     }
 
@@ -150,14 +175,14 @@ class ViewModelTest {
 
     @Test fun ajustesCambianYSeReflejanEnElFlujo() = runTest {
         val store = SettingsStore(ApplicationProvider.getApplicationContext())
-        val svm = SettingsViewModel(db, store, BackupRepository(db))
+        val svm = track(SettingsViewModel(db, store, BackupRepository(db)))
         svm.changeSettings { it.copy(defaultRestSeconds = 60) }
         val s = svm.appSettings.first { it.defaultRestSeconds == 60 }
         assertEquals(60, s.defaultRestSeconds)
     }
 
     @Test fun guardarPerfilLoExponeEnLosFlujos() = runTest {
-        val svm = SettingsViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext()), BackupRepository(db))
+        val svm = track(SettingsViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext()), BackupRepository(db)))
         svm.saveProfile(
             UserProfile(name = "Ana", sex = "mujer", birthEpochDay = 0, heightCm = 165f, weightKg = 60f, goal = "TONIFICAR", level = "BASE", daysMask = 31, minutesPerSession = 30),
             setOf("bandas_elasticas"),
@@ -168,7 +193,7 @@ class ViewModelTest {
     }
 
     @Test fun progresoResumeElHistorial() = runTest {
-        val pvm = ProgressViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext()))
+        val pvm = track(ProgressViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext())))
         db.sessionDao().insertWorkout(WorkoutSession(routineId = null, startMillis = System.currentTimeMillis(), endMillis = System.currentTimeMillis(), durationSeconds = 1800))
         val s = pvm.summary.first { it.totalSessions > 0 }
         assertEquals(1, s.totalSessions)
@@ -176,7 +201,7 @@ class ViewModelTest {
     }
 
     @Test fun importarMedidasCsvOmiteDiasDuplicados() = runTest {
-        val pvm = ProgressViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext()))
+        val pvm = track(ProgressViewModel(db, SettingsStore(ApplicationProvider.getApplicationContext())))
         pvm.saveMeasurement(BodyMeasurement(epochDay = 20000, weightKg = 80f))
         pvm.measurements.first { it.isNotEmpty() }
         val csv = pvm.measuresCsv()

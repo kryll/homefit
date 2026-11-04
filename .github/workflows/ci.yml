@@ -18,8 +18,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Validar reglas de versión (sin firma)
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      # Invocaciones separadas por variante: kspDebugKotlin escribe el esquema Room
+      # y kspReleaseKotlin lo relee; en una sola invocación pueden pisarse
+      # ("Empty schema file" intermitente al truncar/releer app/schemas).
       - name: Tests y APK debug
-        run: ./gradlew testDebugUnitTest assembleDebug assembleRelease
+        run: ./gradlew testDebugUnitTest assembleDebug
+      - name: APK release (sin firma)
+        run: ./gradlew assembleRelease
       - name: Capturas de UI (Robolectric)
         if: always()
         uses: actions/upload-artifact@v4

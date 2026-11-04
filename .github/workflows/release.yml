@@ -26,12 +26,17 @@ jobs:
           test -n "$KEYSTORE_B64" || { echo "Falta el secret HOMEFIT_KEYSTORE_B64"; exit 1; }
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/homefit.jks"
           echo "HOMEFIT_KEYSTORE_PATH=$RUNNER_TEMP/homefit.jks" >> "$GITHUB_ENV"
-      - name: Tests, APK y AAB firmados
+      # Invocación separada por variante: kspDebugKotlin (tests) escribe el esquema
+      # Room y kspReleaseKotlin lo relee; en una sola invocación pueden pisarse
+      # ("Empty schema file" intermitente al truncar/releer app/schemas).
+      - name: Tests
+        run: ./gradlew testDebugUnitTest
+      - name: APK y AAB firmados
         env:
           HOMEFIT_KEYSTORE_PASSWORD: ${{ secrets.HOMEFIT_KEYSTORE_PASSWORD }}
           HOMEFIT_KEY_ALIAS: ${{ secrets.HOMEFIT_KEY_ALIAS }}
           HOMEFIT_KEY_PASSWORD: ${{ secrets.HOMEFIT_KEY_PASSWORD }}
-        run: ./gradlew testDebugUnitTest assembleRelease bundleRelease
+        run: ./gradlew assembleRelease bundleRelease
       - name: Renombrar artefactos
         run: |
           cp app/build/outputs/apk/release/app-release.apk "homefit-${HOMEFIT_VERSION_NAME}.apk"
