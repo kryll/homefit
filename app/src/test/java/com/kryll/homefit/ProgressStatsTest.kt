@@ -89,4 +89,33 @@ class ProgressStatsTest {
         val sets = listOf(SetRow("Raro", 1, 5, null, null, exerciseId = "unknown"))
         assertEquals(emptyList<com.kryll.homefit.domain.MuscleVolume>(), ProgressStats.volumeByMuscle(listOf(row(1, ms(2026, 11, 3), sets = sets))) { null })
     }
+
+    @Test fun personalRecordsTakesMaxPerMetric() {
+        val sets = listOf(
+            SetRow("Flexiones", 1, reps = 10, seconds = null, rpe = null, weightKg = null, exerciseId = "flexiones"),
+            SetRow("Flexiones", 2, reps = 14, seconds = null, rpe = null, weightKg = 5f, exerciseId = "flexiones"),
+            SetRow("Plancha", 1, reps = null, seconds = 40, rpe = null, exerciseId = "plancha"),
+            SetRow("Plancha", 2, reps = null, seconds = 65, rpe = null, exerciseId = "plancha"),
+        )
+        val recs = com.kryll.homefit.domain.personalRecords(listOf(row(1, ms(2026, 11, 3), sets = sets)))
+        assertEquals(2, recs.size)
+        assertEquals("Flexiones", recs[0].exerciseName)
+        assertEquals(14, recs[0].maxReps)
+        assertEquals(5f, recs[0].maxWeightKg!!, 0.001f)
+        assertNull(recs[0].maxSeconds)
+        assertEquals("Plancha", recs[1].exerciseName)
+        assertEquals(65, recs[1].maxSeconds)
+        assertNull(recs[1].maxReps)
+    }
+
+    @Test fun personalRecordsSkipsEmptyAndSortsByName() {
+        assertEquals(emptyList<com.kryll.homefit.domain.ExerciseRecord>(), com.kryll.homefit.domain.personalRecords(emptyList()))
+        val sets = listOf(
+            SetRow("Zancadas", 1, reps = 8, seconds = null, rpe = null, exerciseId = "zancadas"),
+            SetRow("Abdominales", 1, reps = 12, seconds = null, rpe = null, exerciseId = "abdominales"),
+            SetRow("Sin datos", 1, reps = null, seconds = null, rpe = 5, exerciseId = "sindatos"),
+        )
+        val recs = com.kryll.homefit.domain.personalRecords(listOf(row(1, ms(2026, 11, 3), sets = sets)))
+        assertEquals(listOf("Abdominales", "Zancadas"), recs.map { it.exerciseName })
+    }
 }
