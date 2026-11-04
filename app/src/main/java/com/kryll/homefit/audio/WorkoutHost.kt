@@ -15,10 +15,11 @@ object WorkoutHost {
     val startMillis: Long get() = key ?: 0L
 
     @Synchronized
-    fun begin(sessionKey: Long, plan: List<WorkItem>, routine: Long? = null, getReadySeconds: Int = 5): WorkoutRunner {
+    fun begin(sessionKey: Long, plan: List<WorkItem>, routine: Long? = null, getReadySeconds: Int = 5, resume: List<com.kryll.homefit.domain.SetResult> = emptyList()): WorkoutRunner {
         val cur = runner
         if (cur != null && key == sessionKey && !cur.isClosed) return cur
-        return WorkoutRunner(plan, getReadySeconds, now = { SystemClock.elapsedRealtime() }).also { runner = it; key = sessionKey; routineId = routine }
+        return WorkoutRunner(plan, getReadySeconds, now = { SystemClock.elapsedRealtime() }, resume = resume).also { runner = it; key = sessionKey; routineId = routine }
+    }
     }
 
     @Synchronized

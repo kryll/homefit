@@ -98,5 +98,9 @@
     <string name="workout_resume">Reanudar</string>
     <string name="workout_skip">Saltar</string>
     <string name="workout_exit">Salir del entreno</string>
+    <string name="workout_resume_title">Entreno interrumpido</string>
+    <string name="workout_resume_text">Tienes un entreno de hoy sin terminar (%1$d series registradas). ¿Seguir donde lo dejaste?</string>
+    <string name="workout_resume_continue">Reanudar</string>
+    <string name="workout_resume_fresh">Empezar de nuevo</string>
     <string name="workout_start">Entrenar</string>
 </resources>

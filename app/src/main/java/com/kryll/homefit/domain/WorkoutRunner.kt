@@ -21,8 +21,12 @@ class WorkoutRunner(
     val items: List<WorkItem>,
     getReadySeconds: Int = 5,
     private val now: () -> Long,
+    /** Series de una sesión interrumpida para seguir donde se quedó (WorkoutResume.fromLogs). */
+    resume: List<SetResult> = emptyList(),
 ) {
-    private val engine = WorkoutEngine(items, getReadySeconds)
+    private val engine = WorkoutEngine(items, getReadySeconds).also { e ->
+        if (resume.isNotEmpty()) e.restore(resume)
+    }
     private var last = now()
     private var closed = false
     private val flow = MutableStateFlow(snap())
