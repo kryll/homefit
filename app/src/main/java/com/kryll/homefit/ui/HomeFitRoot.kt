@@ -114,7 +114,6 @@ private fun MainTabs(updater: com.kryll.homefit.update.UpdateViewModel) {
                                 startRequest = id
                                 nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
                             },
-                            onOpenSettings = { nav.navigate(Tab.Settings.route) { popUpTo(Tab.Today.route); launchSingleTop = true } },
                         )
                     } else if (tab == Tab.Progress) {
                         ProgressTab()
@@ -236,7 +235,7 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
 
 
 @Composable
-private fun PlanTab(onStart: (Long) -> Unit, onOpenSettings: () -> Unit) {
+private fun PlanTab(onStart: (Long) -> Unit) {
     val app = LocalContext.current.applicationContext as HomeFitApp
     val vm: PlanViewModel = viewModel(factory = AppViewModelFactory(app))
     val ui by vm.ui.collectAsState()
@@ -261,7 +260,6 @@ private fun PlanTab(onStart: (Long) -> Unit, onOpenSettings: () -> Unit) {
         onSkip = { e -> vm.skip(e.id) },
         onMove = { e, nd -> vm.move(e, nd) },
         onStart = onStart,
-        onOpenSettings = onOpenSettings,
     )
 }
 

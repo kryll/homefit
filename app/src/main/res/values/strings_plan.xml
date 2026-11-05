@@ -25,14 +25,13 @@
     <string name="plan_reminder_note_delay">Android puede retrasar el aviso por el ahorro de batería.</string>
     <string name="plan_reminder_note_exact">Android intenta avisar a la hora elegida incluso con ahorro de batería.</string>
     <string name="plan_notifications_off">Las notificaciones de HomeFit están desactivadas en el sistema: actívalas para recibir el aviso.</string>
-    <string name="plan_auto">Generar plan de la semana</string>
-    <string name="plan_clear">Vaciar semana</string>
+    <string name="plan_auto">Generar próximos 7 días</string>
+    <string name="plan_clear">Vaciar próximos 7 días</string>
     <string name="plan_no_routines">Aún no hay rutinas que repartir.</string>
     <string name="plan_no_training_days">Marca tus días de entrenamiento en Ajustes para poder generar el plan.</string>
     <string name="plan_generated">Semana generada: %1$d sesiones planificadas.</string>
     <string name="plan_cleared_none">Semana vaciada: no había sesiones planificadas.</string>
     <string name="plan_cleared">Semana vaciada: %1$d sesiones eliminadas.</string>
-    <string name="plan_open_reminder">Configurar el recordatorio diario</string>
     <string name="plan_training_day">Día de entreno</string>
     <string name="plan_rest_day">Descanso</string>
     <string name="plan_nothing">Sin rutina asignada</string>

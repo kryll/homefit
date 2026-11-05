@@ -76,19 +76,12 @@ class PlanUiTest {
     @Test fun autoDisabledWithoutTrainingDaysShowsHint() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, 0, routines, emptyList(), emptyList()) } }
         rule.onNodeWithText("Marca tus días de entrenamiento en Ajustes para poder generar el plan.").assertIsDisplayed()
-        rule.onNodeWithText("Generar plan de la semana").assertIsNotEnabled()
+        rule.onNodeWithText("Generar próximos 7 días").assertIsNotEnabled()
     }
 
     @Test fun actionMessageIsShown() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), message = "Semana generada: 3 sesiones planificadas.") } }
         rule.onNodeWithText("Semana generada: 3 sesiones planificadas.").assertIsDisplayed()
-    }
-
-    @Test fun openSettingsShortcutEmitsCallback() {
-        var opened = false
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), onOpenSettings = { opened = true }) } }
-        rule.onNodeWithText("Configurar el recordatorio diario").performClick()
-        assertTrue(opened)
     }
 
     @Test fun doneWorkoutHidesTrainButton() {

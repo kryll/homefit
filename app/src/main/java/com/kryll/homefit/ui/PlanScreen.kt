@@ -60,7 +60,6 @@ fun PlanScreen(
     onStart: (Long) -> Unit = {},
     onSkip: (ScheduledSession) -> Unit = {},
     onMove: (ScheduledSession, LocalDate) -> Unit = { _, _ -> },
-    onOpenSettings: () -> Unit = {},
 ) {
     var assigning by rememberSaveable { mutableStateOf<Long?>(null) } // epochDay del día que se está editando
     var moving by rememberSaveable { mutableStateOf<Long?>(null) } // id de la sesión que se está moviendo
@@ -95,11 +94,10 @@ fun PlanScreen(
                     Button(onAuto, enabled = routines.isNotEmpty() && daysMask != 0) { Text(stringResource(R.string.plan_auto)) }
                     OutlinedButton(onClear) { Text(stringResource(R.string.plan_clear)) }
                 }
-                Text(stringResource(R.string.calendar_auto_hint), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.calendar_auto_hint, dayLabel(today), dayLabel(today.plusDays(6))), style = MaterialTheme.typography.bodySmall)
                 if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
                 if (daysMask == 0) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
-                TextButton(onOpenSettings) { Text(stringResource(R.string.plan_open_reminder)) }
             }
         }
         items(days, key = { it.toEpochDay() }) { d ->

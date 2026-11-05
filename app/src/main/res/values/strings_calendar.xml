@@ -12,5 +12,5 @@
     <string name="calendar_sat">S</string>
     <string name="calendar_sun">D</string>
     <string name="calendar_dot_hint">• Sesión programada. Toca un día para ver sus sesiones.</string>
-    <string name="calendar_auto_hint">Autoplanificar y Vaciar actúan solo en los próximos siete días desde hoy, no en el mes visible.</string>
+    <string name="calendar_auto_hint">Generan y vacían solo los próximos 7 días desde hoy (%1$s - %2$s), no la semana que ves.</string>
 </resources>
