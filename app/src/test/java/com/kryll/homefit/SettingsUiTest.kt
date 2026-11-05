@@ -204,7 +204,7 @@ class SettingsUiTest {
         reminderContent(ReminderPrefs(true, 18, 30))
         rule.onNodeWithText("Recordatorio diario").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Hora de entrenar: 18:30").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("+ hora").assertIsDisplayed()
+        rule.onNodeWithText("+ hora").performScrollTo().assertIsDisplayed()
         capture("ajustes_recordatorio")
     }
 
@@ -212,7 +212,7 @@ class SettingsUiTest {
         reminderContent(ReminderPrefs(true, 18, 30, exact = true), exactAllowed = true)
         rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").performScrollTo().assertIsDisplayed()
         // Modo exacto concedido: nota específica sin promesa absoluta y SIN la frase de retraso del modo normal.
-        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").assertIsDisplayed()
+        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
         capture("ajustes_recordatorio_exacto")
     }
@@ -234,7 +234,7 @@ class SettingsUiTest {
         reminderContent(ReminderPrefs(true, 18, 30)) { last = it }
         rule.onNodeWithText("+ hora").performScrollTo().performClick()
         assertEquals(ReminderPrefs(true, 19, 30), last)
-        rule.onNodeWithText("− 5 min").performClick()
+        rule.onNodeWithText("− 5 min").performScrollTo().performClick()
         assertEquals(ReminderPrefs(true, 18, 25), last)
     }
 
@@ -242,7 +242,7 @@ class SettingsUiTest {
         var prefs = ReminderPrefs(true, 18, 30, leadMinutes = 15)
         reminderContent(prefs) { prefs = it }
         rule.onNodeWithText("Aviso 15 min antes (a las 18:15)").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Más antelación").performClick()
+        rule.onNodeWithText("Más antelación").performScrollTo().performClick()
         assertEquals(30, prefs.leadMinutes)
     }
 }

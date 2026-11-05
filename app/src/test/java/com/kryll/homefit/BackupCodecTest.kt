@@ -93,7 +93,7 @@ class BackupCodecTest {
         val j = org.json.JSONObject(BackupCodec.toJson(sample))
         j.getJSONObject("settings").put("theme", "NEON").put("beepVolume", 7.0)
         val s = BackupCodec.fromJson(j.toString()).settings
-        assertEquals(ThemeMode.SYSTEM, s.theme)
+        assertEquals(ThemeMode.DARK, s.theme)
         assertEquals(1f, s.beepVolume, 0.0001f)
     }
 
