@@ -15,6 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 // primario coral vivo, contenedores cálidos y terciario turquesa como contraste.
 // Se usa siempre (dynamicColor = false por defecto) para que la app se vea colorida
 // también con el fondo de pantalla neutro de Android 12+.
+// Se definen TODOS los roles de superficie: los que no se indican toman los valores
+// púrpura por defecto de Material 3 y rompen la coherencia cromática.
 private val LightColors = lightColorScheme(
     primary = Color(0xFFB62500),
     onPrimary = Color(0xFFFFFFFF),
@@ -44,6 +46,13 @@ private val LightColors = lightColorScheme(
     inverseOnSurface = Color(0xFFFFEDE9),
     inversePrimary = Color(0xFFFFB4A3),
     surfaceTint = Color(0xFFB62500),
+    surfaceDim = Color(0xFFF1D4CD),
+    surfaceBright = Color(0xFFFFF8F6),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFFFF0ED),
+    surfaceContainer = Color(0xFFFFE9E4),
+    surfaceContainerHigh = Color(0xFFFFE2DB),
+    surfaceContainerHighest = Color(0xFFFADCD6),
 )
 
 private val DarkColors = darkColorScheme(
@@ -75,6 +84,13 @@ private val DarkColors = darkColorScheme(
     inverseOnSurface = Color(0xFF3E2C28),
     inversePrimary = Color(0xFFB62500),
     surfaceTint = Color(0xFFFFB4A3),
+    surfaceDim = Color(0xFF1E100C),
+    surfaceBright = Color(0xFF473531),
+    surfaceContainerLowest = Color(0xFF180B08),
+    surfaceContainerLow = Color(0xFF271814),
+    surfaceContainer = Color(0xFF2C1C18),
+    surfaceContainerHigh = Color(0xFF372622),
+    surfaceContainerHighest = Color(0xFF43302C),
 )
 
 @Composable
