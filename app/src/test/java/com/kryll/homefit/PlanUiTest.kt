@@ -13,6 +13,10 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.data.ScheduledSession
 import com.kryll.homefit.data.WorkoutSession
@@ -153,7 +157,9 @@ class PlanUiTest {
     }
 
     @Test fun weekCardsDarkThemeCapture() {
-        rule.setContent { HomeFitTheme(darkTheme = true) { PlanScreen(today, zone, mask, routines, scheduled, emptyList()) } }
+        rule.setContent { HomeFitTheme(darkTheme = true) {
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { PlanScreen(today, zone, mask, routines, scheduled, emptyList()) }
+        } }
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
         capture("plan_semana_dark")
     }

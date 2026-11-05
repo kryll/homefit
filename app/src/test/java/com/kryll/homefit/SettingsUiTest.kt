@@ -4,6 +4,9 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -249,7 +252,9 @@ class SettingsUiTest {
     @Test fun reminderSectionDarkThemeCapture() {
         rule.setContent {
             HomeFitTheme(darkTheme = true) {
-                SettingsScreen(AppSettings(), "1.0", null, null, reminderPrefs = ReminderPrefs(true, 18, 30))
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    SettingsScreen(AppSettings(), "1.0", null, null, reminderPrefs = ReminderPrefs(true, 18, 30))
+                }
             }
         }
         rule.onNodeWithText("Hora de entrenar: 18:30").performScrollTo().assertIsDisplayed()
