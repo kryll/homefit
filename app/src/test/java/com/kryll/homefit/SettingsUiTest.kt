@@ -245,4 +245,14 @@ class SettingsUiTest {
         rule.onNodeWithText("Más antelación").performScrollTo().performClick()
         assertEquals(30, prefs.leadMinutes)
     }
+
+    @Test fun reminderSectionDarkThemeCapture() {
+        rule.setContent {
+            HomeFitTheme(darkTheme = true) {
+                SettingsScreen(AppSettings(), "1.0", null, null, reminderPrefs = ReminderPrefs(true, 18, 30))
+            }
+        }
+        rule.onNodeWithText("Hora de entrenar: 18:30").performScrollTo().assertIsDisplayed()
+        capture("ajustes_recordatorio_dark")
+    }
 }

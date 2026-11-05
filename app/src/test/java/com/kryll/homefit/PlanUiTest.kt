@@ -158,4 +158,10 @@ class PlanUiTest {
         rule.onNodeWithText("Mover a Jue 5 nov").performClick()
         assertEquals(1L to today.plusDays(1), moved)
     }
+
+    @Test fun weekCardsDarkThemeCapture() {
+        rule.setContent { HomeFitTheme(darkTheme = true) { PlanScreen(today, zone, mask, routines, scheduled, emptyList()) } }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
+        capture("plan_semana_dark")
+    }
 }
