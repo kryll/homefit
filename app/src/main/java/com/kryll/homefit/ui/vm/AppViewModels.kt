@@ -167,21 +167,28 @@ class AppViewModelFactory(private val app: com.kryll.homefit.HomeFitApp) : ViewM
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when (modelClass) {
         OnboardingViewModel::class.java -> OnboardingViewModel(container.database, container.settings)
         RoutinesViewModel::class.java -> RoutinesViewModel(container.database, RoutineRepository(container.database), container.workoutRepository, container.settings)
-        SettingsViewModel::class.java -> SettingsViewModel(container.database, container.settings, BackupRepository(container.database))
+        SettingsViewModel::class.java -> SettingsViewModel(container.database, container.settings, BackupRepository(container.database)) { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
         ProgressViewModel::class.java -> ProgressViewModel(container.database, container.settings)
-        PlanViewModel::class.java -> PlanViewModel(container.database, container.settings, app)
+        PlanViewModel::class.java -> PlanViewModel(container.database, container.settings)
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     } as T
 }
 
-/** Preferencias de recordatorio tal como las consume la pantalla de planificación. */
+/** Preferencias de recordatorio tal como las consume la pantalla de ajustes. */
 data class ReminderPrefsUi(val enabled: Boolean, val hour: Int, val minute: Int, val leadMinutes: Int, val exact: Boolean = false)
 
-/** Pestaña Hoy: planificación semanal (asignar, autocompletar, limpiar, saltar, mover) y recordatorios. */
+/** Resultado visible de las acciones de la semana; la UI lo traduce a texto y lo limpia con [PlanViewModel.clearMessage]. */
+sealed interface PlanMessage {
+    data class Generated(val count: Int) : PlanMessage
+    data class Cleared(val count: Int) : PlanMessage
+    data object NoRoutines : PlanMessage
+    data object NoTrainingDays : PlanMessage
+}
+
+/** Pestaña Hoy: planificación semanal (asignar, autocompletar, limpiar, saltar, mover). */
 class PlanViewModel(
     private val db: HomeFitDatabase,
     private val settings: SettingsStore,
-    private val app: com.kryll.homefit.HomeFitApp,
 ) : ViewModel() {
     private val zone: java.time.ZoneId = java.time.ZoneId.systemDefault()
 
@@ -210,34 +217,47 @@ class PlanViewModel(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val reminderEnabled: StateFlow<Boolean> =
-        settings.settings.map { it.reminderEnabled }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    /** Mensaje de resultado de las acciones de la semana (visible hasta que la UI lo limpia). */
+    val message = MutableStateFlow<PlanMessage?>(null)
+    fun clearMessage() { message.value = null }
 
     private fun startOf(d: java.time.LocalDate) = d.atStartOfDay(zone).toInstant().toEpochMilli()
-    private fun at(d: java.time.LocalDate) = d.atTime(ui.value?.prefs?.hour ?: 9, ui.value?.prefs?.minute ?: 0).atZone(zone).toInstant().toEpochMilli()
+    private fun at(d: java.time.LocalDate, hour: Int, minute: Int) = d.atTime(hour, minute).atZone(zone).toInstant().toEpochMilli()
 
     fun assign(date: java.time.LocalDate, routineId: Long?) = viewModelScope.launch {
         val dao = db.sessionDao()
         dao.deleteScheduledBetween(startOf(date), startOf(date.plusDays(1)))
-        if (routineId != null) dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = routineId, startMillis = at(date), status = "SCHEDULED"))
-    }
-
-    fun autoPlan() = viewModelScope.launch {
-        val u = ui.value ?: return@launch
-        val p = db.profileDao().observeProfile().first()
-        val pool = u.routines.filter { p != null && it.goal == p.goal && it.level == p.level }
-            .ifEmpty { u.routines.filter { p != null && it.goal == p.goal } }
-            .ifEmpty { u.routines }
-        val dao = db.sessionDao()
-        dao.deleteScheduledBetween(startOf(u.today), startOf(u.today.plusDays(7)))
-        com.kryll.homefit.domain.Planning.autoPlan(u.daysMask, pool.map { it.id }, u.today).forEach {
-            dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId, startMillis = at(it.date), status = "SCHEDULED"))
+        if (routineId != null) {
+            val prefs = settings.settings.first().reminderPrefs()
+            dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = routineId, startMillis = at(date, prefs.hour, prefs.minute), status = "SCHEDULED"))
         }
     }
 
+    fun autoPlan() = viewModelScope.launch {
+        val today = java.time.LocalDate.now(zone)
+        val profile = db.profileDao().profile()
+        val routines = db.routineDao().observeAll().first()
+        if (routines.isEmpty()) { message.value = PlanMessage.NoRoutines; return@launch }
+        val daysMask = profile?.daysMask ?: 0
+        val pool = routines.filter { profile != null && it.goal == profile.goal && it.level == profile.level }
+            .ifEmpty { routines.filter { profile != null && it.goal == profile.goal } }
+            .ifEmpty { routines }
+        val planned = com.kryll.homefit.domain.Planning.autoPlan(daysMask, pool.map { it.id }, today)
+        // Sin días de entreno no se planifica nada: no borrar lo que ya hubiera planificado.
+        if (planned.isEmpty()) { message.value = PlanMessage.NoTrainingDays; return@launch }
+        val prefs = settings.settings.first().reminderPrefs()
+        val dao = db.sessionDao()
+        dao.deleteScheduledBetween(startOf(today), startOf(today.plusDays(7)))
+        planned.forEach {
+            dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId, startMillis = at(it.date, prefs.hour, prefs.minute), status = "SCHEDULED"))
+        }
+        message.value = PlanMessage.Generated(planned.size)
+    }
+
     fun clearWeek() = viewModelScope.launch {
-        val u = ui.value ?: return@launch
-        db.sessionDao().deleteScheduledBetween(startOf(u.today), startOf(u.today.plusDays(7)))
+        val today = java.time.LocalDate.now(zone)
+        val n = db.sessionDao().deleteScheduledBetween(startOf(today), startOf(today.plusDays(7)))
+        message.value = PlanMessage.Cleared(n)
     }
 
     fun skip(sessionId: Long) = viewModelScope.launch { db.sessionDao().setScheduledStatus(sessionId, "SKIPPED") }
@@ -248,13 +268,6 @@ class PlanViewModel(
         dao.insertScheduled(entry.copy(id = 0, startMillis = com.kryll.homefit.domain.movedStartMillis(entry.startMillis, zone, newDate), status = "SCHEDULED"))
     }
 
-    /** Realinea el mecanismo del aviso (p. ej. al volver de conceder el permiso de alarma). */
-    fun syncReminders() = viewModelScope.launch { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
-
-    fun saveReminderPrefs(n: ReminderPrefsUi) = viewModelScope.launch {
-        settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute, reminderLeadMinutes = n.leadMinutes, reminderExact = n.exact) }
-        com.kryll.homefit.reminders.ReminderScheduler.sync(app)
-    }
 }
 
 /** Pestaña Ajustes: preferencias, perfil/equipamiento, peso actual y copia de seguridad (estado y datos; la E/S de archivos queda en la UI). */
@@ -262,6 +275,7 @@ class SettingsViewModel(
     private val db: HomeFitDatabase,
     private val settings: SettingsStore,
     private val backupRepo: BackupRepository,
+    private val reminderSync: suspend () -> Unit = {},
 ) : ViewModel() {
     val appSettings: StateFlow<AppSettings> =
         settings.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
@@ -282,6 +296,14 @@ class SettingsViewModel(
     fun setPendingImport(backup: Backup?) { _pendingImport.value = backup }
 
     fun changeSettings(transform: (AppSettings) -> AppSettings) = viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) { settings.update(transform) }
+
+    fun saveReminderPrefs(n: ReminderPrefsUi) = viewModelScope.launch {
+        settings.update { it.copy(reminderEnabled = n.enabled, reminderHour = n.hour, reminderMinute = n.minute, reminderLeadMinutes = n.leadMinutes, reminderExact = n.exact) }
+        reminderSync()
+    }
+
+    /** Realinea el mecanismo del aviso (p. ej. al volver de conceder el permiso de alarma). */
+    fun syncReminders() = viewModelScope.launch { reminderSync() }
 
     fun saveProfile(profile: UserProfile, equipment: Set<String>) = viewModelScope.launch {
         val dao = db.profileDao()

@@ -11,8 +11,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,7 +31,6 @@ import com.kryll.homefit.data.ScheduledSession
 import com.kryll.homefit.data.WorkoutRepository
 import com.kryll.homefit.data.WorkoutSession
 import com.kryll.homefit.domain.Planning
-import com.kryll.homefit.domain.ReminderPrefs
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -53,16 +53,14 @@ fun PlanScreen(
     routines: List<Routine>,
     scheduled: List<ScheduledSession>,
     workouts: List<WorkoutSession>,
-    prefs: ReminderPrefs,
-    notificationsAllowed: Boolean,
+    message: String? = null,
     onAssign: (LocalDate, Long?) -> Unit = { _, _ -> },
     onAuto: () -> Unit = {},
     onClear: () -> Unit = {},
     onStart: (Long) -> Unit = {},
-    exactAllowed: Boolean = true,
-    onPrefs: (ReminderPrefs) -> Unit = {},
     onSkip: (ScheduledSession) -> Unit = {},
     onMove: (ScheduledSession, LocalDate) -> Unit = { _, _ -> },
+    onOpenSettings: () -> Unit = {},
 ) {
     var assigning by rememberSaveable { mutableStateOf<Long?>(null) } // epochDay del día que se está editando
     var moving by rememberSaveable { mutableStateOf<Long?>(null) } // id de la sesión que se está moviendo
@@ -92,72 +90,41 @@ fun PlanScreen(
             if (monthly) MonthCalendar(month, anchor, scheduled.map { dateOf(it.startMillis) }.toSet()) { anchorEpoch = it.toEpochDay() }
         }
         item {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.plan_reminder_title), style = MaterialTheme.typography.titleMedium)
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(stringResource(R.string.plan_reminder_switch), Modifier.weight(1f))
-                        Switch(checked = prefs.enabled, onCheckedChange = { onPrefs(prefs.copy(enabled = it)) })
-                    }
-                    if (prefs.enabled) {
-                        Text(stringResource(R.string.plan_reminder_time, prefs.hour, prefs.minute))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton({ onPrefs(Planning.stepHour(prefs, -1)) }) { Text(stringResource(R.string.plan_hour_minus)) }
-                            OutlinedButton({ onPrefs(Planning.stepHour(prefs, 1)) }) { Text(stringResource(R.string.plan_hour_plus)) }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton({ onPrefs(Planning.stepMinute(prefs, -5)) }) { Text(stringResource(R.string.plan_min_minus)) }
-                            OutlinedButton({ onPrefs(Planning.stepMinute(prefs, 5)) }) { Text(stringResource(R.string.plan_min_plus)) }
-                        }
-                        val lead = prefs.leadMinutes
-                        val notifyAt = Planning.notifyTime(prefs)
-                        Text(
-                            if (lead == 0) stringResource(R.string.plan_reminder_lead_none)
-                            else stringResource(R.string.plan_reminder_lead, lead, notifyAt.hour, notifyAt.minute),
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton({ onPrefs(Planning.stepLead(prefs, -1)) }) { Text(stringResource(R.string.plan_lead_less)) }
-                            OutlinedButton({ onPrefs(Planning.stepLead(prefs, 1)) }) { Text(stringResource(R.string.plan_lead_more)) }
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.plan_reminder_exact), Modifier.weight(1f))
-                            Switch(checked = prefs.exact, onCheckedChange = { onPrefs(prefs.copy(exact = it)) })
-                        }
-                        if (prefs.exact && !exactAllowed) {
-                            Text(stringResource(R.string.plan_reminder_exact_denied), style = MaterialTheme.typography.bodySmall)
-                        }
-                        if (!notificationsAllowed) {
-                            Text(stringResource(R.string.plan_notifications_off), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                    Text(stringResource(R.string.plan_reminder_note), style = MaterialTheme.typography.bodySmall)
-                    if (prefs.enabled && !prefs.exact) {
-                        Text(stringResource(R.string.plan_reminder_note_delay), style = MaterialTheme.typography.bodySmall)
-                    } else if (prefs.enabled && prefs.exact && exactAllowed) {
-                        // Sin promesa absoluta de puntualidad; la denegación ya avisa arriba (sin duplicar).
-                        Text(stringResource(R.string.plan_reminder_note_exact), style = MaterialTheme.typography.bodySmall)
-                    }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onAuto, enabled = routines.isNotEmpty() && daysMask != 0) { Text(stringResource(R.string.plan_auto)) }
+                    OutlinedButton(onClear) { Text(stringResource(R.string.plan_clear)) }
                 }
+                Text(stringResource(R.string.calendar_auto_hint), style = MaterialTheme.typography.bodySmall)
+                if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
+                if (daysMask == 0) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
+                message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
+                TextButton(onOpenSettings) { Text(stringResource(R.string.plan_open_reminder)) }
             }
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onAuto, enabled = routines.isNotEmpty()) { Text(stringResource(R.string.plan_auto)) }
-                OutlinedButton(onClear) { Text(stringResource(R.string.plan_clear)) }
-            }
-            Text(stringResource(R.string.calendar_auto_hint), style = MaterialTheme.typography.bodySmall)
-            if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
         }
         items(days, key = { it.toEpochDay() }) { d ->
             val entries = scheduled.filter { dateOf(it.startMillis) == d }
-            Card(Modifier.fillMaxWidth()) {
+            val training = Planning.isTrainingDay(daysMask, d)
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = if (training) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh) else CardDefaults.cardColors(),
+            ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     val mark = if (d == today) " · " + stringResource(R.string.plan_today_mark) else ""
-                    Text(dayLabel(d) + mark, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        stringResource(if (Planning.isTrainingDay(daysMask, d)) R.string.plan_training_day else R.string.plan_rest_day),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(dayLabel(d) + mark, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                        Surface(
+                            color = if (training) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = androidx.compose.foundation.shape.CircleShape,
+                        ) {
+                            Text(
+                                stringResource(if (training) R.string.plan_training_day else R.string.plan_rest_day),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (training) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            )
+                        }
+                    }
                     if (entries.isEmpty()) Text(stringResource(R.string.plan_nothing))
                     entries.forEach { e ->
                         val name = e.routineId?.let { names[it] } ?: ""

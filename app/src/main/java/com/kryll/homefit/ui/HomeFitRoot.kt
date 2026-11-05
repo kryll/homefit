@@ -109,10 +109,13 @@ private fun MainTabs(updater: com.kryll.homefit.update.UpdateViewModel) {
                     if (tab == Tab.Routines) {
                         RoutinesTab(startRequest) { startRequest = null }
                     } else if (tab == Tab.Today) {
-                        PlanTab(onStart = { id ->
-                            startRequest = id
-                            nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
-                        })
+                        PlanTab(
+                            onStart = { id ->
+                                startRequest = id
+                                nav.navigate(Tab.Routines.route) { popUpTo(Tab.Today.route); launchSingleTop = true }
+                            },
+                            onOpenSettings = { nav.navigate(Tab.Settings.route) { popUpTo(Tab.Today.route); launchSingleTop = true } },
+                        )
                     } else if (tab == Tab.Progress) {
                         ProgressTab()
                     } else if (tab == Tab.Settings) {
@@ -233,42 +236,32 @@ private fun WorkoutWithCues(plan: List<WorkItem>, sessionKey: Long, routineId: L
 
 
 @Composable
-private fun PlanTab(onStart: (Long) -> Unit) {
-    val context = LocalContext.current
-    val app = context.applicationContext as HomeFitApp
+private fun PlanTab(onStart: (Long) -> Unit, onOpenSettings: () -> Unit) {
+    val app = LocalContext.current.applicationContext as HomeFitApp
     val vm: PlanViewModel = viewModel(factory = AppViewModelFactory(app))
     val ui by vm.ui.collectAsState()
-    val reminderEnabled by vm.reminderEnabled.collectAsState()
-    var refresh by remember { mutableStateOf(0) }
-    val notificationsAllowed = remember(refresh, reminderEnabled) {
-        androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+    val message by vm.message.collectAsState()
+    LaunchedEffect(message) {
+        if (message != null) { kotlinx.coroutines.delay(5000); vm.clearMessage() }
     }
-    val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-    ) { refresh++ }
     val u = ui ?: return
-    var exactRefresh by remember { mutableStateOf(0) }
-    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-        exactRefresh++
-        vm.syncReminders()
+    val text = when (val m = message) {
+        is com.kryll.homefit.ui.vm.PlanMessage.Generated -> stringResource(R.string.plan_generated, m.count)
+        is com.kryll.homefit.ui.vm.PlanMessage.Cleared -> stringResource(if (m.count == 0) R.string.plan_cleared_none else R.string.plan_cleared, m.count)
+        com.kryll.homefit.ui.vm.PlanMessage.NoRoutines -> stringResource(R.string.plan_no_routines)
+        com.kryll.homefit.ui.vm.PlanMessage.NoTrainingDays -> stringResource(R.string.plan_no_training_days)
+        null -> null
     }
-    val exactAllowed = remember(exactRefresh) { com.kryll.homefit.reminders.ExactReminders.canSchedule(context) }
-    val prefs = com.kryll.homefit.domain.ReminderPrefs(u.prefs.enabled, u.prefs.hour, u.prefs.minute, u.prefs.leadMinutes, u.prefs.exact)
-
     PlanScreen(
         today = u.today, zone = u.zone, daysMask = u.daysMask, routines = u.routines, scheduled = u.scheduled, workouts = u.workouts,
-        prefs = prefs, notificationsAllowed = notificationsAllowed, exactAllowed = exactAllowed,
+        message = text,
         onAssign = { d, rid -> vm.assign(d, rid) },
         onAuto = { vm.autoPlan() },
         onClear = { vm.clearWeek() },
         onSkip = { e -> vm.skip(e.id) },
         onMove = { e, nd -> vm.move(e, nd) },
         onStart = onStart,
-        onPrefs = { n ->
-            if (n.enabled && !prefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            if (n.exact && !prefs.exact) com.kryll.homefit.reminders.ExactReminders.permissionIntent(context)?.let { context.startActivity(it) }
-            vm.saveReminderPrefs(ReminderPrefsUi(n.enabled, n.hour, n.minute, n.leadMinutes, n.exact))
-        },
+        onOpenSettings = onOpenSettings,
     )
 }
 
@@ -358,8 +351,33 @@ private fun SettingsTab(updater: com.kryll.homefit.update.UpdateViewModel) {
         }
     }
 
+    val reminderPrefs = com.kryll.homefit.domain.ReminderPrefs(
+        settings.reminderEnabled, settings.reminderHour, settings.reminderMinute, settings.reminderLeadMinutes, settings.reminderExact,
+    )
+    var refresh by remember { mutableStateOf(0) }
+    val notificationsAllowed = remember(refresh, settings.reminderEnabled) {
+        androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
+    val askNotifications = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { refresh++ }
+    var exactRefresh by remember { mutableStateOf(0) }
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        exactRefresh++
+        vm.syncReminders()
+    }
+    val exactAllowed = remember(exactRefresh) { com.kryll.homefit.reminders.ExactReminders.canSchedule(context) }
+
     SettingsScreen(
         settings = settings, versionName = versionName, message = message,
+        reminderPrefs = reminderPrefs,
+        reminderNotificationsAllowed = notificationsAllowed,
+        reminderExactAllowed = exactAllowed,
+        onReminderPrefs = { n ->
+            if (n.enabled && !reminderPrefs.enabled && android.os.Build.VERSION.SDK_INT >= 33) askNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            if (n.exact && !reminderPrefs.exact) com.kryll.homefit.reminders.ExactReminders.permissionIntent(context)?.let { context.startActivity(it) }
+            vm.saveReminderPrefs(ReminderPrefsUi(n.enabled, n.hour, n.minute, n.leadMinutes, n.exact))
+        },
         updateState = updateState,
         onCheckUpdates = { updater.check() },
         onOpenUpdate = { updater.fetch() },
