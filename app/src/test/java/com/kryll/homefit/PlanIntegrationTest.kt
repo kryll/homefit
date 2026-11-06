@@ -157,7 +157,8 @@ class PlanIntegrationTest {
         // Tras el borrado la tarjeta de hoy queda sin rutina ni botón de entrenar.
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("· hoy", substring = true))
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().isEmpty() }
-        rule.onNodeWithText("Sin rutina asignada").assertIsDisplayed()
+        // Varias tarjetas vacías muestran el texto: basta con que exista alguna.
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Sin rutina asignada").fetchSemanticsNodes().isNotEmpty() }
     }
 
     @Test fun generarSinDiasDeEntrenoExplicaSinBorrar() {
