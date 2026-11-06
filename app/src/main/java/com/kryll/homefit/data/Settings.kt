@@ -20,7 +20,7 @@ enum class WeightUnit { KG, LB }
 enum class LengthUnit { CM, IN }
 
 data class AppSettings(
-    val theme: ThemeMode = ThemeMode.SYSTEM,
+    val theme: ThemeMode = ThemeMode.DARK,
     val weightUnit: WeightUnit = WeightUnit.KG,
     val lengthUnit: LengthUnit = LengthUnit.CM,
     val beepVolume: Float = 0.8f,
@@ -86,7 +86,7 @@ class SettingsStore(private val context: Context) {
     suspend fun update(transform: (AppSettings) -> AppSettings) {
         context.dataStore.edit { p ->
             val cur = AppSettings(
-                theme = p[Keys.theme]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.SYSTEM,
+                theme = p[Keys.theme]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.DARK,
                 weightUnit = p[Keys.weightUnit]?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() } ?: WeightUnit.KG,
                 lengthUnit = p[Keys.lengthUnit]?.let { runCatching { LengthUnit.valueOf(it) }.getOrNull() } ?: LengthUnit.CM,
                 beepVolume = p[Keys.beepVolume] ?: 0.8f,

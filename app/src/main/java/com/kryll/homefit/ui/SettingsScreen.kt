@@ -61,6 +61,10 @@ fun SettingsScreen(
     equipment: Set<String> = emptySet(),
     latestWeightKg: Float? = null,
     onSaveProfile: (UserProfile, Set<String>) -> Unit = { _, _ -> },
+    reminderPrefs: com.kryll.homefit.domain.ReminderPrefs = com.kryll.homefit.domain.ReminderPrefs(),
+    reminderNotificationsAllowed: Boolean = true,
+    reminderExactAllowed: Boolean = true,
+    onReminderPrefs: (com.kryll.homefit.domain.ReminderPrefs) -> Unit = {},
 ) {
     val choosingVoice = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val editingProfile = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -134,6 +138,51 @@ fun SettingsScreen(
                 onPlus = { onChange { it.copy(defaultCountdownSeconds = SettingsRules.stepCountdown(it.defaultCountdownSeconds, 1)) } },
             )
             Text(stringResource(R.string.settings_countdown_note), style = MaterialTheme.typography.bodySmall)
+        }
+
+        Section(R.string.settings_reminder) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(stringResource(R.string.plan_reminder_switch), Modifier.weight(1f))
+                Switch(checked = reminderPrefs.enabled, onCheckedChange = { onReminderPrefs(reminderPrefs.copy(enabled = it)) })
+            }
+            if (reminderPrefs.enabled) {
+                Text(stringResource(R.string.plan_reminder_time, reminderPrefs.hour, reminderPrefs.minute))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepHour(reminderPrefs, -1)) }) { Text(stringResource(R.string.plan_hour_minus)) }
+                    OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepHour(reminderPrefs, 1)) }) { Text(stringResource(R.string.plan_hour_plus)) }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepMinute(reminderPrefs, -5)) }) { Text(stringResource(R.string.plan_min_minus)) }
+                    OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepMinute(reminderPrefs, 5)) }) { Text(stringResource(R.string.plan_min_plus)) }
+                }
+                val lead = reminderPrefs.leadMinutes
+                val notifyAt = com.kryll.homefit.domain.Planning.notifyTime(reminderPrefs)
+                Text(
+                    if (lead == 0) stringResource(R.string.plan_reminder_lead_none)
+                    else stringResource(R.string.plan_reminder_lead, lead, notifyAt.hour, notifyAt.minute),
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepLead(reminderPrefs, -1)) }) { Text(stringResource(R.string.plan_lead_less)) }
+                    OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepLead(reminderPrefs, 1)) }) { Text(stringResource(R.string.plan_lead_more)) }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.plan_reminder_exact), Modifier.weight(1f))
+                    Switch(checked = reminderPrefs.exact, onCheckedChange = { onReminderPrefs(reminderPrefs.copy(exact = it)) })
+                }
+                if (reminderPrefs.exact && !reminderExactAllowed) {
+                    Text(stringResource(R.string.plan_reminder_exact_denied), style = MaterialTheme.typography.bodySmall)
+                }
+                if (!reminderNotificationsAllowed) {
+                    Text(stringResource(R.string.plan_notifications_off), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            Text(stringResource(R.string.plan_reminder_note), style = MaterialTheme.typography.bodySmall)
+            if (reminderPrefs.enabled && !reminderPrefs.exact) {
+                Text(stringResource(R.string.plan_reminder_note_delay), style = MaterialTheme.typography.bodySmall)
+            } else if (reminderPrefs.enabled && reminderPrefs.exact && reminderExactAllowed) {
+                // Sin promesa absoluta de puntualidad; la denegación ya avisa arriba (sin duplicar).
+                Text(stringResource(R.string.plan_reminder_note_exact), style = MaterialTheme.typography.bodySmall)
+            }
         }
 
         Section(R.string.settings_audio) {

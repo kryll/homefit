@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -12,10 +13,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import com.kryll.homefit.data.Routine
 import com.kryll.homefit.data.ScheduledSession
 import com.kryll.homefit.data.WorkoutSession
-import com.kryll.homefit.domain.ReminderPrefs
 import com.kryll.homefit.ui.PlanScreen
 import com.kryll.homefit.ui.theme.HomeFitTheme
 import java.io.File
@@ -23,6 +27,7 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.ZoneId
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,77 +62,43 @@ class PlanUiTest {
         FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    @Test fun showsWeekWithRoutinesAndReminder() {
-        rule.setContent {
-            HomeFitTheme {
-                PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(false), notificationsAllowed = true)
-            }
-        }
+    @Test fun weekCardsShowTrainingAndRestChips() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList()) } }
         rule.onNodeWithText("Tu semana").assertIsDisplayed()
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
-        rule.onNodeWithText("Mié 4 nov · hoy").assertIsDisplayed()
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
         rule.onNodeWithText("Entrenar").assertIsDisplayed()
+        // Chips de tipo de día visibles al recorrer la semana (lun/mié/vie entrenan, el resto no).
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Día de entreno"))
+        assertTrue(rule.onAllNodesWithText("Día de entreno").fetchSemanticsNodes().isNotEmpty())
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Descanso"))
+        assertTrue(rule.onAllNodesWithText("Descanso").fetchSemanticsNodes().isNotEmpty())
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
         capture("plan_semana")
     }
 
-    @Test fun enabledReminderShowsTimeAndSteppers() {
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30), true) } }
-        rule.onNodeWithText("Hora de entrenar: 18:30").assertIsDisplayed()
-        rule.onNodeWithText("+ hora").assertIsDisplayed()
-        capture("plan_recordatorio")
+    @Test fun autoDisabledWithoutTrainingDaysShowsHint() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, 0, routines, emptyList(), emptyList()) } }
+        rule.onNodeWithText("Marca tus días de entrenamiento en Ajustes para poder generar el plan.").assertIsDisplayed()
+        rule.onNodeWithText("Generar próximos 7 días").assertIsNotEnabled()
+    }
+
+    @Test fun actionMessageIsShown() {
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), message = "Semana generada: 3 sesiones planificadas.") } }
+        rule.onNodeWithText("Semana generada: 3 sesiones planificadas.").assertIsDisplayed()
     }
 
     @Test fun doneWorkoutHidesTrainButton() {
         val w = WorkoutSession(1, 1, ms(today, 8), ms(today, 9), 3600)
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, listOf(w), ReminderPrefs(), true) } }
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, listOf(w)) } }
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
-        assertEquals(0, rule.onAllNodes(androidx.compose.ui.test.hasText("Entrenar")).fetchSemanticsNodes().size)
-    }
-
-    @Test fun exactSwitchVisibleWithoutNoteWhenGranted() {
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = true) } }
-        rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
-        // Modo exacto concedido: nota específica sin promesa absoluta y SIN la frase de retraso del modo normal.
-        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").assertIsDisplayed()
-        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
-        capture("plan_recordatorio_exacto")
-    }
-
-    @Test fun exactDeniedShowsPermissionNote() {
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30, exact = true), true, exactAllowed = false) } }
-        rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").assertIsDisplayed()
-        rule.onNodeWithText("Sin el permiso de alarma, el aviso usa el mecanismo normal y el ahorro de batería puede retrasarlo. Toca el interruptor de nuevo para abrir los ajustes de Android.").assertIsDisplayed()
-        // La nota de denegación ya avisa del retraso: la frase genérica no debe duplicarla.
-        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
-        capture("plan_recordatorio_sin_permiso")
-    }
-
-    @Test fun normalModeShowsBatteryDelayNote() {
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(true, 18, 30), true) } }
-        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertIsDisplayed()
-        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").assertDoesNotExist()
-        capture("plan_recordatorio_normal")
-    }
-
-    @Test fun warnsWhenNotificationsAreOff() {
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), ReminderPrefs(true), notificationsAllowed = false) } }
-        rule.onNodeWithText("Las notificaciones de HomeFit están desactivadas en el sistema: actívalas para recibir el aviso.").assertIsDisplayed()
-    }
-
-    @Test fun timeButtonsEmitNewPrefs() {
-        var last: ReminderPrefs? = null
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), ReminderPrefs(true, 18, 30), true, onPrefs = { last = it }) } }
-        rule.onNodeWithText("+ hora").performClick()
-        assertEquals(ReminderPrefs(true, 19, 30), last)
-        rule.onNodeWithText("− 5 min").performClick()
-        assertEquals(ReminderPrefs(true, 18, 25), last)
+        assertEquals(0, rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().size)
     }
 
     @Test fun assignDialogCallsBackWithRoutine() {
         var got: Pair<LocalDate, Long?>? = null
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), ReminderPrefs(), true, onAssign = { d, r -> got = d to r }) } }
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), onAssign = { d, r -> got = d to r }) } }
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Asignar"))
         rule.onAllNodesWithText("Asignar")[0].performClick()
         rule.onNodeWithText("Cardio suave").performClick()
@@ -139,7 +110,7 @@ class PlanUiTest {
             ScheduledSession(1, 1, ms(today), "SKIPPED"),
             ScheduledSession(2, 2, ms(today.plusDays(2)), "MOVED"),
         )
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList(), ReminderPrefs(), true) } }
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList()) } }
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Saltada"))
         rule.onNodeWithText("Fuerza en casa · Saltada").assertIsDisplayed()
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Cardio suave · Movida"))
@@ -154,9 +125,7 @@ class PlanUiTest {
             ScheduledSession(2, 2, ms(today.plusDays(1)), "SKIPPED"),
             ScheduledSession(3, 1, ms(today.plusDays(2)), "MOVED"),
         )
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList(), ReminderPrefs(), true) } }
-        // Desplazar hasta cada fila antes de afirmar: la altura de la tarjeta de recordatorio
-        // puede variar con las notas y mover el resto de filas fuera del viewport.
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList()) } }
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Cardio suave · Saltada"))
@@ -174,7 +143,7 @@ class PlanUiTest {
         var moved: Pair<Long, LocalDate>? = null
         rule.setContent {
             HomeFitTheme {
-                PlanScreen(today, zone, mask, routines, scheduled, emptyList(), ReminderPrefs(), true,
+                PlanScreen(today, zone, mask, routines, scheduled, emptyList(),
                     onSkip = { skipped = it }, onMove = { e, d -> moved = e.id to d })
             }
         }
@@ -187,12 +156,11 @@ class PlanUiTest {
         assertEquals(1L to today.plusDays(1), moved)
     }
 
-    @Test fun leadShowsNotificationTimeAndEmitsSteps() {
-        var prefs = ReminderPrefs(true, 18, 30, leadMinutes = 15)
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), prefs, true, onPrefs = { prefs = it }) } }
-        rule.onNodeWithText("Aviso 15 min antes (a las 18:15)").assertIsDisplayed()
-        rule.onNodeWithText("Más antelación").performClick()
-        org.junit.Assert.assertEquals(30, prefs.leadMinutes)
-        capture("plan_antelacion")
+    @Test fun weekCardsDarkThemeCapture() {
+        rule.setContent { HomeFitTheme(darkTheme = true) {
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { PlanScreen(today, zone, mask, routines, scheduled, emptyList()) }
+        } }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
+        capture("plan_semana_dark")
     }
 }

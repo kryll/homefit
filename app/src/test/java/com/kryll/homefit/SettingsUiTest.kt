@@ -4,6 +4,9 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -14,6 +17,7 @@ import androidx.compose.ui.test.hasText
 
 import androidx.compose.ui.test.performClick
 import com.kryll.homefit.data.AppSettings
+import com.kryll.homefit.domain.ReminderPrefs
 import com.kryll.homefit.data.ThemeMode
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -37,6 +41,15 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SettingsUiTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
+
+    private fun reminderContent(prefs: ReminderPrefs, notificationsAllowed: Boolean = true, exactAllowed: Boolean = true, onPrefs: (ReminderPrefs) -> Unit = {}) {
+        rule.setContent {
+            HomeFitTheme {
+                SettingsScreen(AppSettings(), "1.0", null, null,
+                    reminderPrefs = prefs, reminderNotificationsAllowed = notificationsAllowed, reminderExactAllowed = exactAllowed, onReminderPrefs = onPrefs)
+            }
+        }
+    }
 
     private fun capture(name: String) {
         val view = rule.activity.window.decorView
@@ -188,5 +201,63 @@ class SettingsUiTest {
         rule.onNodeWithText("Ana", substring = true).assertExists()
         rule.onNodeWithText("IMC orientativo", substring = true).assertExists()
         rule.onNodeWithText("Editar perfil").assertExists()
+    }
+
+    @Test fun reminderSectionShowsTimeAndSteppers() {
+        reminderContent(ReminderPrefs(true, 18, 30))
+        rule.onNodeWithText("Recordatorio diario").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Hora de entrenar: 18:30").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("+ hora").performScrollTo().assertIsDisplayed()
+        capture("ajustes_recordatorio")
+    }
+
+    @Test fun reminderExactGrantedShowsNoteWithoutGenericDelay() {
+        reminderContent(ReminderPrefs(true, 18, 30, exact = true), exactAllowed = true)
+        rule.onNodeWithText("Aviso exacto (permiso «Alarmas y recordatorios»)").performScrollTo().assertIsDisplayed()
+        // Modo exacto concedido: nota específica sin promesa absoluta y SIN la frase de retraso del modo normal.
+        rule.onNodeWithText("Android intenta avisar a la hora elegida incluso con ahorro de batería.").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
+        capture("ajustes_recordatorio_exacto")
+    }
+
+    @Test fun reminderExactDeniedShowsPermissionNote() {
+        reminderContent(ReminderPrefs(true, 18, 30, exact = true), exactAllowed = false)
+        // La nota de denegación ya avisa del retraso: la frase genérica no debe duplicarla.
+        rule.onNodeWithText("Sin el permiso de alarma, el aviso usa el mecanismo normal y el ahorro de batería puede retrasarlo. Toca el interruptor de nuevo para abrir los ajustes de Android.").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Android puede retrasar el aviso por el ahorro de batería.").assertDoesNotExist()
+    }
+
+    @Test fun reminderNotificationsOffWarns() {
+        reminderContent(ReminderPrefs(true), notificationsAllowed = false)
+        rule.onNodeWithText("Las notificaciones de HomeFit están desactivadas en el sistema: actívalas para recibir el aviso.").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun reminderTimeButtonsEmitNewPrefs() {
+        var last: ReminderPrefs? = null
+        reminderContent(ReminderPrefs(true, 18, 30)) { last = it }
+        rule.onNodeWithText("+ hora").performScrollTo().performClick()
+        assertEquals(ReminderPrefs(true, 19, 30), last)
+        rule.onNodeWithText("− 5 min").performScrollTo().performClick()
+        assertEquals(ReminderPrefs(true, 18, 25), last)
+    }
+
+    @Test fun reminderLeadShowsNotifyTimeAndEmitsSteps() {
+        var prefs = ReminderPrefs(true, 18, 30, leadMinutes = 15)
+        reminderContent(prefs) { prefs = it }
+        rule.onNodeWithText("Aviso 15 min antes (a las 18:15)").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Más antelación").performScrollTo().performClick()
+        assertEquals(30, prefs.leadMinutes)
+    }
+
+    @Test fun reminderSectionDarkThemeCapture() {
+        rule.setContent {
+            HomeFitTheme(darkTheme = true) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    SettingsScreen(AppSettings(), "1.0", null, null, reminderPrefs = ReminderPrefs(true, 18, 30))
+                }
+            }
+        }
+        rule.onNodeWithText("Hora de entrenar: 18:30").performScrollTo().assertIsDisplayed()
+        capture("ajustes_recordatorio_dark")
     }
 }
