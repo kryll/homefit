@@ -145,14 +145,19 @@ class PlanIntegrationTest {
         renderPlan(vm)
 
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Vaciar próximos 7 días").fetchSemanticsNodes().isNotEmpty() }
-        // La sesión sembrada se ve antes de vaciar.
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Fuerza en casa").fetchSemanticsNodes().isNotEmpty() }
+        // La sesión sembrada se ve antes de vaciar (hoy puede quedar bajo el pliegue: hay que hacer scroll).
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa"))
+        rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
 
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Vaciar próximos 7 días"))
         rule.onNodeWithText("Vaciar próximos 7 días").performClick()
 
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Semana vaciada: 1", substring = true).fetchSemanticsNodes().isNotEmpty() }
         runBlocking { assertEquals(0, db.sessionDao().observeAllScheduled().first().size) }
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Fuerza en casa").fetchSemanticsNodes().isEmpty() }
+        // Tras el borrado la tarjeta de hoy queda sin rutina ni botón de entrenar.
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("· hoy", substring = true))
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().isEmpty() }
+        rule.onNodeWithText("Sin rutina asignada").assertIsDisplayed()
     }
 
     @Test fun generarSinDiasDeEntrenoExplicaSinBorrar() {
