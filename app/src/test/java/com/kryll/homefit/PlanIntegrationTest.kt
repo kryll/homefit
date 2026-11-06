@@ -27,6 +27,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.kryll.homefit.data.HomeFitDatabase
 import com.kryll.homefit.data.Routine
+import com.kryll.homefit.data.WorkoutSession
 import com.kryll.homefit.data.ScheduledSession
 import com.kryll.homefit.data.SettingsStore
 import com.kryll.homefit.data.UserProfile
@@ -169,8 +170,10 @@ class PlanIntegrationTest {
             if (pastDay.isBefore(today)) {
                 db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(pastDay), status = "SCHEDULED"))
             }
-            // Historial: una sesión saltada NO se borra al vaciar.
-            db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(today.plusDays(1)), status = "SKIPPED"))
+            // Historial: completada (con su entreno registrado) y saltada NO se borran al vaciar.
+            db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(pastDay.plusDays(1)), status = "COMPLETED"))
+            db.sessionDao().insertWorkout(WorkoutSession(routineId = routineId, startMillis = startOf(pastDay.plusDays(1)) + 8 * 3600_000, endMillis = startOf(pastDay.plusDays(1)) + 9 * 3600_000, durationSeconds = 3600))
+            db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(pastDay.plusDays(3)), status = "SKIPPED"))
         }
         val vm = newVm()
         renderPlan(vm)
@@ -188,11 +191,16 @@ class PlanIntegrationTest {
         capture("plan_vaciado")
         runBlocking {
             val remaining = db.sessionDao().observeAllScheduled().first()
-            // Se borran las pendientes de la semana visible (incluida la pasada) y se conserva la saltada.
-            assertEquals(1, remaining.size)
-            assertEquals("SKIPPED", remaining[0].status)
+            // Se borran las pendientes de la semana visible (incluida la pasada); historial intacto.
+            assertEquals(2, remaining.size)
+            assertEquals(setOf("SKIPPED", "COMPLETED"), remaining.map { it.status }.toSet())
             assertTrue(expectedDeleted >= 1)
+            // El registro del entreno completado sigue en Room (ni borrado ni duplicado).
+            assertEquals(1, db.sessionDao().observeWorkouts().first().size)
         }
+        // La tarjeta completada sigue renderizada como hecha.
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Hecho", substring = true))
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Hecho", substring = true).fetchSemanticsNodes().isNotEmpty() }
         // Tras el borrado la tarjeta de hoy queda sin rutina ni botón de entrenar.
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("· hoy", substring = true))
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().isEmpty() }
