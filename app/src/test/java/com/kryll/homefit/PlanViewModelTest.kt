@@ -62,6 +62,8 @@ class PlanViewModelTest {
         roomExecutor.shutdown()
     }
 
+    private fun visibleWeekStart(): java.time.LocalDate = com.kryll.homefit.domain.CalendarPeriod.weekStart(LocalDate.now(zone))
+
     private suspend fun seedProfile(daysMask: Int) {
         db.profileDao().saveProfile(UserProfile(name = "A", sex = "male", birthEpochDay = 9000, heightCm = 180f, weightKg = 80f, goal = "g", level = "l", daysMask = daysMask, minutesPerSession = 30))
     }
@@ -75,7 +77,7 @@ class PlanViewModelTest {
         seedRoutine()
         val today = LocalDate.now(zone)
         db.sessionDao().insertScheduled(ScheduledSession(routineId = 1, startMillis = startOf(today.plusDays(1)), status = "SCHEDULED"))
-        vm.autoPlan()
+        vm.autoPlan(visibleWeekStart())
         vm.message.first { it != null }
         assertEquals(PlanMessage.NoTrainingDays, vm.message.value)
         assertEquals(1, scheduledCount())
@@ -85,7 +87,7 @@ class PlanViewModelTest {
         seedProfile(0b1111111)
         val today = LocalDate.now(zone)
         db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(today.plusDays(1)), status = "SCHEDULED"))
-        vm.autoPlan()
+        vm.autoPlan(visibleWeekStart())
         vm.message.first { it != null }
         assertEquals(PlanMessage.NoRoutines, vm.message.value)
         assertEquals(1, scheduledCount())
@@ -95,59 +97,85 @@ class PlanViewModelTest {
         seedProfile(0b1111111) // todos los días
         seedRoutine()
         val today = LocalDate.now(zone)
-        vm.autoPlan()
+        vm.autoPlan(visibleWeekStart())
         vm.message.first { it != null }
+        val today2 = LocalDate.now(zone)
+        val weekEnd = visibleWeekStart().plusDays(7)
+        val expected = java.time.temporal.ChronoUnit.DAYS.between(today2, weekEnd).toInt()
         val msg = vm.message.value
-        assertTrue(msg is PlanMessage.Generated && msg.count == 7)
-        assertEquals(7, scheduledCount())
+        assertTrue(msg is PlanMessage.Generated && msg.days.size == expected)
+        assertEquals(expected, scheduledCount())
     }
 
     @Test fun autoPlanSoloEnDiasMarcados() = runTest {
         seedProfile(0b0010101) // lun, mié, vie
         seedRoutine()
         val today = LocalDate.now(zone)
-        vm.autoPlan()
+        vm.autoPlan(visibleWeekStart())
         vm.message.first { it != null }
         val days = db.sessionDao().observeAllScheduled().first()
-        assertTrue(days.isNotEmpty())
+        val weekEnd = visibleWeekStart().plusDays(7)
         days.forEach {
             val d = java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate()
             assertTrue(d.dayOfWeek.value == 1 || d.dayOfWeek.value == 3 || d.dayOfWeek.value == 5)
+            assertTrue(!d.isBefore(today) && d.isBefore(weekEnd))
         }
     }
 
     @Test fun clearWeekBorraYReportaElConteo() = runTest {
-        val today = LocalDate.now(zone)
-        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(today.plusDays(1)), status = "SCHEDULED"))
-        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(today.plusDays(2)), status = "SCHEDULED"))
-        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(today.plusDays(9)), status = "SCHEDULED"))
-        vm.clearWeek()
+        val ws = visibleWeekStart()
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(ws), status = "SCHEDULED"))
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(ws.plusDays(6)), status = "SCHEDULED"))
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(ws.plusDays(7)), status = "SCHEDULED"))
+        vm.clearWeek(ws)
         vm.message.first { it != null }
         assertEquals(PlanMessage.Cleared(2), vm.message.value)
         assertEquals(1, scheduledCount())
     }
 
-    @Test fun autoPlanNoAsignaFueraDeProximos7Dias() = runTest {
+    @Test fun autoPlanNoAsignaFueraDeLaSemanaVisible() = runTest {
         seedProfile(0b1111111)
         seedRoutine()
         val today = LocalDate.now(zone)
-        vm.autoPlan()
+        vm.autoPlan(visibleWeekStart())
         vm.message.first { it != null }
         val days = db.sessionDao().observeAllScheduled().first()
+        val weekEnd = visibleWeekStart().plusDays(7)
         assertTrue(days.isNotEmpty())
         days.forEach {
             val d = java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate()
-            assertTrue(!d.isBefore(today) && !d.isAfter(today.plusDays(6)))
+            assertTrue(!d.isBefore(today) && d.isBefore(weekEnd))
         }
     }
 
-    @Test fun clearWeekNoBorraAntesDeHoy() = runTest {
-        val today = LocalDate.now(zone)
-        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(today.minusDays(1)), status = "SCHEDULED"))
-        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(today.plusDays(1)), status = "SCHEDULED"))
-        vm.clearWeek()
+    @Test fun clearWeekBorraPendientesPasadasPeroConservaHistorial() = runTest {
+        val ws = visibleWeekStart()
+        // Pendiente en un día pasado de la semana visible (o hoy si es lunes): se borra (caso José).
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(ws), status = "SCHEDULED"))
+        // Fuera de la semana visible: no se toca.
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(ws.minusDays(1)), status = "SCHEDULED"))
+        // Historial (saltada) dentro de la semana: se conserva.
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(ws.plusDays(1)), status = "SKIPPED"))
+        vm.clearWeek(ws)
         vm.message.first { it != null }
         assertEquals(PlanMessage.Cleared(1), vm.message.value)
-        assertEquals(1, scheduledCount())
+        assertEquals(2, scheduledCount())
+    }
+
+    @Test fun autoPlanNoReemplazaDiasOcupados() = runTest {
+        seedProfile(0b1111111)
+        seedRoutine()
+        val today = LocalDate.now(zone)
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = null, startMillis = startOf(today), status = "SCHEDULED"))
+        vm.autoPlan(visibleWeekStart())
+        vm.message.first { it != null }
+        val days = db.sessionDao().observeAllScheduled().first()
+        // Hoy estaba ocupado: queda 1 sesión por cada día libre desde mañana + la ocupada, sin reemplazarla.
+        val weekEnd = visibleWeekStart().plusDays(7)
+        val expected = java.time.temporal.ChronoUnit.DAYS.between(today, weekEnd).toInt()
+        assertEquals(expected, days.size)
+        assertEquals(1, days.count {
+            java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() == today && it.routineId == null
+        })
     }
 }

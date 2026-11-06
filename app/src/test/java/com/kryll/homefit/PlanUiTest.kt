@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -80,12 +80,12 @@ class PlanUiTest {
     @Test fun autoDisabledWithoutTrainingDaysShowsHint() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, 0, routines, emptyList(), emptyList()) } }
         rule.onNodeWithText("Marca tus días de entrenamiento en Ajustes para poder generar el plan.").assertIsDisplayed()
-        rule.onNodeWithText("Generar próximos 7 días").assertIsNotEnabled()
+        rule.onNodeWithText("Generar esta semana").assertIsEnabled()
     }
 
     @Test fun actionMessageIsShown() {
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), message = "Semana generada: 3 sesiones planificadas.") } }
-        rule.onNodeWithText("Semana generada: 3 sesiones planificadas.").assertIsDisplayed()
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), message = "Plan generado para: Vie 6 nov.") } }
+        rule.onNodeWithText("Plan generado para: Vie 6 nov.").assertIsDisplayed()
     }
 
     @Test fun doneWorkoutHidesTrainButton() {

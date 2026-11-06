@@ -55,8 +55,8 @@ fun PlanScreen(
     workouts: List<WorkoutSession>,
     message: String? = null,
     onAssign: (LocalDate, Long?) -> Unit = { _, _ -> },
-    onAuto: () -> Unit = {},
-    onClear: () -> Unit = {},
+    onAuto: (java.time.LocalDate) -> Unit = {},
+    onClear: (java.time.LocalDate) -> Unit = {},
     onStart: (Long) -> Unit = {},
     onSkip: (ScheduledSession) -> Unit = {},
     onMove: (ScheduledSession, LocalDate) -> Unit = { _, _ -> },
@@ -91,12 +91,12 @@ fun PlanScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onAuto, enabled = routines.isNotEmpty() && daysMask != 0) { Text(stringResource(R.string.plan_auto)) }
-                    OutlinedButton(onClear) { Text(stringResource(R.string.plan_clear)) }
+                    Button({ onAuto(weekStart) }) { Text(stringResource(R.string.plan_auto)) }
+                    OutlinedButton({ onClear(weekStart) }) { Text(stringResource(R.string.plan_clear)) }
                 }
-                Text(stringResource(R.string.calendar_auto_hint, dayLabel(today), dayLabel(today.plusDays(6))), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.calendar_auto_hint, dayLabel(weekStart), dayLabel(weekStart.plusDays(6))), style = MaterialTheme.typography.bodySmall)
                 if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
-                if (daysMask == 0) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
+                if (daysMask == 0 && message != stringResource(R.string.plan_no_training_days)) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
             }
         }
