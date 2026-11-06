@@ -180,10 +180,10 @@ class PlanIntegrationTest {
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa"))
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
 
+        val expectedDeleted = runBlocking { db.sessionDao().observeAllScheduled().first().count { it.status == "SCHEDULED" } }
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Vaciar esta semana"))
         rule.onNodeWithText("Vaciar esta semana").performClick()
 
-        val expectedDeleted = db.sessionDao().let { dao -> runBlocking { dao.observeAllScheduled().first().count { it.status == "SCHEDULED" } } }
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Semana vaciada: ", substring = true).fetchSemanticsNodes().isNotEmpty() }
         capture("plan_vaciado")
         runBlocking {

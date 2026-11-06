@@ -80,7 +80,7 @@ class PlanUiTest {
     @Test fun autoDisabledWithoutTrainingDaysShowsHint() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, 0, routines, emptyList(), emptyList()) } }
         rule.onNodeWithText("Marca tus días de entrenamiento en Ajustes para poder generar el plan.").assertIsDisplayed()
-        rule.onNodeWithText("Generar próximos 7 días").assertIsEnabled()
+        rule.onNodeWithText("Generar esta semana").assertIsEnabled()
     }
 
     @Test fun actionMessageIsShown() {
