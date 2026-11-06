@@ -20,6 +20,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -199,5 +200,36 @@ class PlanIntegrationTest {
         }
         runBlocking { assertEquals(1, db.sessionDao().observeAllScheduled().first().size) }
         capture("plan_sin_dias")
+    }
+
+    /** Ajustes -> Editar perfil -> selector de días: captura el diálogo real (ventana propia) con días marcados. */
+    @Test fun ajustesEditarPerfilMuestraDias() {
+        rule.setContent {
+            HomeFitTheme(darkTheme = true) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    com.kryll.homefit.ui.SettingsScreen(
+                        com.kryll.homefit.data.AppSettings(), "0.2.0", null, null,
+                        profile = UserProfile(1, "Ana", "mujer", 9000, 165f, 60f, "g", "principiante", 0, 30),
+                    )
+                }
+            }
+        }
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Editar perfil").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Editar perfil").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Días de entrenamiento").fetchSemanticsNodes().isNotEmpty() }
+        // Los chips de días quedan a mitad del diálogo: hay que hacer scroll dentro de él.
+        rule.onNodeWithText("Días de entrenamiento").performScrollTo()
+        // Marca tres días para que la captura muestre el estado seleccionado.
+        rule.onNodeWithText("L").performClick()
+        rule.onNodeWithText("X").performClick()
+        rule.onNodeWithText("V").performClick()
+        rule.waitForIdle()
+        // El AlertDialog vive en su propia ventana: hay que dibujar su decorView, no el de la actividad.
+        val dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog()
+        val view = dialog.window!!.decorView
+        val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(bmp))
+        val dir = File("build/outputs/compose-shots").apply { mkdirs() }
+        FileOutputStream(File(dir, "ajustes_dias.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 }
