@@ -1,6 +1,15 @@
 package com.kryll.homefit
 
 import android.app.Application
+import java.io.FileOutputStream
+import java.io.File
+import org.robolectric.annotation.GraphicsMode
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.fillMaxSize
+import android.graphics.Canvas
+import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,7 +60,8 @@ import org.robolectric.annotation.Config
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = Application::class)
+@Config(sdk = [34], application = Application::class, qualifiers = "w360dp-h780dp-port-xxhdpi")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class PlanIntegrationTest {
     @get:Rule(order = 0) val mainDispatcher = MainDispatcherRule()
     @get:Rule(order = 1) val rule = createAndroidComposeRule<ComponentActivity>()
@@ -97,7 +107,8 @@ class PlanIntegrationTest {
             val ui by vm.ui.collectAsState()
             val message by vm.message.collectAsState()
             val u = ui
-            HomeFitTheme {
+            HomeFitTheme(darkTheme = true) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 if (u != null) PlanScreen(
                     today = u.today, zone = u.zone, daysMask = u.daysMask, routines = u.routines,
                     scheduled = u.scheduled, workouts = u.workouts,
@@ -111,8 +122,17 @@ class PlanIntegrationTest {
                     onAuto = { vm.autoPlan() },
                     onClear = { vm.clearWeek() },
                 )
+                }
             }
         }
+    }
+
+    private fun capture(name: String) {
+        val view = rule.activity.window.decorView
+        val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(bmp))
+        val dir = File("build/outputs/compose-shots").apply { mkdirs() }
+        FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
     @Test fun generarDesdeLaUiPersisteYRenderiza() {
@@ -126,6 +146,7 @@ class PlanIntegrationTest {
 
         // Mensaje de resultado visible (persistente) y estado persistido con la rutina asignada hoy.
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Plan generado para:", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        capture("plan_generado")
         runBlocking {
             val sessions = db.sessionDao().observeAllScheduled().first()
             assertEquals(1, sessions.size)
@@ -153,6 +174,7 @@ class PlanIntegrationTest {
         rule.onNodeWithText("Vaciar próximos 7 días").performClick()
 
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Semana vaciada: 1", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        capture("plan_vaciado")
         runBlocking { assertEquals(0, db.sessionDao().observeAllScheduled().first().size) }
         // Tras el borrado la tarjeta de hoy queda sin rutina ni botón de entrenar.
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("· hoy", substring = true))
@@ -176,5 +198,6 @@ class PlanIntegrationTest {
             assertTrue(it.isNotEmpty())
         }
         runBlocking { assertEquals(1, db.sessionDao().observeAllScheduled().first().size) }
+        capture("plan_sin_dias")
     }
 }
