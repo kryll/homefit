@@ -29,7 +29,7 @@
     <string name="plan_clear">Vaciar próximos 7 días</string>
     <string name="plan_no_routines">Aún no hay rutinas que repartir.</string>
     <string name="plan_no_training_days">Marca tus días de entrenamiento en Ajustes para poder generar el plan.</string>
-    <string name="plan_generated">Semana generada: %1$d sesiones planificadas.</string>
+    <string name="plan_generated">Plan generado para: %1$s.</string>
     <string name="plan_cleared_none">Semana vaciada: no había sesiones planificadas.</string>
     <string name="plan_cleared">Semana vaciada: %1$d sesiones eliminadas.</string>
     <string name="plan_training_day">Día de entreno</string>

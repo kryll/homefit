@@ -91,7 +91,7 @@ fun PlanScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onAuto, enabled = routines.isNotEmpty() && daysMask != 0) { Text(stringResource(R.string.plan_auto)) }
+                    Button(onAuto) { Text(stringResource(R.string.plan_auto)) }
                     OutlinedButton(onClear) { Text(stringResource(R.string.plan_clear)) }
                 }
                 Text(stringResource(R.string.calendar_auto_hint, dayLabel(today), dayLabel(today.plusDays(6))), style = MaterialTheme.typography.bodySmall)

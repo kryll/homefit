@@ -240,12 +240,9 @@ private fun PlanTab(onStart: (Long) -> Unit) {
     val vm: PlanViewModel = viewModel(factory = AppViewModelFactory(app))
     val ui by vm.ui.collectAsState()
     val message by vm.message.collectAsState()
-    LaunchedEffect(message) {
-        if (message != null) { kotlinx.coroutines.delay(5000); vm.clearMessage() }
-    }
     val u = ui ?: return
     val text = when (val m = message) {
-        is com.kryll.homefit.ui.vm.PlanMessage.Generated -> stringResource(R.string.plan_generated, m.count)
+        is com.kryll.homefit.ui.vm.PlanMessage.Generated -> stringResource(R.string.plan_generated, m.days.joinToString(", ") { dayLabel(it) })
         is com.kryll.homefit.ui.vm.PlanMessage.Cleared -> stringResource(if (m.count == 0) R.string.plan_cleared_none else R.string.plan_cleared, m.count)
         com.kryll.homefit.ui.vm.PlanMessage.NoRoutines -> stringResource(R.string.plan_no_routines)
         com.kryll.homefit.ui.vm.PlanMessage.NoTrainingDays -> stringResource(R.string.plan_no_training_days)

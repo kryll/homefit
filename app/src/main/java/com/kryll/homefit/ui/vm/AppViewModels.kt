@@ -179,7 +179,7 @@ data class ReminderPrefsUi(val enabled: Boolean, val hour: Int, val minute: Int,
 
 /** Resultado visible de las acciones de la semana; la UI lo traduce a texto y lo limpia con [PlanViewModel.clearMessage]. */
 sealed interface PlanMessage {
-    data class Generated(val count: Int) : PlanMessage
+    data class Generated(val days: List<java.time.LocalDate>) : PlanMessage
     data class Cleared(val count: Int) : PlanMessage
     data object NoRoutines : PlanMessage
     data object NoTrainingDays : PlanMessage
@@ -251,7 +251,7 @@ class PlanViewModel(
         planned.forEach {
             dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId, startMillis = at(it.date, prefs.hour, prefs.minute), status = "SCHEDULED"))
         }
-        message.value = PlanMessage.Generated(planned.size)
+        message.value = PlanMessage.Generated(planned.map { it.date })
     }
 
     fun clearWeek() = viewModelScope.launch {

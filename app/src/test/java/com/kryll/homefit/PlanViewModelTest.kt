@@ -98,7 +98,7 @@ class PlanViewModelTest {
         vm.autoPlan()
         vm.message.first { it != null }
         val msg = vm.message.value
-        assertTrue(msg is PlanMessage.Generated && msg.count == 7)
+        assertTrue(msg is PlanMessage.Generated && msg.days.size == 7)
         assertEquals(7, scheduledCount())
     }
 
