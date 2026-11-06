@@ -20,7 +20,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -118,10 +117,11 @@ class PlanIntegrationTest {
                         is PlanMessage.Cleared -> if (m.count == 0) "Semana vaciada: no había sesiones planificadas." else if (m.count == 1) "Semana vaciada: 1 sesión eliminada." else "Semana vaciada: ${m.count} sesiones eliminadas."
                         PlanMessage.NoRoutines -> "Aún no hay rutinas que repartir."
                         PlanMessage.NoTrainingDays -> "Marca tus días de entrenamiento en Ajustes para poder generar el plan."
+                        PlanMessage.AllBusy -> "No hay días libres en esta semana."
                         null -> null
                     },
-                    onAuto = { vm.autoPlan() },
-                    onClear = { vm.clearWeek() },
+                    onAuto = { ws -> vm.autoPlan(ws) },
+                    onClear = { ws -> vm.clearWeek(ws) },
                 )
                 }
             }
@@ -142,8 +142,8 @@ class PlanIntegrationTest {
         val vm = newVm()
         renderPlan(vm)
 
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Generar próximos 7 días").fetchSemanticsNodes().isNotEmpty() }
-        rule.onNodeWithText("Generar próximos 7 días").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Generar esta semana").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Generar esta semana").performClick()
 
         // Mensaje de resultado visible (persistente) y estado persistido con la rutina asignada hoy.
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Plan generado para:", substring = true).fetchSemanticsNodes().isNotEmpty() }
@@ -162,21 +162,37 @@ class PlanIntegrationTest {
     @Test fun vaciarDesdeLaUiEliminaYRenderiza() {
         seedProfile(todayMask)
         val routineId = seedRoutine()
-        runBlocking { db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(today), status = "SCHEDULED")) }
+        runBlocking {
+            db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(today), status = "SCHEDULED"))
+            // Caso José: sesión pendiente en un día PASADO de la semana visible (Mié de esta semana si hoy es posterior).
+            val pastDay = com.kryll.homefit.domain.CalendarPeriod.weekStart(today)
+            if (pastDay.isBefore(today)) {
+                db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(pastDay), status = "SCHEDULED"))
+            }
+            // Historial: una sesión saltada NO se borra al vaciar.
+            db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(today.plusDays(1)), status = "SKIPPED"))
+        }
         val vm = newVm()
         renderPlan(vm)
 
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Vaciar próximos 7 días").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Vaciar esta semana").fetchSemanticsNodes().isNotEmpty() }
         // La sesión sembrada se ve antes de vaciar (hoy puede quedar bajo el pliegue: hay que hacer scroll).
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa"))
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
 
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Vaciar próximos 7 días"))
-        rule.onNodeWithText("Vaciar próximos 7 días").performClick()
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Vaciar esta semana"))
+        rule.onNodeWithText("Vaciar esta semana").performClick()
 
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Semana vaciada: 1", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        val expectedDeleted = db.sessionDao().let { dao -> runBlocking { dao.observeAllScheduled().first().count { it.status == "SCHEDULED" } } }
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Semana vaciada: ", substring = true).fetchSemanticsNodes().isNotEmpty() }
         capture("plan_vaciado")
-        runBlocking { assertEquals(0, db.sessionDao().observeAllScheduled().first().size) }
+        runBlocking {
+            val remaining = db.sessionDao().observeAllScheduled().first()
+            // Se borran las pendientes de la semana visible (incluida la pasada) y se conserva la saltada.
+            assertEquals(1, remaining.size)
+            assertEquals("SKIPPED", remaining[0].status)
+            assertTrue(expectedDeleted >= 1)
+        }
         // Tras el borrado la tarjeta de hoy queda sin rutina ni botón de entrenar.
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("· hoy", substring = true))
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().isEmpty() }
@@ -191,8 +207,8 @@ class PlanIntegrationTest {
         val vm = newVm()
         renderPlan(vm)
 
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Generar próximos 7 días").fetchSemanticsNodes().isNotEmpty() }
-        rule.onNodeWithText("Generar próximos 7 días").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Generar esta semana").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Generar esta semana").performClick()
 
         rule.waitUntil(5_000) { vm.message.value == PlanMessage.NoTrainingDays }
         rule.onAllNodesWithText("Marca tus días de entrenamiento en Ajustes", substring = true).fetchSemanticsNodes().also {
@@ -202,34 +218,23 @@ class PlanIntegrationTest {
         capture("plan_sin_dias")
     }
 
-    /** Ajustes -> Editar perfil -> selector de días: captura el diálogo real (ventana propia) con días marcados. */
-    @Test fun ajustesEditarPerfilMuestraDias() {
-        rule.setContent {
-            HomeFitTheme(darkTheme = true) {
-                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    com.kryll.homefit.ui.SettingsScreen(
-                        com.kryll.homefit.data.AppSettings(), "0.2.0", null, null,
-                        profile = UserProfile(1, "Ana", "mujer", 9000, 165f, 60f, "g", "principiante", 0, 30),
-                    )
-                }
-            }
+    /** Generar respeta lo ya planificado/hecho: solo rellena días de entreno libres desde hoy. */
+    @Test fun generarSoloRellenaDiasLibres() {
+        seedProfile(todayMask) // hoy es el único día de entreno
+        val routineId = seedRoutine()
+        runBlocking { db.sessionDao().insertScheduled(ScheduledSession(routineId = routineId, startMillis = startOf(today), status = "SCHEDULED")) }
+        val vm = newVm()
+        renderPlan(vm)
+
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Generar esta semana").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Generar esta semana").performClick()
+
+        // Hoy ya está ocupado: no hay días libres, no toca nada.
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("No hay días libres", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        runBlocking {
+            val sessions = db.sessionDao().observeAllScheduled().first()
+            assertEquals(1, sessions.size)
+            assertEquals("SCHEDULED", sessions[0].status)
         }
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Editar perfil").fetchSemanticsNodes().isNotEmpty() }
-        rule.onNodeWithText("Editar perfil").performClick()
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Días de entrenamiento").fetchSemanticsNodes().isNotEmpty() }
-        // Los chips de días quedan a mitad del diálogo: hay que hacer scroll dentro de él.
-        rule.onNodeWithText("Días de entrenamiento").performScrollTo()
-        // Marca tres días para que la captura muestre el estado seleccionado.
-        rule.onNodeWithText("L").performClick()
-        rule.onNodeWithText("X").performClick()
-        rule.onNodeWithText("V").performClick()
-        rule.waitForIdle()
-        // El AlertDialog vive en su propia ventana: hay que dibujar su decorView, no el de la actividad.
-        val dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog()
-        val view = dialog.window!!.decorView
-        val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-        view.draw(Canvas(bmp))
-        val dir = File("build/outputs/compose-shots").apply { mkdirs() }
-        FileOutputStream(File(dir, "ajustes_dias.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 }

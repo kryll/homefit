@@ -183,6 +183,7 @@ sealed interface PlanMessage {
     data class Cleared(val count: Int) : PlanMessage
     data object NoRoutines : PlanMessage
     data object NoTrainingDays : PlanMessage
+    data object AllBusy : PlanMessage
 }
 
 /** Pestaña Hoy: planificación semanal (asignar, autocompletar, limpiar, saltar, mover). */
@@ -233,30 +234,42 @@ class PlanViewModel(
         }
     }
 
-    fun autoPlan() = viewModelScope.launch {
+    /**
+     * Genera en la semana visible ([weekStart]..+6): solo días de entreno desde hoy en adelante
+     * que estén libres. No toca sesiones existentes (hechas, saltadas o pendientes).
+     */
+    fun autoPlan(weekStart: java.time.LocalDate) = viewModelScope.launch {
         val today = java.time.LocalDate.now(zone)
         val profile = db.profileDao().profile()
         val routines = db.routineDao().observeAll().first()
         if (routines.isEmpty()) { message.value = PlanMessage.NoRoutines; return@launch }
         val daysMask = profile?.daysMask ?: 0
+        if (daysMask == 0) { message.value = PlanMessage.NoTrainingDays; return@launch }
         val pool = routines.filter { profile != null && it.goal == profile.goal && it.level == profile.level }
             .ifEmpty { routines.filter { profile != null && it.goal == profile.goal } }
             .ifEmpty { routines }
-        val planned = com.kryll.homefit.domain.Planning.autoPlan(daysMask, pool.map { it.id }, today)
-        // Sin días de entreno no se planifica nada: no borrar lo que ya hubiera planificado.
-        if (planned.isEmpty()) { message.value = PlanMessage.NoTrainingDays; return@launch }
-        val prefs = settings.settings.first().reminderPrefs()
         val dao = db.sessionDao()
-        dao.deleteScheduledBetween(startOf(today), startOf(today.plusDays(7)))
+        val weekEnd = weekStart.plusDays(7)
+        val occupied = dao.scheduledBetween(startOf(weekStart), startOf(weekEnd))
+            .map { java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() }.toSet()
+        val start = if (weekStart.isBefore(today)) today else weekStart
+        val daysCount = java.time.temporal.ChronoUnit.DAYS.between(start, weekEnd).toInt()
+        val ids = pool.map { it.id }
+        var k = 0
+        val planned = (0 until daysCount).map { start.plusDays(it.toLong()) }
+            .filter { com.kryll.homefit.domain.Planning.isTrainingDay(daysMask, it) && it !in occupied }
+            .map { com.kryll.homefit.domain.PlannedDay(it, ids[k++ % ids.size]) }
+        if (planned.isEmpty()) { message.value = PlanMessage.AllBusy; return@launch }
+        val prefs = settings.settings.first().reminderPrefs()
         planned.forEach {
             dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId, startMillis = at(it.date, prefs.hour, prefs.minute), status = "SCHEDULED"))
         }
         message.value = PlanMessage.Generated(planned.map { it.date })
     }
 
-    fun clearWeek() = viewModelScope.launch {
-        val today = java.time.LocalDate.now(zone)
-        val n = db.sessionDao().deleteScheduledBetween(startOf(today), startOf(today.plusDays(7)))
+    /** Vacía la semana visible: borra solo las sesiones pendientes (SCHEDULED), conserva el historial. */
+    fun clearWeek(weekStart: java.time.LocalDate) = viewModelScope.launch {
+        val n = db.sessionDao().deleteScheduledPendingBetween(startOf(weekStart), startOf(weekStart.plusDays(7)))
         message.value = PlanMessage.Cleared(n)
     }
 

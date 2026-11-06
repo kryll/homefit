@@ -246,14 +246,15 @@ private fun PlanTab(onStart: (Long) -> Unit) {
         is com.kryll.homefit.ui.vm.PlanMessage.Cleared -> stringResource(when (m.count) { 0 -> R.string.plan_cleared_none; 1 -> R.string.plan_cleared_one; else -> R.string.plan_cleared }, m.count)
         com.kryll.homefit.ui.vm.PlanMessage.NoRoutines -> stringResource(R.string.plan_no_routines)
         com.kryll.homefit.ui.vm.PlanMessage.NoTrainingDays -> stringResource(R.string.plan_no_training_days)
+        com.kryll.homefit.ui.vm.PlanMessage.AllBusy -> stringResource(R.string.plan_all_busy)
         null -> null
     }
     PlanScreen(
         today = u.today, zone = u.zone, daysMask = u.daysMask, routines = u.routines, scheduled = u.scheduled, workouts = u.workouts,
         message = text,
         onAssign = { d, rid -> vm.assign(d, rid) },
-        onAuto = { vm.autoPlan() },
-        onClear = { vm.clearWeek() },
+        onAuto = { ws -> vm.autoPlan(ws) },
+        onClear = { ws -> vm.clearWeek(ws) },
         onSkip = { e -> vm.skip(e.id) },
         onMove = { e, nd -> vm.move(e, nd) },
         onStart = onStart,
