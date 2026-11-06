@@ -175,12 +175,12 @@ class WeekStripPrototypeTest {
     }
 
     @Test fun stripWithTodaySelected() {
-        rule.setContent { HomeFitTheme { WeekStripPrototype(today) } }
+        rule.setContent { HomeFitTheme(darkTheme = true) { WeekStripPrototype(today) } }
         capture("proto_strip_hoy")
     }
 
     @Test fun stripWithFutureDaySelected() {
-        rule.setContent { HomeFitTheme { WeekStripPrototype(today.plusDays(2)) } }
+        rule.setContent { HomeFitTheme(darkTheme = true) { WeekStripPrototype(today.plusDays(2)) } }
         capture("proto_strip_vie")
     }
 }
