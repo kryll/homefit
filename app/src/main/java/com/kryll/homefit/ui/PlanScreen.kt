@@ -96,7 +96,7 @@ fun PlanScreen(
                 }
                 Text(stringResource(R.string.calendar_auto_hint, dayLabel(today), dayLabel(today.plusDays(6))), style = MaterialTheme.typography.bodySmall)
                 if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
-                if (daysMask == 0) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
+                if (daysMask == 0 && message != stringResource(R.string.plan_no_training_days)) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
             }
         }

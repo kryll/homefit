@@ -31,6 +31,7 @@
     <string name="plan_no_training_days">Marca tus días de entrenamiento en Ajustes para poder generar el plan.</string>
     <string name="plan_generated">Plan generado para: %1$s.</string>
     <string name="plan_cleared_none">Semana vaciada: no había sesiones planificadas.</string>
+    <string name="plan_cleared_one">Semana vaciada: 1 sesión eliminada.</string>
     <string name="plan_cleared">Semana vaciada: %1$d sesiones eliminadas.</string>
     <string name="plan_training_day">Día de entreno</string>
     <string name="plan_rest_day">Descanso</string>

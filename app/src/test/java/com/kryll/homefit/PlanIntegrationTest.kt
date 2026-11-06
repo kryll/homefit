@@ -114,7 +114,7 @@ class PlanIntegrationTest {
                     scheduled = u.scheduled, workouts = u.workouts,
                     message = when (val m = message) {
                         is PlanMessage.Generated -> "Plan generado para: " + m.days.joinToString(", ") { dayLabel(it) } + "."
-                        is PlanMessage.Cleared -> if (m.count == 0) "Semana vaciada: no había sesiones planificadas." else "Semana vaciada: ${m.count} sesiones eliminadas."
+                        is PlanMessage.Cleared -> if (m.count == 0) "Semana vaciada: no había sesiones planificadas." else if (m.count == 1) "Semana vaciada: 1 sesión eliminada." else "Semana vaciada: ${m.count} sesiones eliminadas."
                         PlanMessage.NoRoutines -> "Aún no hay rutinas que repartir."
                         PlanMessage.NoTrainingDays -> "Marca tus días de entrenamiento en Ajustes para poder generar el plan."
                         null -> null

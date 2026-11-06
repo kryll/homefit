@@ -243,7 +243,7 @@ private fun PlanTab(onStart: (Long) -> Unit) {
     val u = ui ?: return
     val text = when (val m = message) {
         is com.kryll.homefit.ui.vm.PlanMessage.Generated -> stringResource(R.string.plan_generated, m.days.joinToString(", ") { dayLabel(it) })
-        is com.kryll.homefit.ui.vm.PlanMessage.Cleared -> stringResource(if (m.count == 0) R.string.plan_cleared_none else R.string.plan_cleared, m.count)
+        is com.kryll.homefit.ui.vm.PlanMessage.Cleared -> stringResource(when (m.count) { 0 -> R.string.plan_cleared_none; 1 -> R.string.plan_cleared_one; else -> R.string.plan_cleared }, m.count)
         com.kryll.homefit.ui.vm.PlanMessage.NoRoutines -> stringResource(R.string.plan_no_routines)
         com.kryll.homefit.ui.vm.PlanMessage.NoTrainingDays -> stringResource(R.string.plan_no_training_days)
         null -> null
