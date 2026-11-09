@@ -1,0 +1,1 @@
+Capturas Robolectric del commit 4ba47c64818b06cab683061ddc4ba94084dae653
