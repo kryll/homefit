@@ -82,13 +82,14 @@ class SettingsUiTest {
         }
         content(false)
         rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Importar copia").assertIsDisplayed()
-        rule.onNodeWithText("Exportar entrenos (CSV)").assertIsDisplayed()
+        rule.onNodeWithText("Importar copia").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
         val b = rule.onNodeWithText("Exportar entrenos (CSV)").fetchSemanticsNode().boundsInRoot
         val w = b.right - b.left
         org.junit.Assert.assertTrue("botón CSV aplastado: ${w}px", w > 240f)
         capture("ajustes_copia_light")
         content(true)
+        rule.onNodeWithText("Importar copia").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
         capture("ajustes_copia_dark")
     }
