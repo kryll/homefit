@@ -16,7 +16,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.hasText
 
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
@@ -85,8 +84,9 @@ class SettingsUiTest {
         rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Importar copia").assertIsDisplayed()
         rule.onNodeWithText("Exportar entrenos (CSV)").assertIsDisplayed()
-        val w = rule.onNodeWithText("Exportar entrenos (CSV)").getUnclippedBoundsInRoot().width
-        org.junit.Assert.assertTrue("botón CSV aplastado: ${w.value}px", w.value > 240f)
+        val b = rule.onNodeWithText("Exportar entrenos (CSV)").fetchSemanticsNode().boundsInRoot
+        val w = b.right - b.left
+        org.junit.Assert.assertTrue("botón CSV aplastado: ${w}px", w > 240f)
         capture("ajustes_copia_light")
         content(true)
         rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
