@@ -3,6 +3,8 @@ package com.kryll.homefit.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,7 +27,7 @@ fun MonthCalendar(month: YearMonth, selected: LocalDate, planned: Set<LocalDate>
             Row(Modifier.fillMaxWidth()) {
                 week.forEach { day ->
                     if (day == null) Spacer(Modifier.weight(1f).height(48.dp))
-                    else TextButton(onClick = { onSelect(day) }, modifier = Modifier.weight(1f).height(48.dp),
+                    else TextButton(onClick = { onSelect(day) }, modifier = Modifier.weight(1f).height(48.dp).semantics { contentDescription = "Fecha $day" },
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.textButtonColors(contentColor = if (day == selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                             containerColor = if (day == selected) MaterialTheme.colorScheme.primaryContainer else androidx.compose.ui.graphics.Color.Transparent)) {

@@ -44,7 +44,6 @@ object Planning {
             .map { PlannedDay(it, routineIds[k++ % routineIds.size]) }.toList()
     }
 
-
     /** Bit 0 = lunes ... bit 6 = domingo (igual que el perfil). */
     fun isTrainingDay(daysMask: Int, d: LocalDate): Boolean = daysMask and (1 shl (d.dayOfWeek.value - 1)) != 0
 

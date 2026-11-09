@@ -118,6 +118,7 @@ class PlanningTest {
         assertTrue(runCatching { ReminderPrefs(true, 18, 0, 121) }.isFailure)
         assertTrue(runCatching { ReminderPrefs(true, 18, 0, -1) }.isFailure)
     }
+
     @Test fun fillsOnlyFutureFreeDaysAcrossRealMonths() {
         for (month in listOf(java.time.YearMonth.of(2028, 2), java.time.YearMonth.of(2027, 2), java.time.YearMonth.of(2026, 12))) {
             val from = month.atDay(1)
@@ -131,4 +132,5 @@ class PlanningTest {
             assertEquals(listOf(1L, 2L, 1L, 2L), plan.take(4).map { it.routineId })
         }
     }
+
 }

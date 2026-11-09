@@ -122,11 +122,13 @@ class PlanIntegrationTest {
                         PlanMessage.NoTrainingDays -> "Marca tus días de entrenamiento en Ajustes para poder generar el plan."
                         PlanMessage.AllBusy -> "No hay días libres en esta semana."
                         is PlanMessage.MonthGenerated -> "Mes: ${m.count} entrenos añadidos"
-                        null -> null
+                        PlanMessage.Moved -> "Entreno movido"
+                        else -> null
                     },
                     onAuto = { ws -> vm.autoPlan(ws) },
                     onAutoMonth = { month -> vm.autoMonth(month) },
                     onClear = { ws -> vm.clearWeek(ws) },
+                    onMove = { e, d -> vm.move(e, d) },
                 )
                 }
             }
@@ -256,6 +258,7 @@ class PlanIntegrationTest {
             assertEquals("SCHEDULED", sessions[0].status)
         }
     }
+
     @Test fun generarMesDesdeUiPersisteSinDuplicados() {
         seedProfile(127); seedRoutine()
         val vm = newVm(); renderPlan(vm)
@@ -271,5 +274,28 @@ class PlanIntegrationTest {
         rule.onNodeWithText("Generar este mes").performClick()
         rule.waitUntil(5_000) { vm.message.value == PlanMessage.MonthGenerated(month, 0) }
         runBlocking { assertEquals(month.lengthOfMonth(), db.sessionDao().observeAllScheduled().first().size) }
+    }
+
+    @Test fun moverDesdeCalendarioPersisteEnOtroMes() {
+        seedProfile(todayMask)
+        val rid = seedRoutine()
+        val id = runBlocking { db.sessionDao().insertScheduled(ScheduledSession(routineId = rid,
+            startMillis = today.atTime(18, 30).atZone(zone).toInstant().toEpochMilli(), status = "SCHEDULED")) }
+        val vm = newVm(); renderPlan(vm)
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Generar esta semana").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mover"))
+        rule.onNodeWithText("Mover").performClick()
+        rule.onNodeWithText("Mes siguiente").performScrollTo().performClick()
+        val dest = java.time.YearMonth.from(today).plusMonths(1).atDay(4)
+        rule.onNodeWithContentDescription("Fecha $dest").performScrollTo().performClick()
+        rule.onNodeWithText("Confirmar traslado").performScrollTo().performClick()
+        rule.waitUntil(5_000) { vm.message.value == PlanMessage.Moved }
+        runBlocking {
+            assertEquals("MOVED", db.sessionDao().scheduledById(id)!!.status)
+            val moved = db.sessionDao().scheduledBetween(startOf(dest), startOf(dest.plusDays(1))).single()
+            assertEquals(rid, moved.routineId)
+            assertEquals(java.time.LocalTime.of(18, 30), java.time.Instant.ofEpochMilli(moved.startMillis).atZone(zone).toLocalTime())
+        }
+        capture("plan_movido_persistido_dark")
     }
 }
