@@ -134,6 +134,8 @@ class PlanIntegrationTest {
     }
 
     private fun capture(name: String) {
+        rule.mainClock.advanceTimeByFrame()
+        rule.waitForIdle()
         val view = rule.activity.window.decorView
         val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bmp))

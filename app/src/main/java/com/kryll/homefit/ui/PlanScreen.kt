@@ -160,7 +160,7 @@ fun PlanScreen(
     }
 
     LazyColumn(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text(stringResource(R.string.plan_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 16.dp)) }
+        item { Text(if (monthly) "Tu mes" else stringResource(R.string.plan_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 16.dp)) }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 androidx.compose.material3.FilterChip(!monthly, { monthly = false }, { Text(stringResource(R.string.calendar_week)) })

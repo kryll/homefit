@@ -58,6 +58,8 @@ class PlanUiTest {
     private val mask = 0b0010101 // lun, mié, vie
 
     private fun capture(name: String) {
+        rule.mainClock.advanceTimeByFrame()
+        rule.waitForIdle()
         val view = rule.activity.window.decorView
         val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bmp))
