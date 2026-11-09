@@ -42,7 +42,7 @@
     <string name="plan_assign_title">Rutina para %1$s</string>
     <string name="plan_assign_none">Sin rutina</string>
     <string name="plan_cancel">Cancelar</string>
-    <string name="plan_train">Entrenar</string>
+    <string name="plan_train">Empezar entreno</string>
     <string name="plan_today_mark">hoy</string>
     <string name="plan_skip">Saltar</string>
     <string name="plan_move">Mover</string>

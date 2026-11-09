@@ -18,6 +18,7 @@ import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -188,7 +189,6 @@ class PlanIntegrationTest {
         rule.onNodeWithText("Vaciar esta semana").performClick()
 
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Semana vaciada: ", substring = true).fetchSemanticsNodes().isNotEmpty() }
-        capture("plan_vaciado")
         runBlocking {
             val remaining = db.sessionDao().observeAllScheduled().first()
             // Se borran las pendientes de la semana visible (incluida la pasada); historial intacto.
@@ -198,14 +198,17 @@ class PlanIntegrationTest {
             // El registro del entreno completado sigue en Room (ni borrado ni duplicado).
             assertEquals(1, db.sessionDao().observeWorkouts().first().size)
         }
-        // La tarjeta completada sigue renderizada como hecha.
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Hecho", substring = true))
+        // La tarjeta completada sigue renderizada como hecha al seleccionar su día en la franja.
+        val completedDay = com.kryll.homefit.domain.CalendarPeriod.weekStart(today).plusDays(1)
+        rule.onNodeWithContentDescription(dayLabel(completedDay)).performClick()
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Hecho", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        capture("plan_vaciado")
         // Tras el borrado la tarjeta de hoy queda sin rutina ni botón de entrenar.
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("· hoy", substring = true))
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().isEmpty() }
-        // Varias tarjetas vacías muestran el texto: basta con que exista alguna.
-        rule.waitUntil(5_000) { rule.onAllNodesWithText("Sin rutina asignada").fetchSemanticsNodes().isNotEmpty() }
+        if (completedDay != today) {
+            rule.onNodeWithContentDescription(dayLabel(today)).performClick()
+            rule.waitUntil(5_000) { rule.onAllNodesWithText("Sin rutina asignada").fetchSemanticsNodes().isNotEmpty() }
+        }
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Empezar entreno").fetchSemanticsNodes().isEmpty() }
     }
 
     @Test fun generarSinDiasDeEntrenoExplicaSinBorrar() {
