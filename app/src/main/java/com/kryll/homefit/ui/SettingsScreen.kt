@@ -390,11 +390,11 @@ private fun ProfileEditDialog(
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 editField(R.string.onb_name, name, { name = it }, err(ProfileInput.Field.NAME), KeyboardType.Text)
                 Text(stringResource(R.string.onb_sex))
-                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ProfileInput.SEXES.forEach { o -> FilterChip(selected = sex == o, onClick = { sex = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
                 }
                 Text(stringResource(R.string.onb_birth))
-                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = bDay, onValueChange = { bDay = it }, label = { Text(stringResource(R.string.onb_day)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     OutlinedTextField(value = bMonth, onValueChange = { bMonth = it }, label = { Text(stringResource(R.string.onb_month)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     OutlinedTextField(value = bYear, onValueChange = { bYear = it }, label = { Text(stringResource(R.string.onb_year)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
@@ -402,15 +402,15 @@ private fun ProfileEditDialog(
                 editField(R.string.onb_height, height, { height = it }, err(ProfileInput.Field.HEIGHT), KeyboardType.Decimal)
                 editField(R.string.onb_weight, weight, { weight = it }, err(ProfileInput.Field.WEIGHT), KeyboardType.Decimal)
                 Text(stringResource(R.string.onb_goal))
-                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ProfileInput.GOALS.forEach { o -> FilterChip(selected = goal == o, onClick = { goal = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
                 }
                 Text(stringResource(R.string.onb_level))
-                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("principiante", "intermedio", "avanzado").forEach { o -> FilterChip(selected = level == o, onClick = { level = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
                 }
                 Text(stringResource(R.string.onb_days))
-                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("L", "M", "X", "J", "V", "S", "D").forEachIndexed { i, d ->
                         FilterChip(selected = days and (1 shl i) != 0, onClick = { days = days xor (1 shl i) }, label = { Text(d) })
                     }
@@ -418,7 +418,7 @@ private fun ProfileEditDialog(
                 if (err(ProfileInput.Field.DAYS)) Text(stringResource(R.string.onb_days), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 editField(R.string.onb_minutes, minutes, { minutes = it }, err(ProfileInput.Field.MINUTES), KeyboardType.Number)
                 Text(stringResource(R.string.onb_equipment))
-                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     EQUIPMENT_OPTIONS.map { it.first }.forEach { o ->
                         FilterChip(selected = o in equipmentSel, onClick = { equipmentSel = if (o in equipmentSel) equipmentSel - o else equipmentSel + o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) })
                     }
