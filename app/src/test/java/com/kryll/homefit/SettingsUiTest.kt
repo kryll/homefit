@@ -244,7 +244,7 @@ class SettingsUiTest {
         val voices = listOf("es-es-x-eee-local", "es-es-x-eef-network")
         rule.setContent { HomeFitTheme { SettingsScreen(s.value, "1", null, null, availableVoices = voices, onChange = { t -> s.value = t(s.value) }) } }
         rule.onNodeWithText("Voz de los avisos").performScrollTo().assertIsDisplayed()
-        rule.onAllNodesWithText("es-es-x-eee-local")[0].performClick()
+        rule.onAllNodesWithText("es-es-x-eee-local")[0].performScrollTo().assertIsDisplayed().performClick()
         rule.onNodeWithText("Elige la voz de los avisos").assertIsDisplayed()
         capture("ajustes_voz_dialogo")
         rule.onNodeWithText("es-es-x-eef-network").performClick()
