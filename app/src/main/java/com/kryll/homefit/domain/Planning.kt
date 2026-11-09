@@ -13,6 +13,8 @@ data class ReminderPrefs(val enabled: Boolean = false, val hour: Int = 18, val m
     }
 }
 
+data class ReminderSession(val startMillis: Long, val status: String)
+
 data class PlannedDay(val date: LocalDate, val routineId: Long)
 
 /** Estado de una sesión planificada. Solo SCHEDULED admite cambios; el resto son finales. */
@@ -34,8 +36,35 @@ enum class ReminderDecision { SHOW, SKIP_DISABLED, SKIP_REST_DAY, SKIP_ALREADY_T
 
 /** Lógica pura de planificación y recordatorios; la parte de Android solo la ejecuta. */
 object Planning {
+    /** Rellena solo huecos futuros del periodo semiabierto, con una rotación continua de rutinas. */
+    fun fillPeriod(daysMask: Int, routineIds: List<Long>, from: LocalDate, until: LocalDate, today: LocalDate, occupied: Set<LocalDate>): List<PlannedDay> {
+        if (routineIds.isEmpty()) return emptyList()
+        val start = maxOf(from, today)
+        var k = 0
+        return generateSequence(start) { it.plusDays(1) }.takeWhile { it < until }
+            .filter { isTrainingDay(daysMask, it) && it !in occupied }
+            .map { PlannedDay(it, routineIds[k++ % routineIds.size]) }.toList()
+    }
+
     /** Bit 0 = lunes ... bit 6 = domingo (igual que el perfil). */
     fun isTrainingDay(daysMask: Int, d: LocalDate): Boolean = daysMask and (1 shl (d.dayOfWeek.value - 1)) != 0
+
+    /** Las fechas planificadas mandan sobre la plantilla semanal; un origen movido no avisa. */
+    fun nextWithSessions(from: ZonedDateTime, daysMask: Int, prefs: ReminderPrefs, sessions: List<ReminderSession>): ZonedDateTime? {
+        val grouped = sessions.groupBy { Instant.ofEpochMilli(it.startMillis).atZone(from.zone).toLocalDate() }
+        val dates = ((0..7).map { from.toLocalDate().plusDays(it.toLong()) } + grouped.keys).filter { it >= from.toLocalDate() }.sorted()
+        return dates.mapNotNull { date ->
+            val entries = grouped[date].orEmpty()
+            if (entries.isNotEmpty()) {
+                entries.filter { sessionStatusOf(it.status) == SessionStatus.SCHEDULED }.map {
+                    val time = Instant.ofEpochMilli(it.startMillis).atZone(from.zone).toLocalTime()
+                    val minutes = (time.hour * 60 + time.minute - prefs.leadMinutes).coerceAtLeast(0)
+                    date.atTime(minutes / 60, minutes % 60).atZone(from.zone)
+                }.filter { it.isAfter(from) }.minOrNull()
+            } else if (isTrainingDay(daysMask, date)) date.atTime(notifyTime(prefs)).atZone(from.zone).takeIf { it.isAfter(from) }
+            else null
+        }.minOrNull()
+    }
 
     /** Primera hora de aviso estrictamente posterior a [from], en un día de entreno. Null si no hay días elegidos. */
     fun nextReminder(from: ZonedDateTime, daysMask: Int, prefs: ReminderPrefs): ZonedDateTime? {
@@ -53,7 +82,7 @@ object Planning {
     /** [todayStatuses]: estados de las sesiones planificadas hoy; si hay y ninguna sigue pendiente, no se avisa. */
     fun decide(prefs: ReminderPrefs, daysMask: Int, today: LocalDate, trainedToday: Boolean, todayStatuses: List<String>? = null): ReminderDecision = when {
         !prefs.enabled -> ReminderDecision.SKIP_DISABLED
-        !isTrainingDay(daysMask, today) -> ReminderDecision.SKIP_REST_DAY
+        !isTrainingDay(daysMask, today) && todayStatuses.orEmpty().none { sessionStatusOf(it) == SessionStatus.SCHEDULED } -> ReminderDecision.SKIP_REST_DAY
         trainedToday -> ReminderDecision.SKIP_ALREADY_TRAINED
         todayStatuses != null && todayStatuses.isNotEmpty() && todayStatuses.none { sessionStatusOf(it) == SessionStatus.SCHEDULED } -> ReminderDecision.SKIP_DAY_SETTLED
         else -> ReminderDecision.SHOW

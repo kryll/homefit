@@ -1,5 +1,12 @@
 package com.kryll.homefit.ui
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -58,6 +65,7 @@ fun dayLabel(d: LocalDate): String {
 }
 
 /** Calendario semanal/mensual navegable: franja compacta de la semana y detalle del día seleccionado. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlanScreen(
     today: LocalDate,
@@ -73,6 +81,7 @@ fun PlanScreen(
     onStart: (Long) -> Unit = {},
     onSkip: (ScheduledSession) -> Unit = {},
     onMove: (ScheduledSession, LocalDate) -> Unit = { _, _ -> },
+    onAutoMonth: (java.time.YearMonth) -> Unit = {},
 ) {
     var assigning by rememberSaveable { mutableStateOf<Long?>(null) } // epochDay del día que se está editando
     var moving by rememberSaveable { mutableStateOf<Long?>(null) } // id de la sesión que se está moviendo
@@ -175,11 +184,15 @@ fun PlanScreen(
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button({ onAuto(weekStart) }) { Text(stringResource(R.string.plan_auto)) }
-                    OutlinedButton({ onClear(weekStart) }) { Text(stringResource(R.string.plan_clear)) }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Button({ if (monthly) onAutoMonth(month) else onAuto(weekStart) }) {
+                        Text(if (monthly) "Generar este mes" else stringResource(R.string.plan_auto))
+                    }
+                    // Vaciar el mes no forma parte de esta acción: se conserva la limpieza semanal.
+                    if (!monthly) OutlinedButton({ onClear(weekStart) }) { Text(stringResource(R.string.plan_clear)) }
                 }
-                Text(stringResource(R.string.calendar_auto_hint, dayLabel(weekStart), dayLabel(weekEnd)), style = MaterialTheme.typography.bodySmall)
+                Text(if (monthly) "${month.month.getDisplayName(TextStyle.FULL, ES)} ${month.year}: solo huecos desde hoy, sin cambiar tu plan ni el historial."
+                    else stringResource(R.string.calendar_auto_hint, dayLabel(weekStart), dayLabel(weekEnd)), style = MaterialTheme.typography.bodySmall)
                 if (daysMask == 0 && message != stringResource(R.string.plan_no_training_days)) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
                 if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
@@ -250,19 +263,13 @@ fun PlanScreen(
         val e = scheduled.firstOrNull { it.id == id }
         if (e != null) {
             val from = dateOf(e.startMillis)
-            AlertDialog(
-                onDismissRequest = { moving = null },
-                title = { Text(stringResource(R.string.plan_move_title, dayLabel(from))) },
-                text = {
-                    LazyColumn {
-                        items((0 until 14).map { today.plusDays(it.toLong()) }.filter { it != from }, key = { it.toEpochDay() }) { nd ->
-                            TextButton({ onMove(e, nd); moving = null }) { Text(stringResource(R.string.plan_move_to, dayLabel(nd))) }
-                        }
-                    }
-                },
-                confirmButton = {},
-                dismissButton = { TextButton({ moving = null }) { Text(stringResource(R.string.plan_cancel)) } },
-            )
+            androidx.compose.ui.window.Dialog(onDismissRequest = { moving = null }) {
+                MoveSessionContent(from, today, scheduled.filter { it.id != e.id && (it.status == "SCHEDULED" || it.status == "COMPLETED") }
+                    .map { dateOf(it.startMillis) }.toSet() + workouts.filter { it.notes != WorkoutRepository.NOTE_INCOMPLETE }.map { dateOf(it.startMillis) },
+                    routineName = e.routineId?.let { names[it] }.orEmpty(),
+                    time = Instant.ofEpochMilli(e.startMillis).atZone(zone).toLocalTime().toString(),
+                    onConfirm = { nd -> onMove(e, nd); moving = null }, onCancel = { moving = null })
+            }
         }
     }
 
@@ -282,5 +289,43 @@ fun PlanScreen(
             confirmButton = {},
             dismissButton = { TextButton({ assigning = null }) { Text(stringResource(R.string.plan_cancel)) } },
         )
+    }
+}
+
+/** Selector reutilizable: fecha libre, conflicto visible y confirmación explícita antes de mover. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun MoveSessionContent(from: LocalDate, today: LocalDate, occupied: Set<LocalDate>, routineName: String,
+    time: String, onConfirm: (LocalDate) -> Unit, onCancel: () -> Unit) {
+    var monthEpoch by rememberSaveable(from) { mutableStateOf(maxOf(from, today).withDayOfMonth(1).toEpochDay()) }
+    var selectedEpoch by rememberSaveable(from) { mutableStateOf<Long?>(null) }
+    val month = java.time.YearMonth.from(LocalDate.ofEpochDay(monthEpoch))
+    val selected = selectedEpoch?.let(LocalDate::ofEpochDay)
+    val error = when {
+        selected == null -> null
+        selected < today -> "Elige hoy o una fecha futura."
+        selected == from -> "Elige un día diferente al de origen."
+        selected in occupied -> "Ese día ya tiene un entreno. Elige otro día; no se sobrescribirá."
+        else -> null
+    }
+    Surface(shape = MaterialTheme.shapes.extraLarge) {
+        Column(Modifier.heightIn(max = (LocalConfiguration.current.screenHeightDp - 48).coerceAtLeast(200).dp)
+            .verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Mover entreno", style = MaterialTheme.typography.titleLarge)
+            Text("$routineName · $time")
+            Text("Desde ${dayLabel(from)} ${from.year}")
+            Text("${month.month.getDisplayName(TextStyle.FULL, ES)} ${month.year}", style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton({ monthEpoch = month.minusMonths(1).atDay(1).toEpochDay() }) { Text("Mes anterior") }
+                OutlinedButton({ monthEpoch = month.plusMonths(1).atDay(1).toEpochDay() }) { Text("Mes siguiente") }
+            }
+            MonthCalendar(month, selected ?: from, occupied) { selectedEpoch = it.toEpochDay() }
+            selected?.let { Text("Destino: ${dayLabel(it)} ${it.year} · $time") }
+            error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onCancel) { Text("Cancelar") }
+                Button({ selected?.let(onConfirm) }, enabled = selected != null && error == null) { Text("Confirmar traslado") }
+            }
+        }
     }
 }

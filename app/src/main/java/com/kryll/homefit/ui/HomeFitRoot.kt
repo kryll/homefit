@@ -247,6 +247,10 @@ private fun PlanTab(onStart: (Long) -> Unit) {
         com.kryll.homefit.ui.vm.PlanMessage.NoRoutines -> stringResource(R.string.plan_no_routines)
         com.kryll.homefit.ui.vm.PlanMessage.NoTrainingDays -> stringResource(R.string.plan_no_training_days)
         com.kryll.homefit.ui.vm.PlanMessage.AllBusy -> stringResource(R.string.plan_all_busy)
+        is com.kryll.homefit.ui.vm.PlanMessage.MonthGenerated -> "${m.month}: ${m.count} entrenos añadidos. Se conserva lo ya planificado y el historial."
+        com.kryll.homefit.ui.vm.PlanMessage.MoveConflict -> "Ese día ya tiene un entreno. No se ha cambiado nada; elige otro día."
+        com.kryll.homefit.ui.vm.PlanMessage.MoveInvalid -> "Ese entreno ya no se puede mover a esa fecha. No se ha cambiado nada."
+        com.kryll.homefit.ui.vm.PlanMessage.Moved -> "Entreno movido. Conserva su rutina y hora."
         null -> null
     }
     PlanScreen(
@@ -254,6 +258,7 @@ private fun PlanTab(onStart: (Long) -> Unit) {
         message = text,
         onAssign = { d, rid -> vm.assign(d, rid) },
         onAuto = { ws -> vm.autoPlan(ws) },
+        onAutoMonth = { month -> vm.autoMonth(month) },
         onClear = { ws -> vm.clearWeek(ws) },
         onSkip = { e -> vm.skip(e.id) },
         onMove = { e, nd -> vm.move(e, nd) },

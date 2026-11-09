@@ -120,9 +120,10 @@ class PlanIntegrationTest {
                         PlanMessage.NoRoutines -> "Aún no hay rutinas que repartir."
                         PlanMessage.NoTrainingDays -> "Marca tus días de entrenamiento en Ajustes para poder generar el plan."
                         PlanMessage.AllBusy -> "No hay días libres en esta semana."
-                        null -> null
+                        else -> null
                     },
                     onAuto = { ws -> vm.autoPlan(ws) },
+                    onAutoMonth = { month -> vm.autoMonth(month) },
                     onClear = { ws -> vm.clearWeek(ws) },
                 )
                 }

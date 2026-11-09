@@ -10,6 +10,11 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Surface
@@ -152,7 +157,8 @@ class PlanUiTest {
         rule.onAllNodesWithText("Saltar")[0].performClick()
         assertEquals(1L, skipped?.id)
         rule.onAllNodesWithText("Mover")[0].performClick()
-        rule.onNodeWithText("Mover a Jue 5 nov").performClick()
+        rule.onNodeWithContentDescription("Fecha ${today.plusDays(1)}").performScrollTo().performClick()
+        rule.onNodeWithText("Confirmar traslado").performScrollTo().performClick()
         assertEquals(1L to today.plusDays(1), moved)
     }
 
@@ -162,5 +168,49 @@ class PlanUiTest {
         } }
         rule.onNodeWithText("Mié 4 nov · hoy").assertIsDisplayed()
         capture("plan_semana_dark")
+    }
+
+    @Test fun monthGeneratesVisibleMonthNotWeek() {
+        var generated: java.time.YearMonth? = null
+        val dark = androidx.compose.runtime.mutableStateOf(false)
+        rule.setContent { HomeFitTheme(darkTheme = dark.value) { Surface(Modifier.fillMaxSize()) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.4f)) {
+                PlanScreen(today, zone, mask, routines, scheduled, emptyList(), onAutoMonth = { generated = it })
+            }
+        } } }
+        rule.onNodeWithText("Mes").performClick()
+        capture("plan_mes_calendario_light")
+        rule.onNodeWithText("Generar este mes").performScrollTo().performClick()
+        assertEquals(java.time.YearMonth.from(today), generated)
+        capture("plan_mes_generar_light")
+        rule.runOnIdle { dark.value = true }
+        capture("plan_mes_generar_dark")
+        rule.onNodeWithText("Mes").performScrollTo()
+        capture("plan_mes_calendario_dark")
+    }
+
+    @Test fun moveCalendarCrossMonthConflictAndLargeFont() {
+        val dark = androidx.compose.runtime.mutableStateOf(false)
+        val origin = LocalDate.of(2026, 12, 28)
+        val conflict = LocalDate.of(2027, 1, 3)
+        var moved: LocalDate? = null
+        rule.setContent { HomeFitTheme(darkTheme = dark.value) { Surface(Modifier.fillMaxSize()) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.4f)) {
+                com.kryll.homefit.ui.MoveSessionContent(origin, origin, setOf(conflict), "Fuerza en casa", "18:30", { moved = it }, {})
+            }
+        } } }
+        rule.onNodeWithText("Mes siguiente").performScrollTo().performClick()
+        capture("plan_mover_calendario_light")
+        rule.onNodeWithContentDescription("Fecha $conflict").performScrollTo().performClick()
+        rule.onNodeWithText("Confirmar traslado").performScrollTo().assertIsNotEnabled()
+        capture("plan_mover_conflicto_light")
+        val free = conflict.plusDays(1)
+        rule.onNodeWithContentDescription("Fecha $free").performScrollTo().performClick()
+        rule.onNodeWithText("Confirmar traslado").performScrollTo().assertIsEnabled()
+        capture("plan_mover_confirmar_light")
+        rule.runOnIdle { dark.value = true }
+        capture("plan_mover_confirmar_dark")
+        rule.onNodeWithText("Confirmar traslado").performClick()
+        assertEquals(free, moved)
     }
 }
