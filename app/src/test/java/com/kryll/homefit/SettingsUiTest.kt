@@ -73,14 +73,14 @@ class SettingsUiTest {
 
     /** Fuente grande (x1,4) en pantalla estrecha: los 3 botones de copia se reparten en líneas; ninguno se aplasta en tira vertical. */
     @Test fun backupButtonsWrapWithLargeFont() {
-        fun content(dark: Boolean) = rule.setContent {
-            HomeFitTheme(darkTheme = dark) {
+        val dark = androidx.compose.runtime.mutableStateOf(false)
+        rule.setContent {
+            HomeFitTheme(darkTheme = dark.value) {
                 CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.4f)) {
                     SettingsScreen(AppSettings(), "1", null, null)
                 }
             }
         }
-        content(false)
         rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Importar copia").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
@@ -88,7 +88,7 @@ class SettingsUiTest {
         val w = b.right - b.left
         org.junit.Assert.assertTrue("botón CSV aplastado: ${w}px", w > 240f)
         capture("ajustes_copia_light")
-        content(true)
+        rule.runOnIdle { dark.value = true }
         rule.onNodeWithText("Importar copia").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
         capture("ajustes_copia_dark")
