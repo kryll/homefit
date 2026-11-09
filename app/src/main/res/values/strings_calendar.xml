@@ -12,5 +12,5 @@
     <string name="calendar_sat">S</string>
     <string name="calendar_sun">D</string>
     <string name="calendar_dot_hint">• Sesión programada. Toca un día para ver sus sesiones.</string>
-    <string name="calendar_auto_hint">Generan y vacían solo los próximos 7 días desde hoy (%1$s - %2$s), no la semana que ves.</string>
+    <string name="calendar_auto_hint">Generan y vacían la semana del %1$s al %2$s; los entrenos ya hechos se conservan.</string>
 </resources>

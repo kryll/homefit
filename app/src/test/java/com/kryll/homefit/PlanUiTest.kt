@@ -5,14 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.ui.test.hasScrollToIndexAction
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
@@ -62,47 +60,52 @@ class PlanUiTest {
         FileOutputStream(File(dir, "$name.png")).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    @Test fun weekCardsShowTrainingAndRestChips() {
+    /** Franja compacta de 7 días + detalle del día seleccionado (diseño aprobado por José el 09-11). */
+    @Test fun weekStripAndSelectedDayCard() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList()) } }
         rule.onNodeWithText("Tu semana").assertIsDisplayed()
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
+        // Franja compacta: las 7 celdas con inicial de día de un vistazo.
+        listOf("L", "M", "X", "J", "V", "S", "D").forEach {
+            assertTrue(rule.onAllNodesWithText(it).fetchSemanticsNodes().isNotEmpty())
+        }
+        // Detalle del día seleccionado (hoy por defecto): rutina, acción de entrenar y tipo de día.
+        rule.onNodeWithText("Mié 4 nov · hoy").assertIsDisplayed()
         rule.onNodeWithText("Fuerza en casa").assertIsDisplayed()
-        rule.onNodeWithText("Entrenar").assertIsDisplayed()
-        // Chips de tipo de día visibles al recorrer la semana (lun/mié/vie entrenan, el resto no).
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Día de entreno"))
-        assertTrue(rule.onAllNodesWithText("Día de entreno").fetchSemanticsNodes().isNotEmpty())
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Descanso"))
-        assertTrue(rule.onAllNodesWithText("Descanso").fetchSemanticsNodes().isNotEmpty())
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
+        rule.onNodeWithText("Empezar entreno").assertIsDisplayed()
+        rule.onNodeWithText("Día de entreno").assertIsDisplayed()
+        // Seleccionar un día de descanso cambia el detalle.
+        rule.onNodeWithContentDescription("Sáb 7 nov").performClick()
+        rule.onNodeWithText("Sáb 7 nov").assertIsDisplayed()
+        rule.onNodeWithText("Descanso").assertIsDisplayed()
+        rule.onNodeWithText("Sin rutina asignada").assertIsDisplayed()
         capture("plan_semana")
     }
 
     @Test fun autoDisabledWithoutTrainingDaysShowsHint() {
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, 0, routines, emptyList(), emptyList()) } }
         rule.onNodeWithText("Marca tus días de entrenamiento en Ajustes para poder generar el plan.").assertIsDisplayed()
-        rule.onNodeWithText("Generar próximos 7 días").assertIsNotEnabled()
+        rule.onNodeWithText("Generar esta semana").assertIsEnabled()
     }
 
     @Test fun actionMessageIsShown() {
-        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), message = "Semana generada: 3 sesiones planificadas.") } }
-        rule.onNodeWithText("Semana generada: 3 sesiones planificadas.").assertIsDisplayed()
+        rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, emptyList(), message = "Plan generado para: Vie 6 nov.") } }
+        rule.onNodeWithText("Plan generado para: Vie 6 nov.").assertIsDisplayed()
     }
 
     @Test fun doneWorkoutHidesTrainButton() {
         val w = WorkoutSession(1, 1, ms(today, 8), ms(today, 9), 3600)
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, scheduled, listOf(w)) } }
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
-        assertEquals(0, rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithText("Empezar entreno").fetchSemanticsNodes().size)
     }
 
     @Test fun assignDialogCallsBackWithRoutine() {
         var got: Pair<LocalDate, Long?>? = null
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, emptyList(), emptyList(), onAssign = { d, r -> got = d to r }) } }
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Asignar"))
-        rule.onAllNodesWithText("Asignar")[0].performClick()
+        // Hoy es el día seleccionado por defecto: su tarjeta ofrece Asignar.
+        rule.onNodeWithText("Asignar").performClick()
         rule.onNodeWithText("Cardio suave").performClick()
-        assertEquals(com.kryll.homefit.domain.CalendarPeriod.weekStart(today) to 2L, got)
+        assertEquals(today to 2L, got)
     }
 
     @Test fun skippedAndMovedSessionsShowStatusWithoutActions() {
@@ -111,9 +114,8 @@ class PlanUiTest {
             ScheduledSession(2, 2, ms(today.plusDays(2)), "MOVED"),
         )
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList()) } }
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Saltada"))
         rule.onNodeWithText("Fuerza en casa · Saltada").assertIsDisplayed()
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Cardio suave · Movida"))
+        rule.onNodeWithContentDescription("Vie 6 nov").performClick()
         rule.onNodeWithText("Cardio suave · Movida").assertIsDisplayed()
         assertEquals(0, rule.onAllNodesWithText("Saltar").fetchSemanticsNodes().size)
         assertEquals(0, rule.onAllNodesWithText("Mover").fetchSemanticsNodes().size)
@@ -126,13 +128,12 @@ class PlanUiTest {
             ScheduledSession(3, 1, ms(today.plusDays(2)), "MOVED"),
         )
         rule.setContent { HomeFitTheme { PlanScreen(today, zone, mask, routines, s, emptyList()) } }
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Hecho"))
         rule.onNodeWithText("Fuerza en casa · Hecho").assertIsDisplayed()
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Cardio suave · Saltada"))
+        rule.onNodeWithContentDescription("Jue 5 nov").performClick()
         rule.onNodeWithText("Cardio suave · Saltada").assertIsDisplayed()
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Fuerza en casa · Movida"))
+        rule.onNodeWithContentDescription("Vie 6 nov").performClick()
         rule.onNodeWithText("Fuerza en casa · Movida").assertIsDisplayed()
-        assertEquals(0, rule.onAllNodesWithText("Entrenar").fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithText("Empezar entreno").fetchSemanticsNodes().size)
         assertEquals(0, rule.onAllNodesWithText("Saltar").fetchSemanticsNodes().size)
         assertEquals(0, rule.onAllNodesWithText("Mover").fetchSemanticsNodes().size)
         capture("plan_estados_resultantes")
@@ -147,7 +148,6 @@ class PlanUiTest {
                     onSkip = { skipped = it }, onMove = { e, d -> moved = e.id to d })
             }
         }
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
         capture("plan_estados")
         rule.onAllNodesWithText("Saltar")[0].performClick()
         assertEquals(1L, skipped?.id)
@@ -156,11 +156,11 @@ class PlanUiTest {
         assertEquals(1L to today.plusDays(1), moved)
     }
 
-    @Test fun weekCardsDarkThemeCapture() {
+    @Test fun weekStripDarkThemeCapture() {
         rule.setContent { HomeFitTheme(darkTheme = true) {
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { PlanScreen(today, zone, mask, routines, scheduled, emptyList()) }
         } }
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Mié 4 nov · hoy"))
+        rule.onNodeWithText("Mié 4 nov · hoy").assertIsDisplayed()
         capture("plan_semana_dark")
     }
 }
