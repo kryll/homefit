@@ -202,6 +202,9 @@ class PlanIntegrationTest {
         val completedDay = com.kryll.homefit.domain.CalendarPeriod.weekStart(today).plusDays(1)
         rule.onNodeWithContentDescription(dayLabel(completedDay)).performClick()
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Hecho", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        // La etiqueta del día refleja su estado real: Hecho, no Descanso (aunque no sea día de entreno en el perfil).
+        assertEquals(1, rule.onAllNodesWithText("Hecho").fetchSemanticsNodes().size)
+        assertEquals(0, rule.onAllNodesWithText("Descanso").fetchSemanticsNodes().size)
         capture("plan_vaciado")
         // Tras el borrado la tarjeta de hoy queda sin rutina ni botón de entrenar.
         if (completedDay != today) {

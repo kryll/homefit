@@ -108,14 +108,23 @@ fun PlanScreen(
                 val mark = if (d == today) " · " + stringResource(R.string.plan_today_mark) else ""
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(dayLabel(d) + mark, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                    val dayDone = entries.any { isDone(it, d) }
                     Surface(
-                        color = if (training) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                        color = when {
+                            dayDone -> MaterialTheme.colorScheme.tertiaryContainer
+                            training -> MaterialTheme.colorScheme.primaryContainer
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        },
                         shape = CircleShape,
                     ) {
                         Text(
-                            stringResource(if (training) R.string.plan_training_day else R.string.plan_rest_day),
+                            stringResource(if (dayDone) R.string.plan_done else if (training) R.string.plan_training_day else R.string.plan_rest_day),
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (training) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = when {
+                                dayDone -> MaterialTheme.colorScheme.onTertiaryContainer
+                                training -> MaterialTheme.colorScheme.onPrimaryContainer
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         )
                     }
@@ -207,19 +216,19 @@ fun PlanScreen(
                             Text(
                                 d.dayOfWeek.getDisplayName(TextStyle.NARROW, ES).uppercase(),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = if (isSel) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 "${d.dayOfMonth}",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = if (isToday || isSel) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                color = if (isSel) MaterialTheme.colorScheme.onPrimaryContainer else if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                             )
                             Box(Modifier.size(16.dp), contentAlignment = Alignment.Center) {
                                 when {
-                                    done -> Text("✓", color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.labelMedium)
-                                    pending -> Box(Modifier.size(7.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
-                                    else -> Box(Modifier.size(4.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outlineVariant))
+                                    done -> Text("✓", color = if (isSel) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.labelMedium)
+                                    pending -> Box(Modifier.size(7.dp).clip(CircleShape).background(if (isSel) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary))
+                                    else -> Box(Modifier.size(4.dp).clip(CircleShape).background(if (isSel) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant))
                                 }
                             }
                         }
