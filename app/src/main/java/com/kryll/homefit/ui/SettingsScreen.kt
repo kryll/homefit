@@ -40,6 +40,7 @@ import java.util.Locale
 data class ImportSummary(val routines: Int, val workouts: Int, val scheduled: Int, val measurements: Int)
 
 @Composable
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 fun SettingsScreen(
     settings: AppSettings,
     versionName: String,
