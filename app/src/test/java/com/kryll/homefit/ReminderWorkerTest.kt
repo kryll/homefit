@@ -222,4 +222,12 @@ class ReminderWorkerTest {
         runBlocking { ReminderScheduler.sync(app) }
         assertEquals(0, snoozeInfos().count { it.state == WorkInfo.State.ENQUEUED })
     }
+
+    @Test fun plannedWorkoutOnRestDayActuallyNotifies() {
+        setup(0, ReminderPrefs(true, 18, 30))
+        runBlocking { app.container.database.sessionDao().insertScheduled(com.kryll.homefit.data.ScheduledSession(
+            routineId = null, startMillis = System.currentTimeMillis(), status = "SCHEDULED")) }
+        assertEquals(ListenableWorker.Result.success(), runWorker())
+        assertEquals(1, shadowOf(nm).allNotifications.size)
+    }
 }

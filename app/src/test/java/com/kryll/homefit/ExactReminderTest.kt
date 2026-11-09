@@ -1,6 +1,8 @@
 package com.kryll.homefit
 
 import android.app.AlarmManager
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -90,5 +92,30 @@ class ExactReminderTest {
         val restored = BackupCodec.fromJson(json)
         assertEquals(true, restored.settings.reminderEnabled)
         assertEquals(true, restored.settings.reminderExact)
+    }
+
+    @Test fun persistedMoveReplacesExactAlarmWithDestinationTimeOnRestDay() = runBlocking {
+        app.startup?.join()
+        ShadowAlarmManager.setCanScheduleExactAlarms(true)
+        val zone = java.time.ZoneId.systemDefault()
+        val origin = java.time.LocalDate.now(zone).plusDays(1)
+        val destination = origin.plusMonths(1)
+        app.container.database.profileDao().saveProfile(com.kryll.homefit.data.UserProfile(
+            name = "Test", sex = "male", birthEpochDay = 9000, heightCm = 180f, weightKg = 80f,
+            goal = "g", level = "l", daysMask = 0, minutesPerSession = 30))
+        app.container.settings.update { it.copy(reminderEnabled = true, reminderHour = 8,
+            reminderMinute = 0, reminderLeadMinutes = 15, reminderExact = true) }
+        val dao = app.container.database.sessionDao()
+        val id = dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = null,
+            startMillis = origin.atTime(18, 30).atZone(zone).toInstant().toEpochMilli(), status = "SCHEDULED"))
+        ReminderScheduler.sync(app)
+        assertEquals(origin.atTime(18, 15).atZone(zone).toInstant().toEpochMilli(), shadowOf(alarmManager).nextScheduledAlarm!!.triggerAtMs)
+        val vm = com.kryll.homefit.ui.vm.PlanViewModel(app.container.database, app.container.settings) { ReminderScheduler.sync(app) }
+        try {
+            vm.move(dao.scheduledById(id)!!, destination).join()
+            assertEquals("MOVED", dao.scheduledById(id)!!.status)
+            assertEquals(destination.atTime(18, 15).atZone(zone).toInstant().toEpochMilli(), shadowOf(alarmManager).nextScheduledAlarm!!.triggerAtMs)
+            assertEquals(1, enqueuedWork().size)
+        } finally { vm.viewModelScope.cancel() }
     }
 }

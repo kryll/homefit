@@ -133,4 +133,16 @@ class PlanningTest {
         }
     }
 
+    @Test fun movedReminderUsesDestinationEvenOnRestDayAndSuppressesOrigin() {
+        val zone = ZoneId.of("Europe/Madrid")
+        val from = LocalDate.of(2026, 12, 28) // lunes
+        val to = LocalDate.of(2027, 1, 3) // domingo, fuera de plantilla
+        val p = ReminderPrefs(enabled = true, hour = 18, minute = 30, leadMinutes = 15)
+        val sessions = listOf(
+            com.kryll.homefit.domain.ReminderSession(from.atTime(18, 30).atZone(zone).toInstant().toEpochMilli(), "MOVED"),
+            com.kryll.homefit.domain.ReminderSession(to.atTime(18, 30).atZone(zone).toInstant().toEpochMilli(), "SCHEDULED"))
+        assertEquals(to.atTime(18, 15).atZone(zone), Planning.nextWithSessions(from.atStartOfDay(zone), 1, p, sessions))
+        assertEquals(com.kryll.homefit.domain.ReminderDecision.SHOW, Planning.decide(p, 1, to, false, listOf("SCHEDULED")))
+        assertEquals(com.kryll.homefit.domain.ReminderDecision.SKIP_DAY_SETTLED, Planning.decide(p, 1, from, false, listOf("MOVED")))
+    }
 }

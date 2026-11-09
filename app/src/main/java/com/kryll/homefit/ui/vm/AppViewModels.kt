@@ -170,7 +170,7 @@ class AppViewModelFactory(private val app: com.kryll.homefit.HomeFitApp) : ViewM
         RoutinesViewModel::class.java -> RoutinesViewModel(container.database, RoutineRepository(container.database), container.workoutRepository, container.settings)
         SettingsViewModel::class.java -> SettingsViewModel(container.database, container.settings, BackupRepository(container.database)) { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
         ProgressViewModel::class.java -> ProgressViewModel(container.database, container.settings)
-        PlanViewModel::class.java -> PlanViewModel(container.database, container.settings)
+        PlanViewModel::class.java -> PlanViewModel(container.database, container.settings) { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     } as T
 }
