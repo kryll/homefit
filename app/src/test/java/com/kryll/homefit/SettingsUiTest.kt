@@ -11,6 +11,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.performScrollTo
 
 import androidx.compose.ui.test.hasText
@@ -92,6 +96,40 @@ class SettingsUiTest {
         rule.onNodeWithText("Importar copia").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
         capture("ajustes_copia_dark")
+    }
+
+    /** Recorre toda la pantalla, sin reducir la fuente ni ocultar controles. */
+    @Test fun fullSettingsLargeFontReadableLightAndDark() {
+        val dark = androidx.compose.runtime.mutableStateOf(false)
+        rule.setContent {
+            HomeFitTheme(darkTheme = dark.value) {
+                Surface(Modifier.fillMaxSize()) {
+                    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.4f)) {
+                        SettingsScreen(AppSettings(), "0.3.1", null, null,
+                            reminderPrefs = ReminderPrefs(enabled = true))
+                    }
+                }
+            }
+        }
+        for (theme in listOf("light", "dark")) {
+            rule.runOnIdle { dark.value = theme == "dark" }
+            rule.onNodeWithText("Ajustes").performScrollTo().assertIsDisplayed()
+            val scroll = rule.onNode(hasScrollAction())
+            var page = 0
+            while (true) {
+                capture("ajustes_completo_${theme}_${page.toString().padStart(2, '0')}")
+                val range = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+                if (range.value() >= range.maxValue() - 1f) break
+                org.junit.Assert.assertTrue("scroll no termina", page < 30)
+                val h = scroll.fetchSemanticsNode().boundsInRoot.height
+                scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, h * 0.75f) }
+                rule.waitForIdle()
+                page++
+            }
+            rule.onNodeWithText("Voz de los avisos").performScrollTo().assertIsDisplayed()
+            val label = rule.onNodeWithText("Voz de los avisos").fetchSemanticsNode().boundsInRoot
+            org.junit.Assert.assertTrue("etiqueta de voz comprimida", label.width > label.height * 2f)
+        }
     }
 
     @Test fun settingChangesAreEmittedAndApplied() {

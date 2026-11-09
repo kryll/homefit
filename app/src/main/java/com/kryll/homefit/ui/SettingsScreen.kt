@@ -89,7 +89,7 @@ fun SettingsScreen(
         }
 
         Section(R.string.settings_theme) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(
                     ThemeMode.SYSTEM to R.string.theme_system,
                     ThemeMode.LIGHT to R.string.theme_light,
@@ -105,7 +105,7 @@ fun SettingsScreen(
         }
 
         Section(R.string.settings_units) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(WeightUnit.KG to R.string.unit_kg, WeightUnit.LB to R.string.unit_lb).forEach { (u, label) ->
                     FilterChip(
                         selected = settings.weightUnit == u,
@@ -114,7 +114,7 @@ fun SettingsScreen(
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(LengthUnit.CM to R.string.unit_cm, LengthUnit.IN to R.string.unit_in).forEach { (u, label) ->
                     FilterChip(
                         selected = settings.lengthUnit == u,
@@ -148,11 +148,11 @@ fun SettingsScreen(
             }
             if (reminderPrefs.enabled) {
                 Text(stringResource(R.string.plan_reminder_time, reminderPrefs.hour, reminderPrefs.minute))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepHour(reminderPrefs, -1)) }) { Text(stringResource(R.string.plan_hour_minus)) }
                     OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepHour(reminderPrefs, 1)) }) { Text(stringResource(R.string.plan_hour_plus)) }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepMinute(reminderPrefs, -5)) }) { Text(stringResource(R.string.plan_min_minus)) }
                     OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepMinute(reminderPrefs, 5)) }) { Text(stringResource(R.string.plan_min_plus)) }
                 }
@@ -162,7 +162,7 @@ fun SettingsScreen(
                     if (lead == 0) stringResource(R.string.plan_reminder_lead_none)
                     else stringResource(R.string.plan_reminder_lead, lead, notifyAt.hour, notifyAt.minute),
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepLead(reminderPrefs, -1)) }) { Text(stringResource(R.string.plan_lead_less)) }
                     OutlinedButton({ onReminderPrefs(com.kryll.homefit.domain.Planning.stepLead(reminderPrefs, 1)) }) { Text(stringResource(R.string.plan_lead_more)) }
                 }
@@ -191,8 +191,8 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_voice), Modifier.weight(1f))
                 Switch(checked = settings.voiceEnabled, onCheckedChange = { v -> onChange { it.copy(voiceEnabled = v) } })
             }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.settings_voice_select), Modifier.weight(1f))
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stringResource(R.string.settings_voice_select))
                 TextButton({ choosingVoice.value = true }) {
                     Text(settings.ttsVoice ?: stringResource(R.string.settings_voice_default))
                 }
@@ -294,8 +294,9 @@ private fun Section(title: Int, content: @Composable () -> Unit) {
 }
 
 @Composable
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 private fun Stepper(onMinus: () -> Unit, onPlus: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onMinus) { Text(stringResource(R.string.settings_minus)) }
         OutlinedButton(onPlus) { Text(stringResource(R.string.settings_plus)) }
     }
@@ -389,11 +390,11 @@ private fun ProfileEditDialog(
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 editField(R.string.onb_name, name, { name = it }, err(ProfileInput.Field.NAME), KeyboardType.Text)
                 Text(stringResource(R.string.onb_sex))
-                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ProfileInput.SEXES.forEach { o -> FilterChip(selected = sex == o, onClick = { sex = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
                 }
                 Text(stringResource(R.string.onb_birth))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = bDay, onValueChange = { bDay = it }, label = { Text(stringResource(R.string.onb_day)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     OutlinedTextField(value = bMonth, onValueChange = { bMonth = it }, label = { Text(stringResource(R.string.onb_month)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     OutlinedTextField(value = bYear, onValueChange = { bYear = it }, label = { Text(stringResource(R.string.onb_year)) }, isError = err(ProfileInput.Field.BIRTH), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
@@ -401,15 +402,15 @@ private fun ProfileEditDialog(
                 editField(R.string.onb_height, height, { height = it }, err(ProfileInput.Field.HEIGHT), KeyboardType.Decimal)
                 editField(R.string.onb_weight, weight, { weight = it }, err(ProfileInput.Field.WEIGHT), KeyboardType.Decimal)
                 Text(stringResource(R.string.onb_goal))
-                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ProfileInput.GOALS.forEach { o -> FilterChip(selected = goal == o, onClick = { goal = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
                 }
                 Text(stringResource(R.string.onb_level))
-                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("principiante", "intermedio", "avanzado").forEach { o -> FilterChip(selected = level == o, onClick = { level = o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) }) }
                 }
                 Text(stringResource(R.string.onb_days))
-                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("L", "M", "X", "J", "V", "S", "D").forEachIndexed { i, d ->
                         FilterChip(selected = days and (1 shl i) != 0, onClick = { days = days xor (1 shl i) }, label = { Text(d) })
                     }
@@ -417,7 +418,7 @@ private fun ProfileEditDialog(
                 if (err(ProfileInput.Field.DAYS)) Text(stringResource(R.string.onb_days), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 editField(R.string.onb_minutes, minutes, { minutes = it }, err(ProfileInput.Field.MINUTES), KeyboardType.Number)
                 Text(stringResource(R.string.onb_equipment))
-                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.Flowandroidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     EQUIPMENT_OPTIONS.map { it.first }.forEach { o ->
                         FilterChip(selected = o in equipmentSel, onClick = { equipmentSel = if (o in equipmentSel) equipmentSel - o else equipmentSel + o }, label = { Text(PROFILE_LABELS[o] ?: o.replace('_', ' ')) })
                     }
