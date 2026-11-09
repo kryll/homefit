@@ -178,7 +178,6 @@ class PlanViewModelTest {
             java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() == today && it.routineId == null
         })
     }
-
     @Test fun monthFillsOnlyFreeDaysAndIsIdempotent() = runTest {
         seedProfile(127); seedRoutine()
         val month = java.time.YearMonth.from(LocalDate.now(zone)).plusMonths(1)
@@ -191,30 +190,5 @@ class PlanViewModelTest {
         assertEquals(PlanMessage.MonthGenerated(month, 0), vm.message.value)
         assertEquals(month.lengthOfMonth(), scheduledCount())
         assertEquals("COMPLETED", db.sessionDao().scheduledBetween(startOf(occupied), startOf(occupied.plusDays(1))).single().status)
-    }
-
-    @Test fun moveRejectsOccupiedPastAndCompletedThenPersistsOneMove() = runTest {
-        val today = LocalDate.now(zone)
-        val from = today.plusDays(1)
-        val dest = today.plusMonths(2).withDayOfMonth(3)
-        val start = from.atTime(18, 30).atZone(zone).toInstant().toEpochMilli()
-        val id = db.sessionDao().insertScheduled(ScheduledSession(routineId = 1, startMillis = start, status = "SCHEDULED"))
-        val entry = db.sessionDao().scheduledById(id)!!
-        db.sessionDao().insertScheduled(ScheduledSession(routineId = 2, startMillis = startOf(dest), status = "SCHEDULED"))
-        vm.move(entry, dest).join()
-        assertEquals(PlanMessage.MoveConflict, vm.message.value)
-        assertEquals("SCHEDULED", db.sessionDao().scheduledById(id)!!.status)
-        vm.move(entry, today.minusDays(1)).join()
-        assertEquals(PlanMessage.MoveInvalid, vm.message.value)
-        val free = dest.plusDays(1)
-        vm.move(entry, free).join()
-        assertEquals(PlanMessage.Moved, vm.message.value)
-        assertEquals("MOVED", db.sessionDao().scheduledById(id)!!.status)
-        val moved = db.sessionDao().scheduledBetween(startOf(free), startOf(free.plusDays(1))).single()
-        assertEquals(1L, moved.routineId)
-        assertEquals(java.time.LocalTime.of(18, 30), java.time.Instant.ofEpochMilli(moved.startMillis).atZone(zone).toLocalTime())
-        vm.move(entry, free.plusDays(1)).join()
-        assertEquals(PlanMessage.MoveInvalid, vm.message.value)
-        assertEquals(3, scheduledCount())
     }
 }

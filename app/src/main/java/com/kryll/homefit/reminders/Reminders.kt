@@ -107,9 +107,9 @@ object ReminderScheduler {
      * ExactPermissionReceiver al conceder el permiso. Con el móvil apagado o la app detenida a la fuerza
      * no hay aviso hasta el próximo arranque o apertura de la app.
      */
-    fun schedule(context: Context, prefs: ReminderPrefs, daysMask: Int, from: ZonedDateTime = ZonedDateTime.now(), sessions: List<com.kryll.homefit.domain.ReminderSession> = emptyList()) {
+    fun schedule(context: Context, prefs: ReminderPrefs, daysMask: Int, from: ZonedDateTime = ZonedDateTime.now()) {
         val wm = WorkManager.getInstance(context)
-        val next = if (prefs.enabled) Planning.nextWithSessions(from, daysMask, prefs, sessions) else null
+        val next = if (prefs.enabled) Planning.nextReminder(from, daysMask, prefs) else null
         if (next == null) { wm.cancelUniqueWork(WORK_NAME); ExactReminders.cancel(context); return }
         if (prefs.exact && ExactReminders.canSchedule(context)) {
             ExactReminders.scheduleAt(context, next.toInstant().toEpochMilli())
@@ -156,8 +156,7 @@ object ReminderScheduler {
     suspend fun sync(app: HomeFitApp) {
         val prefs = app.container.settings.settings.first().reminderPrefs()
         val profile = app.container.database.profileDao().profile()
-        if (profile == null || !prefs.enabled) cancel(app) else schedule(app, prefs, profile.daysMask,
-            sessions = app.container.database.sessionDao().observeAllScheduled().first().map { com.kryll.homefit.domain.ReminderSession(it.startMillis, it.status) })
+        if (profile == null || !prefs.enabled) cancel(app) else schedule(app, prefs, profile.daysMask)
     }
 }
 
@@ -203,8 +202,7 @@ object ReminderEngine {
         // Un aviso pospuesto no reprograma el diario, que sigue su propio mecanismo.
         if (isSnooze) return
         // Siguiente aviso: desde un minuto después de ahora, para no repetir el de hoy si el sistema lo adelantara.
-        ReminderScheduler.schedule(app, prefs, profile.daysMask, ZonedDateTime.now(zone).plusMinutes(1),
-            db.sessionDao().observeAllScheduled().first().map { com.kryll.homefit.domain.ReminderSession(it.startMillis, it.status) })
+        ReminderScheduler.schedule(app, prefs, profile.daysMask, ZonedDateTime.now(zone).plusMinutes(1))
     }
 }
 

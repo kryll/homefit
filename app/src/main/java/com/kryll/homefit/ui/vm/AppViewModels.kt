@@ -170,7 +170,7 @@ class AppViewModelFactory(private val app: com.kryll.homefit.HomeFitApp) : ViewM
         RoutinesViewModel::class.java -> RoutinesViewModel(container.database, RoutineRepository(container.database), container.workoutRepository, container.settings)
         SettingsViewModel::class.java -> SettingsViewModel(container.database, container.settings, BackupRepository(container.database)) { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
         ProgressViewModel::class.java -> ProgressViewModel(container.database, container.settings)
-        PlanViewModel::class.java -> PlanViewModel(container.database, container.settings) { com.kryll.homefit.reminders.ReminderScheduler.sync(app) }
+        PlanViewModel::class.java -> PlanViewModel(container.database, container.settings)
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     } as T
 }
@@ -185,9 +185,6 @@ sealed interface PlanMessage {
     data object NoRoutines : PlanMessage
     data object NoTrainingDays : PlanMessage
     data class MonthGenerated(val month: java.time.YearMonth, val count: Int) : PlanMessage
-    data object MoveConflict : PlanMessage
-    data object MoveInvalid : PlanMessage
-    data object Moved : PlanMessage
     data object AllBusy : PlanMessage
 }
 
@@ -195,7 +192,6 @@ sealed interface PlanMessage {
 class PlanViewModel(
     private val db: HomeFitDatabase,
     private val settings: SettingsStore,
-    private val reminderSync: suspend () -> Unit = {},
 ) : ViewModel() {
     private val zone: java.time.ZoneId = java.time.ZoneId.systemDefault()
 
@@ -232,21 +228,12 @@ class PlanViewModel(
     private fun at(d: java.time.LocalDate, hour: Int, minute: Int) = d.atTime(hour, minute).atZone(zone).toInstant().toEpochMilli()
 
     fun assign(date: java.time.LocalDate, routineId: Long?) = viewModelScope.launch {
-        db.withTransaction {
         val dao = db.sessionDao()
-        if (date.isBefore(java.time.LocalDate.now(zone))) return@withTransaction
-        val existing = dao.scheduledBetween(startOf(date), startOf(date.plusDays(1)))
-        if (existing.any { it.status != "SCHEDULED" } || dao.workoutsBetween(startOf(date), startOf(date.plusDays(1))).any { it.notes != WorkoutRepository.NOTE_INCOMPLETE }) {
-            message.value = PlanMessage.MoveConflict
-            return@withTransaction
-        }
-        dao.deleteScheduledPendingBetween(startOf(date), startOf(date.plusDays(1)))
+        dao.deleteScheduledBetween(startOf(date), startOf(date.plusDays(1)))
         if (routineId != null) {
             val prefs = settings.settings.first().reminderPrefs()
             dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = routineId, startMillis = at(date, prefs.hour, prefs.minute), status = "SCHEDULED"))
         }
-        }
-        reminderSync()
     }
 
     /**
@@ -278,7 +265,6 @@ class PlanViewModel(
                 startMillis = at(it.date, prefs.hour, prefs.minute), status = "SCHEDULED")) }
             days
         }
-        reminderSync()
         message.value = if (month != null) PlanMessage.MonthGenerated(month, planned.size)
             else if (planned.isEmpty()) PlanMessage.AllBusy else PlanMessage.Generated(planned.map { it.date })
     }
@@ -286,34 +272,15 @@ class PlanViewModel(
     /** Vacía la semana visible: borra solo las sesiones pendientes (SCHEDULED), conserva el historial. */
     fun clearWeek(weekStart: java.time.LocalDate) = viewModelScope.launch {
         val n = db.sessionDao().deleteScheduledPendingBetween(startOf(weekStart), startOf(weekStart.plusDays(7)))
-        reminderSync()
         message.value = PlanMessage.Cleared(n)
     }
 
-    fun skip(sessionId: Long) = viewModelScope.launch {
-        db.sessionDao().setScheduledStatus(sessionId, "SKIPPED")
-        reminderSync()
-    }
+    fun skip(sessionId: Long) = viewModelScope.launch { db.sessionDao().setScheduledStatus(sessionId, "SKIPPED") }
 
     fun move(entry: com.kryll.homefit.data.ScheduledSession, newDate: java.time.LocalDate) = viewModelScope.launch {
         val dao = db.sessionDao()
-        val result = db.withTransaction {
-            val current = dao.scheduledById(entry.id)
-            val oldDate = current?.let { java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() }
-            when {
-                current == null || current.status != "SCHEDULED" || newDate.isBefore(java.time.LocalDate.now(zone)) || newDate == oldDate -> PlanMessage.MoveInvalid
-                dao.workoutsBetween(startOf(oldDate!!), startOf(oldDate.plusDays(1))).any { it.routineId == current.routineId && it.notes != WorkoutRepository.NOTE_INCOMPLETE } -> PlanMessage.MoveInvalid
-                dao.scheduledBetween(startOf(newDate), startOf(newDate.plusDays(1))).any { it.status == "SCHEDULED" || it.status == "COMPLETED" } ||
-                    dao.workoutsBetween(startOf(newDate), startOf(newDate.plusDays(1))).any { it.notes != WorkoutRepository.NOTE_INCOMPLETE } -> PlanMessage.MoveConflict
-                else -> {
-                    dao.setScheduledStatus(current.id, "MOVED")
-                    dao.insertScheduled(current.copy(id = 0, startMillis = com.kryll.homefit.domain.movedStartMillis(current.startMillis, zone, newDate), status = "SCHEDULED"))
-                    PlanMessage.Moved
-                }
-            }
-        }
-        reminderSync()
-        message.value = result
+        dao.setScheduledStatus(entry.id, "MOVED")
+        dao.insertScheduled(entry.copy(id = 0, startMillis = com.kryll.homefit.domain.movedStartMillis(entry.startMillis, zone, newDate), status = "SCHEDULED"))
     }
 
 }

@@ -113,9 +113,6 @@ interface RoutineDao {
 
 @Dao
 interface SessionDao {
-    @Query("SELECT * FROM scheduled_session WHERE id = :id")
-    suspend fun scheduledById(id: Long): ScheduledSession?
-
     @Insert
     suspend fun insertScheduled(session: ScheduledSession): Long
 
