@@ -58,6 +58,7 @@ fun dayLabel(d: LocalDate): String {
 }
 
 /** Calendario semanal/mensual navegable: franja compacta de la semana y detalle del día seleccionado. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun PlanScreen(
     today: LocalDate,
@@ -73,6 +74,7 @@ fun PlanScreen(
     onStart: (Long) -> Unit = {},
     onSkip: (ScheduledSession) -> Unit = {},
     onMove: (ScheduledSession, LocalDate) -> Unit = { _, _ -> },
+    onAutoMonth: (java.time.YearMonth) -> Unit = {},
 ) {
     var assigning by rememberSaveable { mutableStateOf<Long?>(null) } // epochDay del día que se está editando
     var moving by rememberSaveable { mutableStateOf<Long?>(null) } // id de la sesión que se está moviendo
@@ -158,7 +160,7 @@ fun PlanScreen(
     }
 
     LazyColumn(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Text(stringResource(R.string.plan_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 16.dp)) }
+        item { Text(if (monthly) "Tu mes" else stringResource(R.string.plan_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 16.dp)) }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 androidx.compose.material3.FilterChip(!monthly, { monthly = false }, { Text(stringResource(R.string.calendar_week)) })
@@ -175,11 +177,15 @@ fun PlanScreen(
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button({ onAuto(weekStart) }) { Text(stringResource(R.string.plan_auto)) }
-                    OutlinedButton({ onClear(weekStart) }) { Text(stringResource(R.string.plan_clear)) }
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Button({ if (monthly) onAutoMonth(month) else onAuto(weekStart) }) {
+                        Text(if (monthly) "Generar este mes" else stringResource(R.string.plan_auto))
+                    }
+                    // Vaciar el mes no forma parte de esta acción: se conserva la limpieza semanal.
+                    if (!monthly) OutlinedButton({ onClear(weekStart) }) { Text(stringResource(R.string.plan_clear)) }
                 }
-                Text(stringResource(R.string.calendar_auto_hint, dayLabel(weekStart), dayLabel(weekEnd)), style = MaterialTheme.typography.bodySmall)
+                Text(if (monthly) "${month.month.getDisplayName(TextStyle.FULL, ES)} ${month.year}: solo huecos desde hoy, sin cambiar tu plan ni el historial."
+                    else stringResource(R.string.calendar_auto_hint, dayLabel(weekStart), dayLabel(weekEnd)), style = MaterialTheme.typography.bodySmall)
                 if (daysMask == 0 && message != stringResource(R.string.plan_no_training_days)) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
                 message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
                 if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)

@@ -178,4 +178,17 @@ class PlanViewModelTest {
             java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() == today && it.routineId == null
         })
     }
+    @Test fun monthFillsOnlyFreeDaysAndIsIdempotent() = runTest {
+        seedProfile(127); seedRoutine()
+        val month = java.time.YearMonth.from(LocalDate.now(zone)).plusMonths(1)
+        val occupied = month.atDay(4)
+        db.sessionDao().insertScheduled(ScheduledSession(routineId = 1, startMillis = startOf(occupied), status = "COMPLETED"))
+        vm.autoMonth(month).join()
+        assertEquals(month.lengthOfMonth(), scheduledCount())
+        assertEquals(PlanMessage.MonthGenerated(month, month.lengthOfMonth() - 1), vm.message.value)
+        vm.autoMonth(month).join()
+        assertEquals(PlanMessage.MonthGenerated(month, 0), vm.message.value)
+        assertEquals(month.lengthOfMonth(), scheduledCount())
+        assertEquals("COMPLETED", db.sessionDao().scheduledBetween(startOf(occupied), startOf(occupied.plusDays(1))).single().status)
+    }
 }

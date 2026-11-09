@@ -34,6 +34,17 @@ enum class ReminderDecision { SHOW, SKIP_DISABLED, SKIP_REST_DAY, SKIP_ALREADY_T
 
 /** Lógica pura de planificación y recordatorios; la parte de Android solo la ejecuta. */
 object Planning {
+    /** Rellena solo huecos futuros del periodo semiabierto, con una rotación continua de rutinas. */
+    fun fillPeriod(daysMask: Int, routineIds: List<Long>, from: LocalDate, until: LocalDate, today: LocalDate, occupied: Set<LocalDate>): List<PlannedDay> {
+        if (routineIds.isEmpty()) return emptyList()
+        val start = maxOf(from, today)
+        var k = 0
+        return generateSequence(start) { it.plusDays(1) }.takeWhile { it < until }
+            .filter { isTrainingDay(daysMask, it) && it !in occupied }
+            .map { PlannedDay(it, routineIds[k++ % routineIds.size]) }.toList()
+    }
+
+
     /** Bit 0 = lunes ... bit 6 = domingo (igual que el perfil). */
     fun isTrainingDay(daysMask: Int, d: LocalDate): Boolean = daysMask and (1 shl (d.dayOfWeek.value - 1)) != 0
 

@@ -1,6 +1,7 @@
 package com.kryll.homefit.ui.vm
 
 import androidx.lifecycle.ViewModel
+import androidx.room.withTransaction
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kryll.homefit.data.AppContainer
@@ -183,6 +184,7 @@ sealed interface PlanMessage {
     data class Cleared(val count: Int) : PlanMessage
     data object NoRoutines : PlanMessage
     data object NoTrainingDays : PlanMessage
+    data class MonthGenerated(val month: java.time.YearMonth, val count: Int) : PlanMessage
     data object AllBusy : PlanMessage
 }
 
@@ -238,7 +240,11 @@ class PlanViewModel(
      * Genera en la semana visible ([weekStart]..+6): solo días de entreno desde hoy en adelante
      * que estén libres. No toca sesiones existentes (hechas, saltadas o pendientes).
      */
-    fun autoPlan(weekStart: java.time.LocalDate) = viewModelScope.launch {
+    fun autoPlan(weekStart: java.time.LocalDate) = generate(weekStart, weekStart.plusDays(7), null)
+
+    fun autoMonth(month: java.time.YearMonth) = generate(month.atDay(1), month.plusMonths(1).atDay(1), month)
+
+    private fun generate(from: java.time.LocalDate, until: java.time.LocalDate, month: java.time.YearMonth?) = viewModelScope.launch {
         val today = java.time.LocalDate.now(zone)
         val profile = db.profileDao().profile()
         val routines = db.routineDao().observeAll().first()
@@ -246,25 +252,21 @@ class PlanViewModel(
         val daysMask = profile?.daysMask ?: 0
         if (daysMask == 0) { message.value = PlanMessage.NoTrainingDays; return@launch }
         val pool = routines.filter { profile != null && it.goal == profile.goal && it.level == profile.level }
-            .ifEmpty { routines.filter { profile != null && it.goal == profile.goal } }
-            .ifEmpty { routines }
+            .ifEmpty { routines.filter { profile != null && it.goal == profile.goal } }.ifEmpty { routines }
         val dao = db.sessionDao()
-        val weekEnd = weekStart.plusDays(7)
-        val occupied = dao.scheduledBetween(startOf(weekStart), startOf(weekEnd))
-            .map { java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() }.toSet()
-        val start = if (weekStart.isBefore(today)) today else weekStart
-        val daysCount = java.time.temporal.ChronoUnit.DAYS.between(start, weekEnd).toInt()
-        val ids = pool.map { it.id }
-        var k = 0
-        val planned = (0 until daysCount).map { start.plusDays(it.toLong()) }
-            .filter { com.kryll.homefit.domain.Planning.isTrainingDay(daysMask, it) && it !in occupied }
-            .map { com.kryll.homefit.domain.PlannedDay(it, ids[k++ % ids.size]) }
-        if (planned.isEmpty()) { message.value = PlanMessage.AllBusy; return@launch }
-        val prefs = settings.settings.first().reminderPrefs()
-        planned.forEach {
-            dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId, startMillis = at(it.date, prefs.hour, prefs.minute), status = "SCHEDULED"))
+        val planned = db.withTransaction {
+            val occupied = dao.scheduledBetween(startOf(from), startOf(until))
+                .map { java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() }.toSet() +
+                dao.workoutsBetween(startOf(from), startOf(until)).filter { it.notes != WorkoutRepository.NOTE_INCOMPLETE }
+                    .map { java.time.Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() }.toSet()
+            val days = com.kryll.homefit.domain.Planning.fillPeriod(daysMask, pool.map { it.id }, from, until, today, occupied)
+            val prefs = settings.settings.first().reminderPrefs()
+            days.forEach { dao.insertScheduled(com.kryll.homefit.data.ScheduledSession(routineId = it.routineId,
+                startMillis = at(it.date, prefs.hour, prefs.minute), status = "SCHEDULED")) }
+            days
         }
-        message.value = PlanMessage.Generated(planned.map { it.date })
+        message.value = if (month != null) PlanMessage.MonthGenerated(month, planned.size)
+            else if (planned.isEmpty()) PlanMessage.AllBusy else PlanMessage.Generated(planned.map { it.date })
     }
 
     /** Vacía la semana visible: borra solo las sesiones pendientes (SCHEDULED), conserva el historial. */

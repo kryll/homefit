@@ -20,6 +20,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.lifecycle.ViewModel
@@ -120,9 +121,11 @@ class PlanIntegrationTest {
                         PlanMessage.NoRoutines -> "Aún no hay rutinas que repartir."
                         PlanMessage.NoTrainingDays -> "Marca tus días de entrenamiento en Ajustes para poder generar el plan."
                         PlanMessage.AllBusy -> "No hay días libres en esta semana."
+                        is PlanMessage.MonthGenerated -> "Mes: ${m.count} entrenos añadidos"
                         null -> null
                     },
                     onAuto = { ws -> vm.autoPlan(ws) },
+                    onAutoMonth = { month -> vm.autoMonth(month) },
                     onClear = { ws -> vm.clearWeek(ws) },
                 )
                 }
@@ -131,6 +134,8 @@ class PlanIntegrationTest {
     }
 
     private fun capture(name: String) {
+        rule.mainClock.advanceTimeByFrame()
+        rule.waitForIdle()
         val view = rule.activity.window.decorView
         val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bmp))
@@ -250,5 +255,21 @@ class PlanIntegrationTest {
             assertEquals(1, sessions.size)
             assertEquals("SCHEDULED", sessions[0].status)
         }
+    }
+    @Test fun generarMesDesdeUiPersisteSinDuplicados() {
+        seedProfile(127); seedRoutine()
+        val vm = newVm(); renderPlan(vm)
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Mes").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Mes").performClick()
+        rule.onNodeWithText("Siguiente").performClick()
+        val month = java.time.YearMonth.from(today).plusMonths(1)
+        rule.onNodeWithText("Generar este mes").performScrollTo().performClick()
+        rule.waitUntil(5_000) { vm.message.value is PlanMessage.MonthGenerated }
+        runBlocking { assertEquals(month.lengthOfMonth(), db.sessionDao().scheduledBetween(startOf(month.atDay(1)), startOf(month.plusMonths(1).atDay(1))).size) }
+        capture("plan_mes_persistido_dark")
+        rule.runOnIdle { vm.clearMessage() }
+        rule.onNodeWithText("Generar este mes").performClick()
+        rule.waitUntil(5_000) { vm.message.value == PlanMessage.MonthGenerated(month, 0) }
+        runBlocking { assertEquals(month.lengthOfMonth(), db.sessionDao().observeAllScheduled().first().size) }
     }
 }

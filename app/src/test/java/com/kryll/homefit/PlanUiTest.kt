@@ -10,6 +10,11 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Surface
@@ -53,6 +58,8 @@ class PlanUiTest {
     private val mask = 0b0010101 // lun, mié, vie
 
     private fun capture(name: String) {
+        rule.mainClock.advanceTimeByFrame()
+        rule.waitForIdle()
         val view = rule.activity.window.decorView
         val bmp = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bmp))
@@ -162,5 +169,23 @@ class PlanUiTest {
         } }
         rule.onNodeWithText("Mié 4 nov · hoy").assertIsDisplayed()
         capture("plan_semana_dark")
+    }
+    @Test fun monthGeneratesVisibleMonthNotWeek() {
+        var generated: java.time.YearMonth? = null
+        val dark = androidx.compose.runtime.mutableStateOf(false)
+        rule.setContent { HomeFitTheme(darkTheme = dark.value) { Surface(Modifier.fillMaxSize()) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.4f)) {
+                PlanScreen(today, zone, mask, routines, scheduled, emptyList(), onAutoMonth = { generated = it })
+            }
+        } } }
+        rule.onNodeWithText("Mes").performClick()
+        capture("plan_mes_calendario_light")
+        rule.onNodeWithText("Generar este mes").performScrollTo().performClick()
+        assertEquals(java.time.YearMonth.from(today), generated)
+        capture("plan_mes_generar_light")
+        rule.runOnIdle { dark.value = true }
+        capture("plan_mes_generar_dark")
+        rule.onNodeWithText("Mes").performScrollTo()
+        capture("plan_mes_calendario_dark")
     }
 }

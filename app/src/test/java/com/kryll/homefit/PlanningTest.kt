@@ -118,4 +118,17 @@ class PlanningTest {
         assertTrue(runCatching { ReminderPrefs(true, 18, 0, 121) }.isFailure)
         assertTrue(runCatching { ReminderPrefs(true, 18, 0, -1) }.isFailure)
     }
+    @Test fun fillsOnlyFutureFreeDaysAcrossRealMonths() {
+        for (month in listOf(java.time.YearMonth.of(2028, 2), java.time.YearMonth.of(2027, 2), java.time.YearMonth.of(2026, 12))) {
+            val from = month.atDay(1)
+            val today = month.atDay(5)
+            val occupied = setOf(month.atDay(8), month.atDay(15))
+            val plan = Planning.fillPeriod(127, listOf(1L, 2L), from, month.plusMonths(1).atDay(1), today, occupied)
+            assertEquals(month.lengthOfMonth() - 4 - 2, plan.size)
+            assertEquals(today, plan.first().date)
+            assertEquals(month.atEndOfMonth(), plan.last().date)
+            assertTrue(plan.none { it.date in occupied || it.date < today })
+            assertEquals(listOf(1L, 2L, 1L, 2L), plan.take(4).map { it.routineId })
+        }
+    }
 }
