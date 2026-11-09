@@ -35,6 +35,7 @@ import org.robolectric.shadows.ShadowAlarmManager
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = HomeFitApp::class)
 class ExactReminderTest {
+    @get:org.junit.Rule val mainDispatcher = MainDispatcherRule()
     private val app: HomeFitApp = ApplicationProvider.getApplicationContext()
     private val alarmManager: AlarmManager = app.getSystemService(AlarmManager::class.java)
 

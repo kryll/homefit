@@ -145,4 +145,12 @@ class PlanningTest {
         assertEquals(com.kryll.homefit.domain.ReminderDecision.SHOW, Planning.decide(p, 1, to, false, listOf("SCHEDULED")))
         assertEquals(com.kryll.homefit.domain.ReminderDecision.SKIP_DAY_SETTLED, Planning.decide(p, 1, from, false, listOf("MOVED")))
     }
+
+    @Test fun monthlyGenerationNeverFillsProfileRestDays() {
+        for (month in listOf(java.time.YearMonth.of(2028, 2), java.time.YearMonth.of(2027, 2), java.time.YearMonth.of(2026, 12))) {
+            val dates = Planning.fillPeriod(21, listOf(1L), month.atDay(1), month.plusMonths(1).atDay(1), month.atDay(1), emptySet()).map { it.date }
+            val expected = (1..month.lengthOfMonth()).map { month.atDay(it) }.filter { it.dayOfWeek.value in listOf(1, 3, 5) }
+            assertEquals(expected, dates)
+        }
+    }
 }
