@@ -16,6 +16,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.hasText
 
 import androidx.compose.ui.test.performClick
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.kryll.homefit.data.AppSettings
 import com.kryll.homefit.domain.ReminderPrefs
 import com.kryll.homefit.data.ThemeMode
@@ -66,6 +69,29 @@ class SettingsUiTest {
         rule.onNodeWithText("Volumen de los pitidos: 80 %").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Velocidad de la voz: 1,25×").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
+    }
+
+    /** Fuente grande (x1,4) en pantalla estrecha: los 3 botones de copia se reparten en líneas; ninguno se aplasta en tira vertical. */
+    @Test fun backupButtonsWrapWithLargeFont() {
+        val dark = androidx.compose.runtime.mutableStateOf(false)
+        rule.setContent {
+            HomeFitTheme(darkTheme = dark.value) {
+                CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.4f)) {
+                    SettingsScreen(AppSettings(), "1", null, null)
+                }
+            }
+        }
+        rule.onNodeWithText("Exportar copia").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Importar copia").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
+        val b = rule.onNodeWithText("Exportar entrenos (CSV)").fetchSemanticsNode().boundsInRoot
+        val w = b.right - b.left
+        org.junit.Assert.assertTrue("botón CSV aplastado: ${w}px", w > 240f)
+        capture("ajustes_copia_light")
+        rule.runOnIdle { dark.value = true }
+        rule.onNodeWithText("Importar copia").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Exportar entrenos (CSV)").performScrollTo().assertIsDisplayed()
+        capture("ajustes_copia_dark")
     }
 
     @Test fun settingChangesAreEmittedAndApplied() {

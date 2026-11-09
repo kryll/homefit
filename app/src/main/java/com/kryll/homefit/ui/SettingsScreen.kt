@@ -40,6 +40,7 @@ import java.util.Locale
 data class ImportSummary(val routines: Int, val workouts: Int, val scheduled: Int, val measurements: Int)
 
 @Composable
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 fun SettingsScreen(
     settings: AppSettings,
     versionName: String,
@@ -212,7 +213,9 @@ fun SettingsScreen(
 
         Section(R.string.settings_backup) {
             Text(stringResource(R.string.settings_backup_note), style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // FlowRow: en pantallas estrechas o fuentes grandes los botones pasan a otra línea
+            // en lugar de aplastar el último en una tira vertical.
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onExport) { Text(stringResource(R.string.backup_export)) }
                 OutlinedButton(onImport) { Text(stringResource(R.string.backup_import)) }
                 OutlinedButton(onExportWorkouts) { Text(stringResource(R.string.backup_export_workouts_csv)) }
