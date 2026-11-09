@@ -171,6 +171,8 @@ fun PlanScreen(
                     OutlinedButton({ onClear(weekStart) }) { Text(stringResource(R.string.plan_clear)) }
                 }
                 Text(stringResource(R.string.calendar_auto_hint, dayLabel(weekStart), dayLabel(weekEnd)), style = MaterialTheme.typography.bodySmall)
+                if (daysMask == 0 && message != stringResource(R.string.plan_no_training_days)) Text(stringResource(R.string.plan_no_training_days), style = MaterialTheme.typography.bodySmall)
+                message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
                 if (routines.isEmpty()) Text(stringResource(R.string.plan_no_routines), style = MaterialTheme.typography.bodySmall)
             }
         }
